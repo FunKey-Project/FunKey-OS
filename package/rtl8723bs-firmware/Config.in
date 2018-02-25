@@ -1,0 +1,10 @@
+config BR2_PACKAGE_RTL8723BS_FIRMWARE
+	bool "rtl8723bs-firmware"
+	depends on BR2_LINUX_KERNEL
+	help
+	  rtl8723bs wifi driver
+
+	  https://github.com/hadess/rtl8723bs
+
+comment "This package only contains the binary firmware for the RTL8723BS Wi-Fi chip, as the driver itself is now in linux staging"
+	depends on !BR2_LINUX_KERNEL

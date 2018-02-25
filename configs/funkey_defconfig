@@ -1,0 +1,96 @@
+# Target options
+BR2_arm=y
+BR2_cortex_a7=y
+# Check if VFPv4 is using 16 bit (default) or 32 bit registers
+#BR2_ARM_FPU_VFPV4=y
+
+# Build options
+BR2_DL_DIR="$(BR2_EXTERNAL_FUNKEY_PATH)/dl"
+BR2_GLOBAL_PATCH_DIR="$(BR2_EXTERNAL_FUNKEY_PATH)/board/funkey/patches"
+
+# Toolchain
+# External Linaro ARM 2017.11 toolchain
+BR2_TOOLCHAIN_EXTERNAL=y
+
+# System configuration
+BR2_TARGET_GENERIC_HOSTNAME="licheepi-zero"
+BR2_TARGET_GENERIC_ISSUE="Welcome to Buildroot for the LicheePi Zero"
+BR2_ROOTFS_DEVICE_TABLE="$(BR2_EXTERNAL_FUNKEY_PATH)/board/funkey/device_table.txt"
+BR2_TARGET_GENERIC_ROOT_PASSWD="licheepi"
+# Run a getty (login prompt) after boot on ttyS0 @ 115200 bps
+BR2_TARGET_GENERIC_GETTY_PORT="ttyS0"
+BR2_TARGET_GENERIC_GETTY_BAUDRATE_115200=y
+# External device  users table & rootfs overlay
+BR2_ROOTFS_USERS_TABLES="$(BR2_EXTERNAL_FUNKEY_PATH)/board/funkey/users_table.txt"
+BR2_ROOTFS_OVERLAY="$(BR2_EXTERNAL_FUNKEY_PATH)/board/funkey/rootfs-overlay"
+# Custom scripts for image creation
+BR2_ROOTFS_POST_BUILD_SCRIPT="$(BR2_EXTERNAL_FUNKEY_PATH)/board/funkey/post-build.sh"
+BR2_ROOTFS_POST_IMAGE_SCRIPT="$(BR2_EXTERNAL_FUNKEY_PATH)/board/funkey/post-image.sh"
+
+# Kernel
+# Custom 4.14.14 kernel based on stable linux.4.14.y from Lichee-Pi Github repository
+BR2_LINUX_KERNEL=y
+BR2_LINUX_KERNEL_CUSTOM_GIT=y
+BR2_LINUX_KERNEL_CUSTOM_REPO_URL="https://github.com/Lichee-Pi/linux"
+BR2_LINUX_KERNEL_CUSTOM_REPO_VERSION="zero-4.14.y"
+# Path for Funkey: disable Ethernet MAC, custom LCD init commands
+BR2_LINUX_KERNEL_PATCH="0001-disable-ethernet.patch 0002-enable-st7789v-lcd.patch 0003-disable-simplefb_lcd.patch 0004-fb_st7789v-saef-sf-tc154b-8377a-n.patch"
+# Custom kernel configuration
+BR2_LINUX_KERNEL_USE_CUSTOM_CONFIG=y
+BR2_LINUX_KERNEL_CUSTOM_CONFIG_FILE="$(BR2_EXTERNAL_FUNKEY_PATH)/board/funkey/linux.config"
+# AllWinner DTS
+BR2_LINUX_KERNEL_DTS_SUPPORT=y
+BR2_LINUX_KERNEL_INTREE_DTS_NAME="sun8i-v3s-licheepi-zero sun8i-v3s-licheepi-zero-dock"
+
+# Target packages
+
+# Custom BusyBox configuration
+BR2_PACKAGE_BUSYBOX_CONFIG="$(BR2_EXTERNAL_FUNKEY_PATH)/board/funkey/busybox.config"
+
+# SDL package for Retro games
+BR2_PACKAGE_SDL=y
+BR2_PACKAGE_SDL_GFX=y
+BR2_PACKAGE_SDL_IMAGE=y
+BR2_PACKAGE_SDL_MIXER=y
+BR2_PACKAGE_SDL_SOUND=y
+BR2_PACKAGE_SDL_SOUND_PLAYSOUND=y
+BR2_PACKAGE_SDL_TTF=y
+
+# Dhcpcd package DHCP client for Wi-Fi
+BR2_PACKAGE_DHCPCD=y
+
+# WPA_supplicant package for Wi-Fi Authentication
+BR2_PACKAGE_WPA_SUPPLICANT=y
+BR2_PACKAGE_WPA_SUPPLICANT_AUTOSCAN=y
+BR2_PACKAGE_WPA_SUPPLICANT_PASSPHRASE=y
+
+# Nano text editor package
+BR2_PACKAGE_NANO=y
+
+# Filesystem images
+BR2_TARGET_ROOTFS_EXT2=y
+BR2_TARGET_ROOTFS_EXT2_4=y
+# BR2_TARGET_ROOTFS_TAR is not set
+
+# Bootloaders
+# Custom U-Boot from Lichee-Pi Github repository
+BR2_TARGET_UBOOT=y
+BR2_TARGET_UBOOT_BUILD_SYSTEM_KCONFIG=y
+BR2_TARGET_UBOOT_CUSTOM_GIT=y
+BR2_TARGET_UBOOT_CUSTOM_REPO_URL="https://github.com/Lichee-Pi/u-boot"
+BR2_TARGET_UBOOT_CUSTOM_REPO_VERSION="v3s-current"
+BR2_TARGET_UBOOT_USE_CUSTOM_CONFIG=y
+BR2_TARGET_UBOOT_CUSTOM_CONFIG_FILE="$(BR2_EXTERNAL_FUNKEY_PATH)/board/funkey/uboot.config"
+BR2_TARGET_UBOOT_FORMAT_CUSTOM=y
+BR2_TARGET_UBOOT_FORMAT_CUSTOM_NAME="u-boot-sunxi-with-spl.bin"
+
+# Host utilities
+# Required host utilities for building an SDCard image
+BR2_PACKAGE_HOST_DOSFSTOOLS=y
+BR2_PACKAGE_HOST_GENIMAGE=y
+BR2_PACKAGE_HOST_MTOOLS=y
+BR2_PACKAGE_HOST_UBOOT_TOOLS=y
+
+# External options
+# RTL8723BS firmware
+BR2_PACKAGE_RTL8723BS_FIRMWARE=y

@@ -1,0 +1,74 @@
+ fb_st7789v.c |   34 ++++++++++++++++++++++++++++++++--
+ 1 file changed, 32 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/staging/fbtft/fb_st7789v.c b/drivers/staging/fbtft/fb_st7789v.c
+index a5d7c87..69f52af 100644
+--- a/drivers/staging/fbtft/fb_st7789v.c
++++ b/drivers/staging/fbtft/fb_st7789v.c
+@@ -86,6 +86,28 @@ enum st7789v_command {
+ static int init_display(struct fbtft_par *par)
+ {
+ 	/* turn off sleep mode */
++	/*write_reg(par, 0x11);
++	mdelay(120);
++
++	write_reg(par, 0x36, 0x00);
++	write_reg(par, 0x3A, 0x05);
++
++	write_reg(par, 0xB2,0x0C,0x0C,0x00,0x33,0x33);
++	write_reg(par, 0xB7,0x35);
++	write_reg(par, 0xBB,0x1A);
++	write_reg(par, 0xC0,0x2C);
++	write_reg(par, 0xC2,0x01);
++	write_reg(par, 0xC3,0x0B);
++	write_reg(par, 0xC4,0x20);
++	write_reg(par, 0xC6,0x0F);
++	write_reg(par, 0xD0,0xA4,0xA1);
++	write_reg(par, 0x21);
++	write_reg(par, 0xE0,0x00,0x19,0x1E,0x0A,0x09,0x15,0x3D,0x44,0x51,0x12,0x03,0x00,0x3F,0x3F);
++	write_reg(par, 0xE1,0x00,0x18,0x1E,0x0A,0x09,0x25,0x3F,0x43,0x52,0x33,0x03,0x00,0x3F,0x3F);
++	write_reg(par, 0x29);*/
++
++	
++	/* turn off sleep mode */
+ 	write_reg(par, MIPI_DCS_EXIT_SLEEP_MODE);
+ 	mdelay(120);
+ 
+@@ -128,7 +150,14 @@ static int init_display(struct fbtft_par *par)
+ 	 */
+ 	write_reg(par, PWCTRL1, 0xA4, 0xA1);
+ 
++	/* Ystart at 80 , Yend at 240 */
++	write_reg(par, 0x2B, 0x00, 0x50, 0x00, 0xF0);
++
++	/* Display Inversion of colors */
++	write_reg(par, 0x21);
++
+ 	write_reg(par, MIPI_DCS_SET_DISPLAY_ON);
++
+ 	return 0;
+ }
+ 
+@@ -189,7 +218,7 @@ static int set_gamma(struct fbtft_par *par, u32 *curves)
+ 	 * The masks are the same for both positive and negative voltage
+ 	 * gamma curves.
+ 	 */
+-	static const u8 gamma_par_mask[] = {
++	const u8 gamma_par_mask[] = {
+ 		0xFF, /* V63[3:0], V0[3:0]*/
+ 		0x3F, /* V1[5:0] */
+ 		0x3F, /* V2[5:0] */
+@@ -241,7 +270,7 @@ static int blank(struct fbtft_par *par, bool on)
+ static struct fbtft_display display = {
+ 	.regwidth = 8,
+ 	.width = 240,
+-	.height = 320,
++	.height = 240,
+ 	.gamma_num = 2,
+ 	.gamma_len = 14,
+ 	.gamma = DEFAULT_GAMMA,
+@@ -263,3 +292,4 @@ MODULE_ALIAS("platform:st7789v");
+ MODULE_DESCRIPTION("FB driver for the ST7789V LCD Controller");
+ MODULE_AUTHOR("Dennis Menschel");
+ MODULE_LICENSE("GPL");
++
