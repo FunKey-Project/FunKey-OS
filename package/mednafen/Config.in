@@ -1,0 +1,24 @@
+config BR2_PACKAGE_MEDNAFEN
+	bool "mednafen"
+	help
+	  The mednafen game engine.
+
+	  https://mednafen.github.io/
+
+if BR2_PACKAGE_MEDNAFEN
+
+config BR2_PACKAGE_MEDNAFEN_FAST
+	bool "optimise for speed over accuracy"
+	default y
+	help
+	  Optimise for fast math functions, at the expense of accuracy.
+
+	  Say 'y' if you need speed and can live with inaccuracies in
+	  the results. Say 'n' (the default) if accuracy is of utmost
+	  importance.
+
+	  This basically uses gcc's -Ofast optimisation level, which in
+	  turn is basically using gcc's -ffast-math. See the gcc manual
+	  for what this means.
+
+endif
