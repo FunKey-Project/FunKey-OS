@@ -1,0 +1,45 @@
+#!/bin/sh
+
+#set -x
+
+THIS=$(basename $0)
+
+if [ $(id -u) -ne 0 ]; then
+  echo "This script must be run as root. Try 'sudo activate_wifi <SSID> <password>'" >&2
+  exit 1
+fi
+
+if [ $# -ne 2 ]; then
+  echo "Usage: ${0} <SSID> <password>" >&2
+  exit 2
+fi
+
+SSID=${1}
+PASSWORD=${2}
+
+cat <<EOF > /etc/wpa_supplicant.conf
+ctrl_interface=/var/run/wpa_supplicant
+ctrl_interface_group=0
+ap_scan=1
+network={
+	ssid="$SSID"
+	psk="$PASSWORD"
+	scan_ssid=1
+	key_mgmt=WPA-EAP WPA-PSK IEEE8021X NONE
+	pairwise=TKIP CCMP
+	group=CCMP TKIP WEP104 WEP40
+	priority=5
+}
+EOF
+
+egrep '^iface wlan0' /etc/network/interfaces
+if [ $? -ne 0 ]; then
+    cat <<EOF >>/etc/network/interfaces
+
+auto wlan0
+iface wlan0 inet dhcp
+      pre-up wpa_supplicant -Dnl80211 -i wlan0 -c /etc/wpa_supplicant.conf -B
+      post-down killall -q wpa_supplicant
+EOF
+fi
+ifup wlan0

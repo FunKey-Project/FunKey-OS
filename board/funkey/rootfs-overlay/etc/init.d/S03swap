@@ -1,0 +1,54 @@
+#!/bin/sh
+
+THIS=$(basename $0)
+
+case "$1" in
+    start)
+	if [ ! -f /swap ]; then
+	    ROOT_PART=$(df | grep /dev/root)
+	    set $ROOT_PART
+	    let LEFT="$4 * 1024"
+	    if [ $LEFT -lt 134217728 ]; then
+		echo "$THIS: not enough free space for swap file found, aborting" | tee /dev/kmsg
+		exit 1
+	    fi
+	    echo "$THIS: no swap file found, creating it" | tee /dev/kmsg &&
+		dd if=/dev/zero of=/swap bs=1M count=128 &&
+		mkswap /swap &&
+		chmod 0600 /swap
+	    if [ $? -eq 0 ]; then
+		echo "$THIS: created swap file" | tee /dev/kmsg
+	    else
+		echo "$THIS: cannot create swap file, aborting" | tee /dev/kmsg
+		rm /swap
+	    	exit 2
+	    fi
+	fi
+	echo "$THIS: enabling swap file" | tee /dev/kmsg &&
+	swapon -a
+	if [ $? -eq 0 ]; then
+	    echo "$THIS: swap file enabled" | tee /dev/kmsg
+	else
+	    echo "$THIS: cannot enable swap file, aborting" | tee /dev/kmsg
+	    exit 3
+	fi
+	;;
+    stop)
+	echo "$THIS: disabling swap file" | tee /dev/kmsg &&
+	swapoff -a
+	if [ $? -eq 0 ]; then
+	    echo "$THIS: swap file disabled" | tee /dev/kmsg
+	else
+	    echo "$THIS: cannot disable swap file, aborting" | tee /dev/kmsg
+	    exit 4
+	fi
+	;;
+    restart|reload)
+	"$0" stop
+	"$0" start
+	;;
+    *)
+	echo "Usage: $0 {start|stop|restart|reload}" >&2
+	exit 5
+	;;
+esac

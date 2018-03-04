@@ -1,9 +1,0 @@
-auto lo
-iface lo inet loopback
-
-auto wlan0
-iface wlan0 inet dhcp
-      wireless-essid "SSID"
-      wireless-key "password"
-      pre-up wpa_supplicant -Dnl80211 -i wlan0 -c /etc/wpa_supplicant.conf -B
-      post-down killall -q wpa_supplicant

@@ -47,6 +47,10 @@ BR2_LINUX_KERNEL_INTREE_DTS_NAME="sun8i-v3s-licheepi-zero sun8i-v3s-licheepi-zer
 # Custom BusyBox configuration
 BR2_PACKAGE_BUSYBOX_CONFIG="$(BR2_EXTERNAL_FUNKEY_PATH)/board/funkey/busybox.config"
 
+# E2fsprog package for e2fsck and resize2fs
+BR2_PACKAGE_E2FSPROGS=y
+BR2_PACKAGE_E2FSPROGS_RESIZE2FS=y
+
 # SDL package for Retro games
 BR2_PACKAGE_SDL=y
 BR2_PACKAGE_SDL_GFX=y
@@ -66,6 +70,9 @@ BR2_PACKAGE_DHCPCD=y
 BR2_PACKAGE_WPA_SUPPLICANT=y
 BR2_PACKAGE_WPA_SUPPLICANT_AUTOSCAN=y
 BR2_PACKAGE_WPA_SUPPLICANT_PASSPHRASE=y
+
+# Util-linux package for fdisk
+BR2_PACKAGE_UTIL_LINUX_BINARIES=y
 
 # Nano text editor package
 BR2_PACKAGE_NANO=y
