@@ -49,6 +49,7 @@ BR2_PACKAGE_BUSYBOX_CONFIG="$(BR2_EXTERNAL_FUNKEY_PATH)/board/funkey/busybox.con
 
 # E2fsprog package for e2fsck and resize2fs
 BR2_PACKAGE_E2FSPROGS=y
+# BR2_PACKAGE_E2FSPROGS_FSCK is not set
 BR2_PACKAGE_E2FSPROGS_RESIZE2FS=y
 
 # SDL package for Retro games
