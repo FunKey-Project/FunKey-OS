@@ -1,0 +1,209 @@
+#!/bin/sh
+#
+# alsa-utils initscript
+#
+### BEGIN INIT INFO
+# Provides:          alsa-utils
+# Required-Start:    $local_fs $remote_fs
+# Required-Stop:     $remote_fs
+# Default-Start:     S
+# Default-Stop:      0 1 6
+# Short-Description: Restore and store ALSA driver settings
+# Description:       This script stores and restores mixer levels on
+#                    shutdown and bootup.On sysv-rc systems: to
+#                    disable storing of mixer levels on shutdown,
+#                    remove /etc/rc[06].d/K50alsa-utils.  To disable
+#                    restoring of mixer levels on bootup, rename the
+#                    "S50alsa-utils" symbolic link in /etc/rcS.d/ to
+#                    "K50alsa-utils".
+### END INIT INFO
+
+# Don't use set -e; check exit status instead
+
+# Exit silently if package is no longer installed
+[ -x /usr/sbin/alsactl ] || exit 0
+
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+MYNAME=/etc/init.d/alsa-utils
+ALSACTLHOME=/run/alsa
+
+[ -d "$ALSACTLHOME" ] || mkdir -p "$ALSACTLHOME"
+
+. /lib/lsb/init-functions
+. /usr/share/alsa/utils.sh
+
+# $1 EXITSTATUS
+# [$2 MESSAGE]
+log_action_end_msg_and_exit()
+{
+	log_action_end_msg "$1" ${2:+"$2"}
+	exit $1
+}
+
+# $1 PROGRAM
+executable()
+{
+	# If which is not available then we must be running before
+	# /usr is mounted on a system that has which in /usr/bin/.
+	# Conclude that $1 is not executable.
+	[ -x /bin/which ] || [ -x /usr/bin/which ] || return 1
+	which "$1" >/dev/null 2>&1
+}
+
+executable amixer || { echo "${MYNAME}: Error: No amixer program available." >&2 ; exit 1 ; }
+
+# $1 <card ID> | "all"
+restore_levels()
+{
+	[ -f /var/lib/alsa/asound.state ] || return 1
+	CARD="$1"
+	[ "$1" = all ] && CARD=""
+	# Assume that if alsactl prints a message on stderr
+	# then it failed somehow.  This works around the fact
+	# that alsactl doesn't return nonzero status when it
+	# can't restore settings for the card
+	if MSG="$(alsactl -E HOME="$ALSACTLHOME" restore $CARD 2>&1 >/dev/null)" && [ ! "$MSG" ] ; then
+		return 0
+	else
+		# Retry with the "force" option.  This restores more levels
+		# but it results in much longer error messages.
+		alsactl -F restore $CARD >/dev/null 2>&1
+		log_action_cont_msg "warning: 'alsactl -E HOME="$ALSACTLHOME" restore${CARD:+ $CARD}' failed with error message '$MSG'"
+		return 1
+	fi
+}
+
+# $1 <card ID> | "all"
+store_levels()
+{
+	CARD="$1"
+	[ "$1" = all ] && CARD=""
+	if MSG="$(alsactl -E HOME="$ALSACTLHOME" store $CARD 2>&1)" ; then
+		sleep 1
+		return 0
+	else
+		log_action_cont_msg "warning: 'alsactl store${CARD:+ $CARD}' failed with error message '$MSG'"
+		return 1
+	fi
+}
+
+
+# $1 <card ID>
+mute_and_zero_levels_on_card()
+{
+	CARDOPT="-c $1"
+	for CTL in \
+		Master \
+		PCM \
+		Synth \
+		CD \
+		Line \
+		Mic \
+		"PCM,1" \
+		Wave \
+		Music \
+		AC97 \
+		"Master Digital" \
+		DAC \
+		"DAC,0" \
+		"DAC,1" \
+		Headphone \
+		Speaker \
+		Playback
+	do
+		mute_and_zero_level "$CTL"
+	done
+#	for CTL in \
+#		"Audigy Analog/Digital Output Jack" \
+#		"SB Live Analog/Digital Output Jack"
+#	do
+#		switch_control "$CTL" off
+#	done
+	return 0
+}
+
+# $1 <card ID> | "all"
+mute_and_zero_levels()
+{
+	TTZML_RETURNSTATUS=0
+	case "$1" in
+	  all)
+		for CARD in $(echo_card_indices) ; do
+			mute_and_zero_levels_on_card "$CARD" || TTZML_RETURNSTATUS=1
+		done
+		;;
+	  *)
+		mute_and_zero_levels_on_card "$1" || TTZML_RETURNSTATUS=1
+		;;
+	esac
+	return $TTZML_RETURNSTATUS
+}
+
+
+# $1 <card ID> | "all"
+card_OK()
+{
+	[ "$1" ] || bugout
+	if [ "$1" = all ] ; then
+		[ -d /proc/asound ]
+		return $?
+	else
+		[ -d "/proc/asound/card$1" ] || [ -d "/proc/asound/$1" ]
+		return $?
+	fi
+}
+
+# If a card identifier is provided in $2 then regard it as an error
+# if that card is not present; otherwise don't regard it as an error.
+
+case "$1" in
+  start)
+	EXITSTATUS=0
+	TARGET_CARD="$2"
+	case "$TARGET_CARD" in
+	  ""|all) TARGET_CARD=all ; log_action_begin_msg "Setting up ALSA" ;;
+	  *) log_action_begin_msg "Setting up ALSA card ${TARGET_CARD}" ;;
+	esac
+	card_OK "$TARGET_CARD" || log_action_end_msg_and_exit "$( [ ! "$2" ] ; echo $? ; )" "none loaded"
+	preinit_levels "$TARGET_CARD" || EXITSTATUS=1
+	if ! restore_levels "$TARGET_CARD" ; then
+		sanify_levels "$TARGET_CARD" || EXITSTATUS=1
+		restore_levels "$TARGET_CARD" >/dev/null 2>&1 || :
+	fi
+	log_action_end_msg_and_exit "$EXITSTATUS"
+	;;
+  stop)
+	EXITSTATUS=0
+	TARGET_CARD="$2"
+	case "$TARGET_CARD" in
+	  ""|all) TARGET_CARD=all ; log_action_begin_msg "Shutting down ALSA" ;;
+	  *) log_action_begin_msg "Shutting down ALSA card ${TARGET_CARD}" ;;
+	esac
+	card_OK "$TARGET_CARD" || log_action_end_msg_and_exit "$( [ ! "$2" ] ; echo $? ; )" "none loaded"
+	store_levels "$TARGET_CARD" || EXITSTATUS=1
+	#mute_and_zero_levels "$TARGET_CARD" || EXITSTATUS=1
+	log_action_end_msg_and_exit "$EXITSTATUS"
+	;;
+  restart|force-reload)
+	EXITSTATUS=0
+	$0 stop || EXITSTATUS=1
+	$0 start || EXITSTATUS=1
+	exit $EXITSTATUS
+	;;
+  reset)
+	TARGET_CARD="$2"
+	case "$TARGET_CARD" in
+	  ""|all) TARGET_CARD=all ; log_action_begin_msg "Resetting ALSA" ;;
+	  *) log_action_begin_msg "Resetting ALSA card ${TARGET_CARD}" ;;
+	esac
+	card_OK "$TARGET_CARD" || log_action_end_msg_and_exit "$( [ ! "$2" ] ; echo $? ; )" "none loaded"
+	preinit_levels "$TARGET_CARD"
+	sanify_levels "$TARGET_CARD"
+	log_action_end_msg_and_exit "$?"
+	;;
+  *)
+	echo "Usage: $MYNAME {start [CARD]|stop [CARD]|restart [CARD]|reset [CARD]}" >&2
+	exit 3
+	;;
+esac
+
