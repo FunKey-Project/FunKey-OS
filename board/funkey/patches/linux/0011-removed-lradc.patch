@@ -1,0 +1,32 @@
+From a41e4bef4c48ef310617f7ca3a05d6ced241ab26 Mon Sep 17 00:00:00 2001
+From: Michel Stempin <michel.stempin@wanadoo.fr>
+Date: Tue, 19 Mar 2019 22:54:24 +0100
+Subject: [PATCH 6/9] removed lradc
+
+Signed-off-by: Michel Stempin <michel.stempin@wanadoo.fr>
+---
+ arch/arm/boot/dts/sun8i-v3s-licheepi-zero-dock.dts | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/boot/dts/sun8i-v3s-licheepi-zero-dock.dts b/arch/arm/boot/dts/sun8i-v3s-licheepi-zero-dock.dts
+index 94657bd..71a8fea 100644
+--- a/arch/arm/boot/dts/sun8i-v3s-licheepi-zero-dock.dts
++++ b/arch/arm/boot/dts/sun8i-v3s-licheepi-zero-dock.dts
+@@ -85,7 +85,7 @@
+         status = "okay";
+ };
+ 
+-&lradc {
++/*&lradc {
+ 	vref-supply = <&reg_vcc3v0>;
+ 	status = "okay";
+ 
+@@ -116,4 +116,4 @@
+ 		channel = <0>;
+ 		voltage = <800000>;
+ 	};
+-};
++};*/
+-- 
+2.7.4
+

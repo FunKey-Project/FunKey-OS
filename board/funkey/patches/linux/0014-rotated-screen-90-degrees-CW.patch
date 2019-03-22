@@ -1,0 +1,80 @@
+From 538e97d56bae968580ac046389243383b7559ab9 Mon Sep 17 00:00:00 2001
+From: Michel Stempin <michel.stempin@wanadoo.fr>
+Date: Tue, 19 Mar 2019 22:26:56 +0100
+Subject: [PATCH 9/9] rotated screen 90 degrees CW
+
+Signed-off-by: Michel Stempin <michel.stempin@wanadoo.fr>
+---
+ arch/arm/boot/dts/sun8i-v3s-licheepi-zero.dts |  2 +-
+ drivers/staging/fbtft/fb_st7789v.c            | 13 ++++++++++---
+ drivers/staging/fbtft/fbtft-core.c            |  8 +++++++-
+ 3 files changed, 18 insertions(+), 5 deletions(-)
+
+diff --git a/arch/arm/boot/dts/sun8i-v3s-licheepi-zero.dts b/arch/arm/boot/dts/sun8i-v3s-licheepi-zero.dts
+index 9d3b27f..7bf06ab 100644
+--- a/arch/arm/boot/dts/sun8i-v3s-licheepi-zero.dts
++++ b/arch/arm/boot/dts/sun8i-v3s-licheepi-zero.dts
+@@ -135,7 +135,7 @@
+ 
+                spi-max-frequency = <40000000>;
+                txbuflen = <115200>;
+-               rotate = <0>;
++               rotate = <90>;
+                fps = <42>;
+                buswidth = <8>;
+                reset-gpios = <&pio 4 1 GPIO_ACTIVE_LOW>;	//PE1
+diff --git a/drivers/staging/fbtft/fb_st7789v.c b/drivers/staging/fbtft/fb_st7789v.c
+index 69f52af..e966993 100644
+--- a/drivers/staging/fbtft/fb_st7789v.c
++++ b/drivers/staging/fbtft/fb_st7789v.c
+@@ -150,9 +150,6 @@ static int init_display(struct fbtft_par *par)
+ 	 */
+ 	write_reg(par, PWCTRL1, 0xA4, 0xA1);
+ 
+-	/* Ystart at 80 , Yend at 240 */
+-	write_reg(par, 0x2B, 0x00, 0x50, 0x00, 0xF0);
+-
+ 	/* Display Inversion of colors */
+ 	write_reg(par, 0x21);
+ 
+@@ -190,6 +187,16 @@ static int set_var(struct fbtft_par *par)
+ 		return -EINVAL;
+ 	}
+ 	write_reg(par, MIPI_DCS_SET_ADDRESS_MODE, madctl_par);
++
++	// All offset operations are done after in fbtft_set_addr_win, not here
++	/* Ystart at 0 , Yend at 239 */
++	//write_reg(par, 0x2B, 0x00, 0x50, 0x00, 0xEF);
++	write_reg(par, 0x2B, 0x00, 0x00, 0x00, 0xEF);
++	//write_reg(par, 0x2B, 0x00, 0x50, 0x01, 0x3F);
++	/* Xstart at 80 , Xend at 319 */
++	write_reg(par, 0x2A, 0x00, 0x50, 0x01, 0x3F);
++	//write_reg(par, 0x2A, 0x00, 0x50, 0x00, 0xEF);
++
+ 	return 0;
+ }
+ 
+diff --git a/drivers/staging/fbtft/fbtft-core.c b/drivers/staging/fbtft/fbtft-core.c
+index 6d0363d..fbb0934 100644
+--- a/drivers/staging/fbtft/fbtft-core.c
++++ b/drivers/staging/fbtft/fbtft-core.c
+@@ -391,9 +391,15 @@ static void fbtft_update_display(struct fbtft_par *par, unsigned int start_line,
+ 	fbtft_par_dbg(DEBUG_UPDATE_DISPLAY, par, "%s(start_line=%u, end_line=%u)\n",
+ 		      __func__, start_line, end_line);
+ 
+-	if (par->fbtftops.set_addr_win)
++	// Carefull removing this. this will work only if the full screen is updated at once
++	/*if (par->fbtftops.set_addr_win){
+ 		par->fbtftops.set_addr_win(par, 0, start_line,
+ 				par->info->var.xres - 1, end_line);
++	}*/
++	if (par->fbtftops.set_addr_win){
++		par->fbtftops.set_addr_win(par, 80, start_line,
++				320 - 1, end_line);
++	}
+ 
+ 	offset = start_line * par->info->fix.line_length;
+ 	len = (end_line - start_line + 1) * par->info->fix.line_length;
+-- 
+2.7.4
+

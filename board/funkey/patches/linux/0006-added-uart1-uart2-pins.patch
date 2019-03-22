@@ -1,0 +1,52 @@
+From 700384f1f3c204fa989fddd0ae73c2ebe76483a3 Mon Sep 17 00:00:00 2001
+From: Michel Stempin <michel.stempin@wanadoo.fr>
+Date: Tue, 19 Mar 2019 22:33:32 +0100
+Subject: [PATCH 1/9] added uart1 & uart2 pins
+
+Signed-off-by: Michel Stempin <michel.stempin@wanadoo.fr>
+---
+ arch/arm/boot/dts/sun8i-v3s-licheepi-zero.dts |  6 ++++++
+ arch/arm/boot/dts/sun8i-v3s.dtsi              | 10 ++++++++++
+ 2 files changed, 16 insertions(+)
+
+diff --git a/arch/arm/boot/dts/sun8i-v3s-licheepi-zero.dts b/arch/arm/boot/dts/sun8i-v3s-licheepi-zero.dts
+index b6f3430..18e9503 100644
+--- a/arch/arm/boot/dts/sun8i-v3s-licheepi-zero.dts
++++ b/arch/arm/boot/dts/sun8i-v3s-licheepi-zero.dts
+@@ -109,6 +109,12 @@
+ 	status = "okay";
+ };
+ 
++/*&uart2 {
++	pinctrl-0 = <&uart2_pins_a>;
++	pinctrl-names = "default";
++	status = "okay";
++};*/
++
+ &usb_otg {
+ 	dr_mode = "otg";
+ 	status = "okay";
+diff --git a/arch/arm/boot/dts/sun8i-v3s.dtsi b/arch/arm/boot/dts/sun8i-v3s.dtsi
+index e437d3f..6708af1 100644
+--- a/arch/arm/boot/dts/sun8i-v3s.dtsi
++++ b/arch/arm/boot/dts/sun8i-v3s.dtsi
+@@ -356,6 +356,16 @@
+ 				function = "uart0";
+ 			};
+ 
++			uart1_pins_a: uart1@0 {
++				pins = "PE21", "PE22";
++				function = "uart1";
++			};
++
++			uart2_pins_a: uart2@0 {
++				pins = "PB0", "PB1";
++				function = "uart2";
++			};
++
+ 			lcd_rgb666_pins_a: lcd-rgb666-pe {
+ 				pins = "PE0", "PE1", "PE2", "PE3", "PE4", "PE5",
+ 				       "PE6", "PE7", "PE8", "PE9", "PE10", "PE11",
+-- 
+2.7.4
+
