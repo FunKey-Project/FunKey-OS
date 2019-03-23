@@ -1,7 +1,5 @@
 /*
- * Copyright 2013 Emilio López
- *
- * Emilio López <emilio@elopez.com.ar>
+ * Copyright (C) 2019 Michel Stempin <michel.stempin@wanadoo.fr>
  *
  * This file is dual-licensed: you can use it either under the terms
  * of the GPL or the X11 license, at your option. Note that this dual
@@ -43,14 +41,12 @@
  */
 
 /dts-v1/;
-#include "sun4i-a10.dtsi"
+#include "sun8i-v3s.dtsi"
 #include "sunxi-common-regulators.dtsi"
 
-#include <dt-bindings/gpio/gpio.h>
-
 / {
-	model = "Mele A1000";
-	compatible = "mele,a1000", "allwinner,sun4i-a10";
+	model = "FunKey";
+	compatible = "funkey", "allwinner,sun8i-v3s";
 
 	aliases {
 		serial0 = &uart0;
@@ -60,88 +56,28 @@
 		stdout-path = "serial0:115200n8";
 	};
 
-	leds {
-		compatible = "gpio-leds";
-		pinctrl-names = "default";
-		pinctrl-0 = <&led_pins_a1000>;
-
-		red {
-			label = "a1000:red:usr";
-			gpios = <&pio 7 10 GPIO_ACTIVE_HIGH>;
-		};
-
-		blue {
-			label = "a1000:blue:pwr";
-			gpios = <&pio 7 20 GPIO_ACTIVE_HIGH>;
-			default-state = "on";
-		};
+	backlight: backlight {
+		compatible = "pwm-backlight";
+		pwms = <&pwm 0 1000000 0>;
+		brightness-levels = <0 10 20 30 40 50 60 70 80 90 100>;
+		default-brightness-level = <100>;
 	};
-
-	reg_emac_3v3: emac-3v3 {
-		compatible = "regulator-fixed";
-		pinctrl-names = "default";
-		pinctrl-0 = <&emac_power_pin_a1000>;
-		regulator-name = "emac-3v3";
-		regulator-min-microvolt = <3300000>;
-		regulator-max-microvolt = <3300000>;
-		startup-delay-us = <20000>;
-		enable-active-high;
-		gpio = <&pio 7 15 GPIO_ACTIVE_HIGH>;
-	};
-
-	sound {
-		compatible = "simple-audio-card";
-		simple-audio-card,name = "On-board SPDIF";
-
-		simple-audio-card,cpu {
-			sound-dai = <&spdif>;
-		};
-
-		simple-audio-card,codec {
-			sound-dai = <&spdif_out>;
-		};
-	};
-
-	spdif_out: spdif-out {
-		#sound-dai-cells = <0>;
-		compatible = "linux,spdif-dit";
-	};
-};
-
-&ahci {
-	status = "okay";
 };
 
 &codec {
+	allwinner,audio-routing =
+		"Headphone", "HP",
+		"Headphone", "HPCOM",
+		"MIC1", "Mic",
+		"Mic",  "HBIAS";
 	status = "okay";
-};
-
-&cpu0 {
-	cpu-supply = <&reg_dcdc2>;
 };
 
 &ehci0 {
 	status = "okay";
 };
 
-&ehci1 {
-	status = "okay";
-};
-
-&emac {
-	pinctrl-names = "default";
-	pinctrl-0 = <&emac_pins_a>;
-	phy = <&phy1>;
-	status = "okay";
-};
-
-&emac_sram {
-	status = "okay";
-};
-
 &i2c0 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&i2c0_pins_a>;
 	status = "okay";
 
 	axp209: pmic@34 {
@@ -154,49 +90,17 @@
 	};
 };
 
-&ir0 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&ir0_rx_pins_a>;
-	status = "okay";
-};
-
-&mdio {
-	phy-supply = <&reg_emac_3v3>;
-	status = "okay";
-
-	phy1: ethernet-phy@1 {
-		reg = <1>;
-	};
-};
-
 &mmc0 {
-	pinctrl-names = "default";
 	pinctrl-0 = <&mmc0_pins_a>;
-	vmmc-supply = <&reg_vcc3v3>;
+	pinctrl-names = "default";
+	broken-cd;
 	bus-width = <4>;
-	cd-gpios = <&pio 7 1 GPIO_ACTIVE_HIGH>; /* PH1 */
-	cd-inverted;
+	vmmc-supply = <&reg_vcc3v3>;
 	status = "okay";
 };
 
 &ohci0 {
 	status = "okay";
-};
-
-&ohci1 {
-	status = "okay";
-};
-
-&pio {
-	emac_power_pin_a1000: emac_power_pin@0 {
-		pins = "PH15";
-		function = "gpio_out";
-	};
-
-	led_pins_a1000: led_pins@0 {
-		pins = "PH10", "PH20";
-		function = "gpio_out";
-	};
 };
 
 #include "axp209.dtsi"
@@ -205,49 +109,55 @@
 	regulator-always-on;
 	regulator-min-microvolt = <1000000>;
 	regulator-max-microvolt = <1400000>;
-	regulator-name = "vdd-cpu";
+	regulator-name = "vdd-cpu-sys-ephy";
 };
 
 &reg_dcdc3 {
 	regulator-always-on;
-	regulator-min-microvolt = <1000000>;
-	regulator-max-microvolt = <1250000>;
-	regulator-name = "vdd-int-dll";
+	regulator-min-microvolt = <3000000>;
+	regulator-max-microvolt = <3450000>;
+	regulator-name = "vcc-io-ephy-mcsi-usb";
 };
 
 &reg_ldo1 {
-	regulator-name = "vdd-rtc";
+	regulator-min-microvolt = <3000000>;
+	regulator-max-microvolt = <3600000>;
+	regulator-name = "vcc-rtc";
 };
 
 &reg_ldo2 {
 	regulator-always-on;
-	regulator-min-microvolt = <3000000>;
-	regulator-max-microvolt = <3000000>;
-	regulator-name = "avcc";
+	regulator-min-microvolt = <2800000>;
+	regulator-max-microvolt = <3300000>;
+	regulator-name = "avcc-pll";
 };
 
-&reg_usb1_vbus {
-	status = "okay";
-};
+&spi0 {
+       status = "okay";
 
-&reg_usb2_vbus {
-	status = "okay";
-};
+       st7789v@0 {
+               compatible = "sitronix,st7789v";
+               reg = <0>;
 
-&spdif {
-	pinctrl-names = "default";
-	pinctrl-0 = <&spdif_tx_pins_a>;
-	status = "okay";
+               spi-max-frequency = <40000000>;
+               txbuflen = <115200>;
+               rotate = <90>;
+               fps = <42>;
+               buswidth = <8>;
+               reset-gpios = <&pio 4 1 GPIO_ACTIVE_LOW>;	//PE1
+               dc-gpios = <&pio 2 0 GPIO_ACTIVE_LOW>;		//PC0 (MISO)
+               debug = <0>;
+       };
 };
 
 &uart0 {
-	pinctrl-names = "default";
 	pinctrl-0 = <&uart0_pins_a>;
+	pinctrl-names = "default";
 	status = "okay";
 };
 
-&usbphy {
-	usb1_vbus-supply = <&reg_usb1_vbus>;
-	usb2_vbus-supply = <&reg_usb2_vbus>;
-	status = "okay";
+&pwm {
+        pinctrl-names = "default";
+        pinctrl-0 = <&pwm0_pins>;
+        status = "okay";
 };
