@@ -1,0 +1,1 @@
+source "$BR2_EXTERNAL_FUNKEY_PATH/package/mednafen/Config.in"

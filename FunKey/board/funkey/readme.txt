@@ -3,8 +3,8 @@
 Intro
 =====
 
-This directory contains a buildroot configuration for building a
-FunKey OS.
+This directory contains a buildroot-based external configuration for
+building the FunKey.
 
 How to build it
 ===============
@@ -14,7 +14,7 @@ Configure Buildroot
 
 There is only one FunKey defconfig files in Buildroot:
 
-  $ make funkey_defconfig
+  $ ./fun funkey_defconfig
 
 Build the rootfs
 ----------------
@@ -22,9 +22,9 @@ Build the rootfs
 Note: you will need to have access to the network, since Buildroot
 will download the packages' sources.
 
-You may now build your rootfs with:
+You may now build your FunKey with:
 
-  $ make
+  $ ./have fun
 
 (This may take a while, consider getting yourself a coffee ;-) )
 
@@ -33,7 +33,7 @@ Result of the build
 
 After building, you should obtain this tree:
 
-    output/images/
+    FunKey/output/images/
     +-- boot.scr
     +-- boot.vfat
     +-- rootfs.ext2
@@ -49,11 +49,11 @@ How to write the SD card
 ========================
 
 Once the build process is finished you will have an image called
-"sdcard.img" in the output/images/ directory.
+"sdcard.img" in the FunKey/output/images/ directory.
 
 Copy the bootable "sdcard.img" onto an SD card with "dd":
 
-  $ sudo dd if=output/images/sdcard.img of=/dev/sdX
+  $ sudo dd if=<FunKey directory>/FunKey/output/images/sdcard.img of=/dev/sdX
 
 Alternatively, you can use the Etcher graphical tool to burn the image
 to the SD card safely and on any platform:
