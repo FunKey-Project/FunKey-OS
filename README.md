@@ -6,6 +6,18 @@ Intro
 This directory contains a buildroot-based external configuration for
 building the FunKey.
 
+How to get it
+===============
+
+Clone the FunKey OS repository and the required submodules from
+BitBucket:
+
+  $ git clone --recurse-submodules git@bitbucket.org:keymu2/funkey-os.git <Funkey directory>
+
+Then enter into the created directory:
+
+  $ cd <Funkey directory>
+
 How to build it
 ===============
 
