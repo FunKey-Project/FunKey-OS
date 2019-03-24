@@ -10,19 +10,6 @@ Signed-off-by: Michel Stempin <michel.stempin@wanadoo.fr>
  drivers/staging/fbtft/fbtft-core.c            |  8 +++++++-
  3 files changed, 18 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm/boot/dts/sun8i-v3s-licheepi-zero.dts b/arch/arm/boot/dts/sun8i-v3s-licheepi-zero.dts
-index 9d3b27f..7bf06ab 100644
---- a/arch/arm/boot/dts/sun8i-v3s-licheepi-zero.dts
-+++ b/arch/arm/boot/dts/sun8i-v3s-licheepi-zero.dts
-@@ -135,7 +135,7 @@
- 
-                spi-max-frequency = <40000000>;
-                txbuflen = <115200>;
--               rotate = <0>;
-+               rotate = <90>;
-                fps = <42>;
-                buswidth = <8>;
-                reset-gpios = <&pio 4 1 GPIO_ACTIVE_LOW>;	//PE1
 diff --git a/drivers/staging/fbtft/fb_st7789v.c b/drivers/staging/fbtft/fb_st7789v.c
 index 69f52af..e966993 100644
 --- a/drivers/staging/fbtft/fb_st7789v.c
