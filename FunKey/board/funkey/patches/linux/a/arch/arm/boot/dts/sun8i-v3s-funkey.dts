@@ -103,6 +103,12 @@
 	status = "okay";
 };
 
+&pwm {
+        pinctrl-names = "default";
+        pinctrl-0 = <&pwm0_pins>;
+        status = "okay";
+};
+
 #include "axp209.dtsi"
 
 &reg_dcdc2 {
@@ -156,8 +162,11 @@
 	status = "okay";
 };
 
-&pwm {
-        pinctrl-names = "default";
-        pinctrl-0 = <&pwm0_pins>;
-        status = "okay";
+&usb_otg {
+	dr_mode = "peripheral";
+	status = "okay";
+};
+
+&usbphy {
+	status = "okay";
 };
