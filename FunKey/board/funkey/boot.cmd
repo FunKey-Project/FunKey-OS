@@ -1,4 +1,4 @@
-setenv bootargs console=ttyS0,115200 panic=5 console=tty0 rootwait fbcon=map:10 fbcon=font:VGA8x8 root=/dev/mmcblk0p2 earlyprintk rw
+setenv bootargs console=ttyS0,115200 panic=5 console=tty0 rootwait fbcon=map:10 fbcon=font:VGA8x8 root=/dev/mmcblk0p2 earlyprintk rootfstype=ext4 rootflags=commit=120,data=writeback,barrier=0,journal_async_commit rw quiet
 load mmc 0:1 0x41000000 zImage
 load mmc 0:1 0x41800000 sun8i-v3s-funkey.dtb
 bootz 0x41000000 - 0x41800000

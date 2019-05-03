@@ -1,0 +1,18 @@
+--- a/board/sunxi/board.c	2019-05-02 23:50:23.708139670 +0200
++++ b/board/sunxi/board.c	2019-05-02 23:51:19.105112063 +0200
+@@ -652,6 +652,7 @@
+ 		if ((sid[3] & 0xffffff) == 0)
+ 			sid[3] |= 0x800000;
+ 
++#if defined(CONFIG_CMD_NET)
+ 		for (i = 0; i < 4; i++) {
+ 			sprintf(ethaddr, "ethernet%d", i);
+ 			if (!fdt_get_alias(fdt, ethaddr))
+@@ -675,6 +676,7 @@
+ 
+ 			eth_setenv_enetaddr(ethaddr, mac_addr);
+ 		}
++#endif
+ 
+ 		if (!getenv("serial#")) {
+ 			snprintf(serial_string, sizeof(serial_string),
