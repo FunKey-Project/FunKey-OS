@@ -54,7 +54,7 @@ After building, you should obtain this tree:
     +-- sun8i-v3s-funkey.dtb
     +-- u-boot.bin
     +-- u-boot-sunxi-with-spl.bin
-    `-- zImage
+    `-- uImage
 
 How to write the SD card
 ========================
