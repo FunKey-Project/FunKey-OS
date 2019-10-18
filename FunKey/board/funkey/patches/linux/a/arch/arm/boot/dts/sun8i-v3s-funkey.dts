@@ -81,13 +81,14 @@
 &i2c0 {
 	status = "okay";
 
-	/* axp209: pmic@34 {
+	axp209: pmic@34 {
 		compatible = "x-powers,axp209";
 		reg = <0x34>;
-		interrupts = <0>;
+		interrupt-parent = <&pio>;
+		interrupts = <1 5 IRQ_TYPE_EDGE_FALLING>;
 		interrupt-controller;
 		#interrupt-cells = <1>;
-	}; */
+	};
 };
 
 &mmc0 {
@@ -104,8 +105,23 @@
 	status = "okay";
 };
 
-/*
 #include "axp209.dtsi"
+
+&ac_power_supply {
+	status = "okay";
+};
+
+&axp_gpio {
+	status = "okay";
+};
+
+&battery_power_supply {
+	status = "okay";
+};
+
+&usb_power_supply {
+	status = "okay";
+};
 
 &reg_dcdc2 {
 	regulator-always-on;
@@ -133,7 +149,6 @@
 	regulator-max-microvolt = <3300000>;
 	regulator-name = "avcc-pll";
 };
-*/
 
 &reg_vcc3v0 {
 	regulator-always-on;
@@ -158,8 +173,8 @@
                reg = <0>;
                spi-max-frequency = <40000000>;
                txbuflen = <115200>;
-               rotate = <90>;
-               fps = <42>;
+               rotate = <0>;
+               fps = <39>;
                buswidth = <8>;
                reset-gpios = <&pio 4 1 GPIO_ACTIVE_LOW>;	//PE1
                dc-gpios = <&pio 2 0 GPIO_ACTIVE_LOW>;		//PC0 (MISO)
