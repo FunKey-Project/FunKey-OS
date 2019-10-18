@@ -1,6 +1,6 @@
 --- /dev/null	2019-05-04 09:53:55.553276856 +0200
 +++ a/arch/arm/boot/dts/sun8i-v3s-funkey.dts	2019-05-04 20:06:53.118696800 +0200
-@@ -0,0 +1,192 @@
+@@ -0,0 +1,162 @@
 +/*
 + * Copyright (C) 2019 Michel Stempin <michel.stempin@wanadoo.fr>
 + *
@@ -163,6 +163,7 @@
 +               txbuflen = <115200>;
 +               rotate = <0>;
 +               fps = <39>;
+>>>>>>> 1e396cd5a62bf81a951592f92e2d89348d35a46a
 +               buswidth = <8>;
 +               reset-gpios = <&pio 4 1 GPIO_ACTIVE_LOW>;	//PE1
 +               dc-gpios = <&pio 2 0 GPIO_ACTIVE_LOW>;		//PC0 (MISO)
