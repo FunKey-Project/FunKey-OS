@@ -18,8 +18,7 @@ EOF
 		exit 1
 	    fi
 	    UNIT_LINE=$(fdisk -l /mass_storage | egrep Units)
-	    set $UNIT_LINE
-	    UNIT=${8}
+	    UNIT=$(echo "$UNIT_LINE" | cut -f 8 -d ' ')
 	    PART_LINE=$(fdisk -l /mass_storage | egrep /mass_storage1)
 	    set $PART_LINE
 	    let START="${2} * $UNIT"
@@ -28,7 +27,7 @@ EOF
 		exit 2
 	    fi
 	    losetup -o$START /dev/loop0 /mass_storage &&
-		mkdosfs /dev/loop0 &&
+		mkfs.vfat /dev/loop0 &&
 		losetup -d /dev/loop0
 	    if [ $? -ne 0 ]; then
 		echo "$THIS: cannot format shared storage file" | tee /dev/kmsg
@@ -72,8 +71,7 @@ EOF
 	fi
 	echo "$THIS: mounting shared storage" | tee /dev/kmsg
 	UNIT_LINE=$(fdisk -l /mass_storage | egrep Units)
-	set $UNIT_LINE
-	UNIT=${8}
+	UNIT=$(echo "$UNIT_LINE" | cut -f 8 -d ' ')
 	PART_LINE=$(fdisk -l /mass_storage | egrep /mass_storage1)
 	set $PART_LINE
 	let START="${2} * $UNIT"
@@ -81,11 +79,24 @@ EOF
 	    echo "$THIS: cannot find shared storage file start" | tee /dev/kmsg
 	    exit 9
 	fi
-	losetup -o$START /dev/loop0 /mass_storage &&
-	    mount -t vfat /dev/loop0 /mnt/
+	losetup -o$START /dev/loop0 /mass_storage
+	if [ $? -ne 0 ]; then
+	    echo "$THIS: cannot loop mount shared storage file" | tee /dev/kmsg
+	    exit 10
+	fi
+	fsck.fat -n /dev/loop0 2>/dev/null | egrep -q "Dirty bit"
+	if [ $? -eq 0 ]; then
+	    echo "$THIS: filesystem was not properly unmounted, clean it" | tee /dev/kmsg
+    	    fsck.fat -a -t -w /dev/loop0 >/dev/null 2>&1
+	    if [ $? -gt 1 ]; then
+		echo "$THIS: cannot clean shared storage file" | tee /dev/kmsg
+		exit 11
+	    fi
+	fi
+	mount -t vfat /dev/loop0 /mnt/
 	if [ $? -ne 0 ]; then
 	    echo "$THIS: cannot mount shared storage file" | tee /dev/kmsg
-	    exit 10
+	    exit 12
 	fi
 	echo "$THIS: shared storage mounted" | tee /dev/kmsg
 	;;
@@ -94,21 +105,21 @@ EOF
 	losetup -a | egrep -q /mass_storage
 	if [ $? -ne 0 ]; then
 	    echo "$THIS: no mounted shared storage file" | tee /dev/kmsg
-	    exit 11
+	    exit 13
 	fi
 	echo "unmounting shared storage"
 	umount /mnt &
 	losetup -d /dev/loop0
 	if [ $? -ne 0 ]; then
 	    echo "$THIS: cannot unmount shared storage" | tee /dev/kmsg
-	    exit 12
+	    exit 14
 	fi
 	echo "$THIS: shared storage unmounted" | tee //dev/kmsg
 	;;
 
     *)
 	echo "Usage ${0} {start|stop|mount|umount}"
-	exit 13
+	exit 15
 	;;
 esac
 
