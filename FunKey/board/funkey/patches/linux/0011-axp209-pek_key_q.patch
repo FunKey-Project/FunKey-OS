@@ -1,0 +1,45 @@
+From fcef516f0bb110628d43c23320ef36389f689439 Mon Sep 17 00:00:00 2001
+From: vincent <vbusoenseirb@gmail.com>
+Date: Sun, 27 Oct 2019 16:39:04 +0100
+Subject: [PATCH] axp209 PEK linked to KEY_Q, not KEY_POWER
+
+---
+ drivers/input/misc/axp20x-pek.c | 15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/input/misc/axp20x-pek.c b/drivers/input/misc/axp20x-pek.c
+index debeeae..5dac8e9 100644
+--- a/drivers/input/misc/axp20x-pek.c
++++ b/drivers/input/misc/axp20x-pek.c
+@@ -214,10 +214,14 @@ static irqreturn_t axp20x_pek_irq(int irq, void *pwr)
+ 	 * The power-button is connected to ground so a falling edge (dbf)
+ 	 * means it is pressed.
+ 	 */
+-	if (irq == axp20x_pek->irq_dbf)
+-		input_report_key(idev, KEY_POWER, true);
+-	else if (irq == axp20x_pek->irq_dbr)
+-		input_report_key(idev, KEY_POWER, false);
++	if (irq == axp20x_pek->irq_dbf){
++		//input_report_key(idev, KEY_POWER, true);
++		input_report_key(idev, KEY_Q, true);
++	}
++	else if (irq == axp20x_pek->irq_dbr){
++		//input_report_key(idev, KEY_POWER, false);
++		input_report_key(idev, KEY_Q, false);
++	}
+ 
+ 	input_sync(idev);
+ 
+@@ -259,7 +263,8 @@ static int axp20x_pek_probe_input_device(struct axp20x_pek *axp20x_pek,
+ 	idev->phys = "m1kbd/input2";
+ 	idev->dev.parent = &pdev->dev;
+ 
+-	input_set_capability(idev, EV_KEY, KEY_POWER);
++	//input_set_capability(idev, EV_KEY, KEY_POWER);
++	input_set_capability(idev, EV_KEY, KEY_Q);
+ 
+ 	input_set_drvdata(idev, axp20x_pek);
+ 
+-- 
+1.9.1
+
