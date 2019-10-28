@@ -1,0 +1,43 @@
+diff --git a/drivers/usb/gadget/udc/core.c b/drivers/usb/gadget/udc/core.c
+index 284bd1a7..97db9fa4 100644
+--- a/drivers/usb/gadget/udc/core.c
++++ b/drivers/usb/gadget/udc/core.c
+@@ -973,15 +973,19 @@ static void usb_gadget_state_work(struct work_struct *work)
+ 	struct usb_gadget *gadget = work_to_gadget(work);
+ 	struct usb_udc *udc = gadget->udc;
+ 
+-	if (udc)
++	if (udc) {
+ 		sysfs_notify(&udc->dev.kobj, NULL, "state");
++		kobject_uevent(&udc->dev.kobj, KOBJ_CHANGE);
++	}
+ }
+ 
+ void usb_gadget_set_state(struct usb_gadget *gadget,
+ 		enum usb_device_state state)
+ {
+-	gadget->state = state;
+-	schedule_work(&gadget->work);
++	if (state != gadget->state) {
++		gadget->state = state;
++		schedule_work(&gadget->work);
++	}
+ }
+ EXPORT_SYMBOL_GPL(usb_gadget_set_state);
+ 
+@@ -1565,6 +1569,15 @@ static int usb_udc_uevent(struct device *dev, struct kobj_uevent_env *env)
+ 		}
+ 	}
+ 
++	if (udc->gadget) {
++		ret = add_uevent_var(env, "USB_UDC_STATE=%s",
++				usb_state_string(udc->gadget->state));
++		if (ret) {
++			dev_err(dev, "failed to add uevent USB_UDC_STATE\n");
++			return ret;
++		}
++	}
++
+ 	return 0;
+ }
+ 
