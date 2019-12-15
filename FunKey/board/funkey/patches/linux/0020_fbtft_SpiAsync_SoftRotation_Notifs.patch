@@ -1,0 +1,2842 @@
+From 5171507843ebfba3f353b61ee854c73b175f0546 Mon Sep 17 00:00:00 2001
+From: vincent <vbusoenseirb@gmail.com>
+Date: Sun, 15 Dec 2019 17:48:43 +0100
+Subject: [PATCH 1/2] new fbtft with spi async mode, notifs, soft rotation
+
+---
+ drivers/staging/fbtft/Makefile      |   2 +-
+ drivers/staging/fbtft/fb_st7789v.c  |  12 +-
+ drivers/staging/fbtft/fbtft-bus.c   | 152 +++++++++++++++-
+ drivers/staging/fbtft/fbtft-core.c  | 336 +++++++++++++++++++++++++++++++++---
+ drivers/staging/fbtft/fbtft-io.c    |  61 +++++++
+ drivers/staging/fbtft/fbtft-sysfs.c | 255 ++++++++++++++++++++++++++-
+ drivers/staging/fbtft/fbtft.h       |  41 ++++-
+ 7 files changed, 821 insertions(+), 38 deletions(-)
+
+diff --git a/drivers/staging/fbtft/Makefile b/drivers/staging/fbtft/Makefile
+index 6bc0331..c74518e 100644
+--- a/drivers/staging/fbtft/Makefile
++++ b/drivers/staging/fbtft/Makefile
+@@ -1,7 +1,7 @@
+ # SPDX-License-Identifier: GPL-2.0
+ # Core module
+ obj-$(CONFIG_FB_TFT)             += fbtft.o
+-fbtft-y                          += fbtft-core.o fbtft-sysfs.o fbtft-bus.o fbtft-io.o
++fbtft-y                          += fbtft-core.o fbtft-sysfs.o fbtft-bus.o fbtft-io.o fb_text.o
+ 
+ # drivers
+ obj-$(CONFIG_FB_TFT_AGM1264K_FL) += fb_agm1264k-fl.o
+diff --git a/drivers/staging/fbtft/fb_st7789v.c b/drivers/staging/fbtft/fb_st7789v.c
+index 212836f..ba21ab5 100755
+--- a/drivers/staging/fbtft/fb_st7789v.c
++++ b/drivers/staging/fbtft/fb_st7789v.c
+@@ -153,8 +153,16 @@ static int init_display(struct fbtft_par *par)
+ 	/* Display Inversion of colors */
+ 	write_reg(par, 0x21);
+ 
+-	/* 39Hz refresh rate */
+-	write_reg(par, 0xC6,0x1F);
++	/* refresh rate */
++	//write_reg(par, 0xC6,0x1F); //39Hz 
++	//write_reg(par, 0xC6,0x1A); //44Hz 
++	//write_reg(par, 0xC6,0x17); //48Hz 
++	//write_reg(par, 0xC6,0x15); //50Hz 
++	//write_reg(par, 0xC6,0x12); //55Hz 
++	//write_reg(par, 0xC6,0x10); //58Hz 
++	//write_reg(par, 0xC6,0x0F); //60Hz
++	write_reg(par, 0xC6,0x09); //60Hz
++	//write_reg(par, 0xC6,0x03); //99Hz
+ 
+ 	write_reg(par, MIPI_DCS_SET_DISPLAY_ON);
+ 
+diff --git a/drivers/staging/fbtft/fbtft-bus.c b/drivers/staging/fbtft/fbtft-bus.c
+index 2a8eef1..55255a4 100644
+--- a/drivers/staging/fbtft/fbtft-bus.c
++++ b/drivers/staging/fbtft/fbtft-bus.c
+@@ -3,7 +3,10 @@
+ #include <linux/errno.h>
+ #include <linux/gpio.h>
+ #include <linux/spi/spi.h>
++#include <linux/delay.h> /* usleep_range */
++#include <video/mipi_display.h>
+ #include "fbtft.h"
++#include "fb_text.h"
+ 
+ /*****************************************************************************
+  *
+@@ -105,6 +108,147 @@ void fbtft_write_reg8_bus9(struct fbtft_par *par, int len, ...)
+ }
+ EXPORT_SYMBOL(fbtft_write_reg8_bus9);
+ 
++
++
++static void spi_complete_cmd_init_data_write(void *arg)
++{
++	struct fbtft_par *par = (struct fbtft_par *) arg;
++	//printk("%s\n", __func__);
++
++	/* Start new data write (full display) */
++	int len = par->info->var.yres * par->info->fix.line_length;
++	fbtft_write_vmem16_bus8_async(par, 0, len);
++	
++}
++
++static void spi_complete_data_write(void *arg)
++{
++	struct fbtft_par *par = (struct fbtft_par *) arg;
++	//printk("%s\n", __func__);
++
++	/* sleep */
++	//msleep(1);
++
++	/* Start sending cmd init data */
++	fbtft_write_init_cmd_data_transfers(par);
++}
++
++int fbtft_write_init_cmd_data_transfers(struct fbtft_par *par){
++	static u8 init_data_cmd_buf = MIPI_DCS_WRITE_MEMORY_START;
++	int ret = 0;
++
++	//printk("%s\n", __func__);
++
++	/* Post process */
++	fbtft_post_process_screen(par, 0, par->info->var.yres-1);
++
++	/* Resetting to 0 for incoming cmd init data write */
++	if (gpio_is_valid(par->gpio.dc))
++		gpio_set_value(par->gpio.dc, 0);
++
++	/* Start sending cmd init data */
++	ret = par->fbtftops.write_async(par, &init_data_cmd_buf, 1, spi_complete_cmd_init_data_write);
++	if (ret < 0)
++		dev_err(par->info->device,
++			"write() failed and returned %d\n", ret);
++
++	/* Debug fps */ 
++#define FPS_DEBUG	1
++#if FPS_DEBUG
++	ktime_t ts_now = ktime_get();
++
++	/* First measurement */
++	if (!ktime_to_ns(par->update_time))
++			par->update_time = ts_now;
++
++	long fps = ktime_us_delta(ts_now, par->update_time);
++	par->update_time = ts_now;
++	fps = fps ? 1000000 / fps : 0;
++
++	if(fps){
++		par->avg_fps += fps;
++		par->nb_fps_values++;
++
++		if(par->nb_fps_values == 200){
++			dev_info(par->info->device,
++				"Display update: fps=%ld\n", par->avg_fps/par->nb_fps_values);
++			par->avg_fps = 0;
++			par->nb_fps_values = 0;
++		}
++	}
++
++#endif //FPS_DEBUG
++
++	return ret;
++
++}
++EXPORT_SYMBOL(fbtft_write_init_cmd_data_transfers);
++
++/*****************************************************************************
++ *
++ *   int (*write_vmem)(struct fbtft_par *par);
++ *
++ *****************************************************************************/
++
++/* 16 bit pixel over 8-bit databus */
++int fbtft_write_vmem16_bus8_async(struct fbtft_par *par, size_t offset, size_t len)
++{
++	u16 *vmem16;
++	__be16 *txbuf16 = par->txbuf.buf;
++	size_t remain;
++	size_t to_copy;
++	size_t tx_array_size;
++	int i;
++	int ret = 0;
++	size_t startbyte_size = 0;
++
++	fbtft_par_dbg(DEBUG_WRITE_VMEM, par, "%s(offset=%zu, len=%zu)\n",
++		__func__, offset, len);
++
++	remain = len / 2;
++	//vmem16 = (u16 *)(par->info->screen_buffer + offset);
++	//vmem16 = (u16 *)(par->vmem_post_process + offset);
++	vmem16 = (u16 *)(par->vmem_ptr + offset);
++
++	if (par->gpio.dc != -1)
++		gpio_set_value(par->gpio.dc, 1);
++
++	/* non buffered write */
++	if (!par->txbuf.buf){
++		//return par->fbtftops.write(par, vmem16, len);
++		return par->fbtftops.write_async(par, vmem16, len, spi_complete_data_write);
++	}
++
++	/* buffered write */
++	tx_array_size = par->txbuf.len / 2;
++
++	if (par->startbyte) {
++		txbuf16 = par->txbuf.buf + 1;
++		tx_array_size -= 2;
++		*(u8 *)(par->txbuf.buf) = par->startbyte | 0x2;
++		startbyte_size = 1;
++	}
++
++	while (remain) {
++		to_copy = min(tx_array_size, remain);
++		dev_dbg(par->info->device, "    to_copy=%zu, remain=%zu\n",
++						to_copy, remain - to_copy);
++
++		for (i = 0; i < to_copy; i++)
++			txbuf16[i] = cpu_to_be16(vmem16[i]);
++
++		vmem16 = vmem16 + to_copy;
++		ret = par->fbtftops.write_async(par, par->txbuf.buf,
++						startbyte_size + to_copy * 2, spi_complete_data_write);
++		if (ret < 0)
++			return ret;
++		remain -= to_copy;
++	}
++
++	return ret;
++}
++EXPORT_SYMBOL(fbtft_write_vmem16_bus8_async);
++
+ /*****************************************************************************
+  *
+  *   int (*write_vmem)(struct fbtft_par *par);
+@@ -127,14 +271,18 @@ int fbtft_write_vmem16_bus8(struct fbtft_par *par, size_t offset, size_t len)
+ 		__func__, offset, len);
+ 
+ 	remain = len / 2;
+-	vmem16 = (u16 *)(par->info->screen_buffer + offset);
++	//vmem16 = (u16 *)(par->info->screen_buffer + offset);
++	//vmem16 = (u16 *)(par->vmem_post_process + offset);
++	vmem16 = (u16 *)(par->vmem_ptr + offset);
+ 
+ 	if (par->gpio.dc != -1)
+ 		gpio_set_value(par->gpio.dc, 1);
+ 
+ 	/* non buffered write */
+-	if (!par->txbuf.buf)
++	if (!par->txbuf.buf){
++		//return par->fbtftops.write(par, vmem16, len);
+ 		return par->fbtftops.write(par, vmem16, len);
++	}
+ 
+ 	/* buffered write */
+ 	tx_array_size = par->txbuf.len / 2;
+diff --git a/drivers/staging/fbtft/fbtft-core.c b/drivers/staging/fbtft/fbtft-core.c
+index 7dce967..d576d0c 100755
+--- a/drivers/staging/fbtft/fbtft-core.c
++++ b/drivers/staging/fbtft/fbtft-core.c
+@@ -35,8 +35,15 @@
+ #include <linux/of.h>
+ #include <linux/of_gpio.h>
+ #include <video/mipi_display.h>
++#include <linux/hrtimer.h>
++#include <linux/list.h>
++
++/* to support deferred IO */
++#include <linux/rmap.h>
++#include <linux/pagemap.h>
+ 
+ #include "fbtft.h"
++#include "fb_text.h"
+ #include "internal.h"
+ 
+ static unsigned long debug;
+@@ -331,13 +338,30 @@ void fbtft_register_backlight(struct fbtft_par *par)
+ static void fbtft_set_addr_win(struct fbtft_par *par, int xs, int ys, int xe,
+ 			       int ye)
+ {
+-	write_reg(par, MIPI_DCS_SET_COLUMN_ADDRESS,
+-		  (xs >> 8) & 0xFF, xs & 0xFF, (xe >> 8) & 0xFF, xe & 0xFF);
+-
+-	write_reg(par, MIPI_DCS_SET_PAGE_ADDRESS,
+-		  (ys >> 8) & 0xFF, ys & 0xFF, (ye >> 8) & 0xFF, ye & 0xFF);
++	static int prev_xs = -1;
++	static int prev_ys = -1;
++	static int prev_xe = -1;
++	static int prev_ye = -1;
++
++	// Check if values need to be sent
++	if(prev_xs!=xs || prev_ys!=ys || prev_xe!=xe || prev_ye!=ye){
++
++		// Save prev bounding box values
++		prev_xs = xs;
++		prev_ys = ys;
++		prev_xe = xe;
++		prev_ye = ye;
++
++		//Set new bounding Box
++		write_reg(par, MIPI_DCS_SET_COLUMN_ADDRESS,
++			  (xs >> 8) & 0xFF, xs & 0xFF, (xe >> 8) & 0xFF, xe & 0xFF);
++
++		write_reg(par, MIPI_DCS_SET_PAGE_ADDRESS,
++			  (ys >> 8) & 0xFF, ys & 0xFF, (ye >> 8) & 0xFF, ye & 0xFF);
++	}
+ 
+-	write_reg(par, MIPI_DCS_WRITE_MEMORY_START);
++	/* Done elsewhere */
++	//write_reg(par, MIPI_DCS_WRITE_MEMORY_START);
+ }
+ 
+ static void fbtft_reset(struct fbtft_par *par)
+@@ -356,7 +380,7 @@ static void fbtft_update_display(struct fbtft_par *par, unsigned int start_line,
+ {
+ 	size_t offset, len;
+ 	ktime_t ts_start, ts_end;
+-	long fps, throughput;
++	long fps, throughput, write_time;
+ 	bool timeit = false;
+ 	int ret = 0;
+ 
+@@ -372,6 +396,12 @@ static void fbtft_update_display(struct fbtft_par *par, unsigned int start_line,
+ 
+ 	/* Sanity checks */
+ 	if (start_line > end_line) {
++
++		/* Special case: no update needed */
++		if(start_line == (par->info->var.yres - 1) || end_line == 0){
++			return;
++		}
++
+ 		dev_warn(par->info->device,
+ 			 "%s: start_line=%u is larger than end_line=%u. Shouldn't happen, will do full display update\n",
+ 			 __func__, start_line, end_line);
+@@ -387,20 +417,24 @@ static void fbtft_update_display(struct fbtft_par *par, unsigned int start_line,
+ 		start_line = 0;
+ 		end_line = par->info->var.yres - 1;
+ 	}
++	
++	/* Reset write Window and init write cmd */
++	if (par->fbtftops.set_addr_win){
+ 
+-	fbtft_par_dbg(DEBUG_UPDATE_DISPLAY, par, "%s(start_line=%u, end_line=%u)\n",
++		fbtft_par_dbg(DEBUG_UPDATE_DISPLAY, par, "%s(start_line=%u, end_line=%u)\n",
+ 		      __func__, start_line, end_line);
+-
+-	// Carefull removing this. this will work only if the full screen is updated all at once
+-	if (par->fbtftops.set_addr_win){
+ 		par->fbtftops.set_addr_win(par, 0, start_line,
+ 				par->info->var.xres - 1, end_line);
++		/*if (par->fbtftops.set_addr_win){
++			par->fbtftops.set_addr_win(par, 80, start_line,
++					320 - 1, end_line);
++		}*/
+ 	}
+-	/*if (par->fbtftops.set_addr_win){
+-		par->fbtftops.set_addr_win(par, 80, start_line,
+-				320 - 1, end_line);
+-	}*/
+ 
++	/* Send cmd to start transfer */
++	write_reg(par, MIPI_DCS_WRITE_MEMORY_START);
++	
++	/* Send data over SPI */
+ 	offset = start_line * par->info->fix.line_length;
+ 	len = (end_line - start_line + 1) * par->info->fix.line_length;
+ 	ret = par->fbtftops.write_vmem(par, offset, len);
+@@ -409,6 +443,7 @@ static void fbtft_update_display(struct fbtft_par *par, unsigned int start_line,
+ 			"%s: write_vmem failed to update display buffer\n",
+ 			__func__);
+ 
++	/* Debug */
+ 	if (unlikely(timeit)) {
+ 		ts_end = ktime_get();
+ 		if (!ktime_to_ns(par->update_time))
+@@ -418,22 +453,74 @@ static void fbtft_update_display(struct fbtft_par *par, unsigned int start_line,
+ 		par->update_time = ts_start;
+ 		fps = fps ? 1000000 / fps : 0;
+ 
+-		throughput = ktime_us_delta(ts_end, ts_start);
+-		throughput = throughput ? (len * 1000) / throughput : 0;
++		write_time = ktime_us_delta(ts_end, ts_start);
++		throughput = write_time ? (len * 1000) / write_time : 0;
+ 		throughput = throughput * 1000 / 1024;
+ 
+-		dev_info(par->info->device,
+-			 "Display update: %ld kB/s, fps=%ld\n",
+-			 throughput, fps);
++		if(fps){
++			par->avg_fps += fps;
++			par->nb_fps_values++;
++
++			if(par->nb_fps_values == 120){
++				dev_info(par->info->device,
++					 "Display update: %ld kB/s, write_time: %ldus, fps=%ld\n",
++					 throughput, write_time, par->avg_fps/par->nb_fps_values);
++				par->avg_fps = 0;
++				par->nb_fps_values = 0;
++			}
++		}
++
+ 		par->first_update_done = true;
+ 	}
+ }
+ 
++/* Soft Matrix Rotation - Works only on 2D square matrices */
++void fbtft_rotate_soft(u16 *mat, int size, int rotation){
++	int i, j;
++	u16 temp;
++	int N = size;
++
++	#define AT(i, j) 	(i)*N+(j)
++	
++	if(rotation == 90)
++	{
++	  	/* Rotate screen 90° Clockwise */
++	  	for (i = 0; i < N / 2; i++) { 
++	        for (j = i; j < N - i - 1; j++) { 
++	            temp = mat[AT(i, j)]; 
++	            mat[AT(i, j)] = mat[AT(N - 1 - j, i)]; 
++	            mat[AT(N - 1 - j, i)] = mat[AT(N - 1 - i, N - 1 - j)]; 
++	            mat[AT(N - 1 - i, N - 1 - j)] = mat[AT(j, N - 1 - i)]; 
++	            mat[AT(j, N - 1 - i)] = temp; 
++	        } 
++	    } 
++	}
++	else if(rotation == 270)
++	{
++	  	/* Rotate screen 270° Clockwise */
++	  	for (i = 0; i < N / 2; i++) { 
++	        for (j = i; j < N - i - 1; j++) { 
++	            temp = mat[AT(i, j)]; 
++	            mat[AT(i, j)] = mat[AT(j, N-1-i)]; 
++	            mat[AT(j, N-1-i)] = mat[AT(N - 1 - i, N - 1 - j)]; 
++	            mat[AT(N - 1 - i, N - 1 - j)] = mat[AT(N - 1 - j, i)]; 
++	            mat[AT(N - 1 - j, i)] = temp; 
++	        } 
++	    } 
++	}
++}
++
+ static void fbtft_mkdirty(struct fb_info *info, int y, int height)
+ {
+ 	struct fbtft_par *par = info->par;
+ 	struct fb_deferred_io *fbdefio = info->fbdefio;
+ 
++	/* This disables fbtft's defered io, useful in spi_asyn mode or 
++	if any other driver handles screens updates instead of fbtft */
++	if (par->spi_async_mode){
++		return;
++	}
++
+ 	/* special case, needed ? */
+ 	if (y == -1) {
+ 		y = 0;
+@@ -452,6 +539,60 @@ static void fbtft_mkdirty(struct fb_info *info, int y, int height)
+ 	schedule_delayed_work(&info->deferred_work, fbdefio->delay);
+ }
+ 
++void fbtft_post_process_screen(struct fbtft_par *par, unsigned int dirty_lines_start, unsigned int dirty_lines_end){
++	int x_notif = 0;
++	int y_notif = 0;
++	bool screen_post_process = false;
++
++	/* Reset default write buffer */
++	par->vmem_ptr = par->info->screen_buffer;
++
++	/* If soft rotation, mark whole screen to update to avoid data non rotated */
++	if(par->pdata->rotate_soft)
++	{
++		dirty_lines_start = 0;
++		dirty_lines_end = par->info->var.yres-1;
++		par->vmem_ptr = par->vmem_post_process;
++		screen_post_process = true;
++	}
++	if(par->notification[0]){
++		if (y_notif < dirty_lines_start)
++			dirty_lines_start = y_notif;
++		if (y_notif + MONACO_HEIGHT > dirty_lines_end){
++			dirty_lines_end = y_notif + MONACO_HEIGHT;
++		}
++		par->vmem_ptr = par->vmem_post_process;
++		screen_post_process = true;
++	}
++
++	/* Post process */
++	if(screen_post_process){
++		/* Copy buffer */
++		memcpy(par->vmem_post_process + dirty_lines_start * par->info->fix.line_length, 
++			par->info->screen_buffer + dirty_lines_start * par->info->fix.line_length, 
++			(dirty_lines_end-dirty_lines_start+1) * par->info->fix.line_length);
++
++		/* Notifications */
++		if(par->notification[0]){
++			x_notif = 0;
++			y_notif = 0;
++			basic_text_out16_bg((u16*)par->vmem_post_process, par->info->var.xres, par->info->var.yres, 
++				x_notif, y_notif, RGB565(255, 255, 255), RGB565(0, 0, 0), par->notification);
++
++		  	if (y_notif < dirty_lines_start)
++				dirty_lines_start = y_notif;
++			if (y_notif + MONACO_HEIGHT > dirty_lines_end)
++				dirty_lines_end = y_notif + MONACO_HEIGHT;
++		}
++
++		/* Soft rotation */
++		if(par->pdata->rotate_soft)
++		{
++		  	fbtft_rotate_soft((u16*)par->vmem_post_process, par->info->var.yres, par->pdata->rotate_soft);
++		}
++	}
++}
++
+ static void fbtft_deferred_io(struct fb_info *info, struct list_head *pagelist)
+ {
+ 	struct fbtft_par *par = info->par;
+@@ -476,8 +617,8 @@ static void fbtft_deferred_io(struct fb_info *info, struct list_head *pagelist)
+ 		y_low = index / info->fix.line_length;
+ 		y_high = (index + PAGE_SIZE - 1) / info->fix.line_length;
+ 		dev_dbg(info->device,
+-			"page->index=%lu y_low=%d y_high=%d\n",
+-			page->index, y_low, y_high);
++			"count=%d, page->index=%lu y_low=%d y_high=%d\n",
++			count, page->index, y_low, y_high);
+ 		if (y_high > info->var.yres - 1)
+ 			y_high = info->var.yres - 1;
+ 		if (y_low < dirty_lines_start)
+@@ -486,8 +627,10 @@ static void fbtft_deferred_io(struct fb_info *info, struct list_head *pagelist)
+ 			dirty_lines_end = y_high;
+ 	}
+ 
+-	par->fbtftops.update_display(info->par,
+-					dirty_lines_start, dirty_lines_end);
++	fbtft_post_process_screen(par, dirty_lines_start, dirty_lines_end);
++
++	/* Screen upgrade */
++	par->fbtftops.update_display(par, dirty_lines_start, dirty_lines_end);
+ }
+ 
+ static void fbtft_fb_fillrect(struct fb_info *info,
+@@ -545,6 +688,128 @@ static ssize_t fbtft_fb_write(struct fb_info *info, const char __user *buf,
+ 	return res;
+ }
+ 
++static struct page *fb_deferred_io_page(struct fb_info *info, unsigned long offs)
++{
++	void *screen_base = (void __force *) info->screen_base;
++	struct page *page;
++
++	if (is_vmalloc_addr(screen_base + offs))
++		page = vmalloc_to_page(screen_base + offs);
++	else
++		page = pfn_to_page((info->fix.smem_start + offs) >> PAGE_SHIFT);
++
++	return page;
++}
++
++/* this is to find and return the vmalloc-ed fb pages */
++static int fb_deferred_io_fault(struct vm_fault *vmf)
++{
++	unsigned long offset;
++	struct page *page;
++	struct fb_info *info = vmf->vma->vm_private_data;
++
++	offset = vmf->pgoff << PAGE_SHIFT;
++	if (offset >= info->fix.smem_len)
++		return VM_FAULT_SIGBUS;
++
++	page = fb_deferred_io_page(info, offset);
++	if (!page)
++		return VM_FAULT_SIGBUS;
++
++	get_page(page);
++
++	if (vmf->vma->vm_file)
++		page->mapping = vmf->vma->vm_file->f_mapping;
++	else
++		printk(KERN_ERR "no mapping available\n");
++
++	BUG_ON(!page->mapping);
++	page->index = vmf->pgoff;
++
++	vmf->page = page;
++	return 0;
++}
++
++/* vm_ops->page_mkwrite handler */
++static int fb_deferred_io_mkwrite(struct vm_fault *vmf)
++{
++	struct page *page = vmf->page;
++	struct fb_info *info = vmf->vma->vm_private_data;
++	struct fb_deferred_io *fbdefio = info->fbdefio;
++	struct page *cur;
++	struct fbtft_par *par = info->par;
++
++	/* This disables fbtft's defered io, useful in spi_async mode or 
++	if any other driver handles screens updates instead of fbtft */
++	if (par->spi_async_mode){
++		return VM_FAULT_LOCKED;
++	}
++
++	/* this is a callback we get when userspace first tries to
++	write to the page. we schedule a workqueue. that workqueue
++	will eventually mkclean the touched pages and execute the
++	deferred framebuffer IO. then if userspace touches a page
++	again, we repeat the same scheme */
++
++	file_update_time(vmf->vma->vm_file);
++
++	/* protect against the workqueue changing the page list */
++	mutex_lock(&fbdefio->lock);
++
++	/* first write in this cycle, notify the driver */
++	if (fbdefio->first_io && list_empty(&fbdefio->pagelist))
++		fbdefio->first_io(info);
++
++	/*
++	 * We want the page to remain locked from ->page_mkwrite until
++	 * the PTE is marked dirty to avoid page_mkclean() being called
++	 * before the PTE is updated, which would leave the page ignored
++	 * by defio.
++	 * Do this by locking the page here and informing the caller
++	 * about it with VM_FAULT_LOCKED.
++	 */
++	lock_page(page);
++
++	/* we loop through the pagelist before adding in order
++	to keep the pagelist sorted */
++	list_for_each_entry(cur, &fbdefio->pagelist, lru) {
++		/* this check is to catch the case where a new
++		process could start writing to the same page
++		through a new pte. this new access can cause the
++		mkwrite even when the original ps's pte is marked
++		writable */
++		if (unlikely(cur == page))
++			goto page_already_added;
++		else if (cur->index > page->index)
++			break;
++	}
++
++	list_add_tail(&page->lru, &cur->lru);
++
++page_already_added:
++	mutex_unlock(&fbdefio->lock);
++
++	/* Update by timers */
++	schedule_delayed_work(&info->deferred_work, fbdefio->delay);
++
++	return VM_FAULT_LOCKED;
++}
++
++static const struct vm_operations_struct fb_deferred_io_vm_ops = {
++	.fault		= fb_deferred_io_fault,
++	.page_mkwrite	= fb_deferred_io_mkwrite,
++};
++
++static int fbtft_fb_deferred_io_mmap(struct fb_info *info, struct vm_area_struct *vma)
++{
++	vma->vm_ops = &fb_deferred_io_vm_ops;
++	vma->vm_flags |= VM_DONTEXPAND | VM_DONTDUMP;
++	if (!(info->flags & FBINFO_VIRTFB))
++		vma->vm_flags |= VM_IO;
++	vma->vm_private_data = info;
++	return 0;
++}
++
+ /* from pxafb.c */
+ static unsigned int chan_to_field(unsigned int chan, struct fb_bitfield *bf)
+ {
+@@ -610,6 +875,8 @@ static void fbtft_merge_fbtftops(struct fbtft_ops *dst, struct fbtft_ops *src)
+ {
+ 	if (src->write)
+ 		dst->write = src->write;
++	if (src->write_async)
++		dst->write_async = src->write_async;
+ 	if (src->read)
+ 		dst->read = src->read;
+ 	if (src->write_vmem)
+@@ -671,6 +938,7 @@ struct fb_info *fbtft_framebuffer_alloc(struct fbtft_display *display,
+ 	struct fb_ops *fbops = NULL;
+ 	struct fb_deferred_io *fbdefio = NULL;
+ 	u8 *vmem = NULL;
++	u8 *vmem_post_process = NULL;
+ 	void *txbuf = NULL;
+ 	void *buf = NULL;
+ 	unsigned int width;
+@@ -743,6 +1011,10 @@ struct fb_info *fbtft_framebuffer_alloc(struct fbtft_display *display,
+ 	if (!vmem)
+ 		goto alloc_fail;
+ 
++	vmem_post_process = kzalloc(vmem_size, GFP_DMA | GFP_KERNEL);
++	if (!vmem_post_process)
++		goto alloc_fail;
++
+ 	fbops = devm_kzalloc(dev, sizeof(struct fb_ops), GFP_KERNEL);
+ 	if (!fbops)
+ 		goto alloc_fail;
+@@ -786,6 +1058,9 @@ struct fb_info *fbtft_framebuffer_alloc(struct fbtft_display *display,
+ 	fbdefio->deferred_io =     fbtft_deferred_io;
+ 	fb_deferred_io_init(info);
+ 
++	// Surcharge 
++	info->fbops->fb_mmap = fbtft_fb_deferred_io_mmap;
++
+ 	strncpy(info->fix.id, dev->driver->name, 16);
+ 	info->fix.type =           FB_TYPE_PACKED_PIXELS;
+ 	info->fix.visual =         FB_VISUAL_TRUECOLOR;
+@@ -818,11 +1093,14 @@ struct fb_info *fbtft_framebuffer_alloc(struct fbtft_display *display,
+ 
+ 	par = info->par;
+ 	par->info = info;
++	par->vmem_post_process = vmem_post_process;
++	par->vmem_ptr = par->info->screen_buffer;
+ 	par->pdata = pdata;
+ 	par->debug = display->debug;
+ 	par->buf = buf;
+ 	spin_lock_init(&par->dirty_lock);
+ 	par->bgr = pdata->bgr;
++	par->spi_async_mode = pdata->spi_async_mode;
+ 	par->startbyte = pdata->startbyte;
+ 	par->init_sequence = init_sequence;
+ 	par->gamma.curves = gamma_curves;
+@@ -871,6 +1149,7 @@ struct fb_info *fbtft_framebuffer_alloc(struct fbtft_display *display,
+ 
+ 	/* default fbtft operations */
+ 	par->fbtftops.write = fbtft_write_spi;
++	par->fbtftops.write_async = fbtft_write_spi_async;
+ 	par->fbtftops.read = fbtft_read_spi;
+ 	par->fbtftops.write_vmem = fbtft_write_vmem16_bus8;
+ 	par->fbtftops.write_register = fbtft_write_reg8_bus8;
+@@ -1225,6 +1504,7 @@ int fbtft_init_display(struct fbtft_par *par)
+ }
+ EXPORT_SYMBOL(fbtft_init_display);
+ 
++
+ /**
+  * fbtft_verify_gpios() - Generic verify_gpios() function
+  * @par: Driver data
+@@ -1301,7 +1581,9 @@ static struct fbtft_platform_data *fbtft_probe_dt(struct device *dev)
+ 	pdata->display.bpp = fbtft_of_value(node, "bpp");
+ 	pdata->display.debug = fbtft_of_value(node, "debug");
+ 	pdata->rotate = fbtft_of_value(node, "rotate");
++	pdata->rotate_soft = fbtft_of_value(node, "rotate_soft");
+ 	pdata->bgr = of_property_read_bool(node, "bgr");
++	pdata->spi_async_mode = of_property_read_bool(node, "spi_async_mode");
+ 	pdata->fps = fbtft_of_value(node, "fps");
+ 	pdata->txbuflen = fbtft_of_value(node, "txbuflen");
+ 	pdata->startbyte = fbtft_of_value(node, "startbyte");
+@@ -1436,10 +1718,16 @@ int fbtft_probe_common(struct fbtft_display *display,
+ 	/* use platform_data provided functions above all */
+ 	fbtft_merge_fbtftops(&par->fbtftops, &pdata->display.fbtftops);
+ 
++
+ 	ret = fbtft_register_framebuffer(info);
+ 	if (ret < 0)
+ 		goto out_release;
+ 
++	if (par->spi_async_mode){
++  		/* Start constant Display update using spi async*/
++  		fbtft_write_init_cmd_data_transfers(par);
++  	}
++
+ 	return 0;
+ 
+ out_release:
+diff --git a/drivers/staging/fbtft/fbtft-io.c b/drivers/staging/fbtft/fbtft-io.c
+index f4a5919..1b269ee 100644
+--- a/drivers/staging/fbtft/fbtft-io.c
++++ b/drivers/staging/fbtft/fbtft-io.c
+@@ -5,6 +5,65 @@
+ #include <linux/spi/spi.h>
+ #include "fbtft.h"
+ 
++/* Ugly static declarations for now */
++#define NB_STORED_SPI_MSG	100
++static int idx_spi_msg = 0;
++static struct spi_transfer stored_spi_transfers[NB_STORED_SPI_MSG];
++static struct spi_message stored_spi_msg[NB_STORED_SPI_MSG];
++
++int fbtft_write_spi_async(struct fbtft_par *par, void *buf, size_t len, void (*cb)(void *context))
++{
++#if 1
++	struct spi_message *m = &stored_spi_msg[idx_spi_msg];
++	struct spi_transfer *t = &stored_spi_transfers[idx_spi_msg];
++	t->tx_buf = buf;
++	t->len = len;
++
++	/* update index */
++	idx_spi_msg = (idx_spi_msg+1)%NB_STORED_SPI_MSG;
++
++
++	fbtft_par_dbg_hex(DEBUG_WRITE, par, par->info->device, u8, buf, len,
++		"%s(len=%d): ", __func__, len);
++
++	if (!par->spi) {
++		dev_err(par->info->device,
++			"%s: par->spi is unexpectedly NULL\n", __func__);
++		return -1;
++	}
++
++	spi_message_init(m);
++	m->complete = cb;
++	m->context = par;
++	spi_message_add_tail(t, m);
++
++	return spi_async(par->spi, m);
++#endif
++
++#if 0
++	struct spi_transfer t = {
++		.tx_buf = buf,
++		.len = len,
++	};
++	struct spi_message m;
++
++	fbtft_par_dbg_hex(DEBUG_WRITE, par, par->info->device, u8, buf, len,
++		"%s(len=%d): ", __func__, len);
++	//printk("%s(len=%d): ", __func__, len);
++
++	if (!par->spi) {
++		dev_err(par->info->device,
++			"%s: par->spi is unexpectedly NULL\n", __func__);
++		return -1;
++	}
++
++	spi_message_init(&m);
++	spi_message_add_tail(&t, &m);
++	return spi_sync_no_wait_completion(par->spi, &m);
++#endif
++}
++EXPORT_SYMBOL(fbtft_write_spi_async);
++
+ int fbtft_write_spi(struct fbtft_par *par, void *buf, size_t len)
+ {
+ 	struct spi_transfer t = {
+@@ -15,6 +74,7 @@ int fbtft_write_spi(struct fbtft_par *par, void *buf, size_t len)
+ 
+ 	fbtft_par_dbg_hex(DEBUG_WRITE, par, par->info->device, u8, buf, len,
+ 		"%s(len=%d): ", __func__, len);
++	//printk("%s(len=%d): ", __func__, len);
+ 
+ 	if (!par->spi) {
+ 		dev_err(par->info->device,
+@@ -25,6 +85,7 @@ int fbtft_write_spi(struct fbtft_par *par, void *buf, size_t len)
+ 	spi_message_init(&m);
+ 	spi_message_add_tail(&t, &m);
+ 	return spi_sync(par->spi, &m);
++	//return spi_async(par->spi, &m);
+ }
+ EXPORT_SYMBOL(fbtft_write_spi);
+ 
+diff --git a/drivers/staging/fbtft/fbtft-sysfs.c b/drivers/staging/fbtft/fbtft-sysfs.c
+index 7120966..5141b32 100644
+--- a/drivers/staging/fbtft/fbtft-sysfs.c
++++ b/drivers/staging/fbtft/fbtft-sysfs.c
+@@ -145,6 +145,248 @@ static ssize_t show_gamma_curve(struct device *device,
+ 	__ATTR(gamma, 0660, show_gamma_curve, store_gamma_curve),
+ };
+ 
++int fbtft_overlay_parse_str(struct fbtft_par *par, u32 *values,
++			  const char *str, int size)
++{
++	char *str_p, *cur_line = NULL;
++	char *tmp;
++	unsigned long val = 0;
++	int ret = 0;
++	int line_counter, value_counter;
++
++	fbtft_par_dbg(DEBUG_SYSFS, par, "%s() str=%s\n", __func__, str);
++
++	if (!str || !values)
++		return -EINVAL;
++
++	fbtft_par_dbg(DEBUG_SYSFS, par, "%s\n", str);
++
++	tmp = kmemdup(str, size + 1, GFP_KERNEL);
++	if (!tmp)
++		return -ENOMEM;
++
++	/* replace optional separators */
++	str_p = tmp;
++	while (*str_p) {
++		if (*str_p == ',')
++			*str_p = ' ';
++		str_p++;
++	}
++
++	str_p = strim(tmp);
++
++	line_counter = 0;
++	while (str_p) {
++		if (line_counter >= 1) {
++			dev_err(par->info->device, "Overlay: Too many lines\n");
++			ret = -EINVAL;
++			goto out;
++		}
++		cur_line = strsep(&str_p, "\n");
++		value_counter = 0;
++		while (cur_line) {
++			if (value_counter == FBTFT_OVERLAY_NB_VALUES) {
++				dev_err(par->info->device,
++					"Overlay: Too many values\n");
++				ret = -EINVAL;
++				goto out;
++			}
++			ret = get_next_ulong(&cur_line, &val, " ", 10);
++			if (ret)
++				goto out;
++
++			// Check width
++			if(value_counter == 2 && val > par->info->var.xres-1){
++				dev_err(par->info->device, "Overlay: width (%lu) > display width (%d)\n", 
++					val, par->info->var.xres);
++				ret = -EINVAL;
++				goto out;
++			}
++
++			// Check height
++			if(value_counter == 3 && val > par->info->var.yres-1){
++				dev_err(par->info->device, "Overlay: height (%lu) > display height (%d)\n", 
++					val, par->info->var.yres);
++				ret = -EINVAL;
++				goto out;
++			}
++
++			values[value_counter] = val;
++			value_counter++;
++		}
++		if (value_counter != FBTFT_OVERLAY_NB_VALUES) {
++			dev_err(par->info->device, "Overlay: Too few values\n");
++			ret = -EINVAL;
++			goto out;
++		}
++
++		// Check x
++		if(values[0] > values[2]){
++			dev_err(par->info->device, "Overlay: x (%u) > width (%u)\n", 
++				values[0], values[2]);
++			ret = -EINVAL;
++			goto out;
++		}
++
++		// Check y
++		if(values[1] > values[3]){
++			dev_err(par->info->device, "Overlay: y (%u) > height (%u)\n", 
++				values[1], values[3]);
++			ret = -EINVAL;
++			goto out;
++		}
++
++		line_counter++;
++	}
++
++out:
++	kfree(tmp);
++	return ret;
++}
++
++static ssize_t store_overlay(struct device *device,
++				 struct device_attribute *attr,
++				 const char *buf, size_t count)
++{
++	struct fb_info *fb_info = dev_get_drvdata(device);
++	struct fbtft_par *par = fb_info->par;
++	u32 tmp_overlay[FBTFT_OVERLAY_NB_VALUES];
++	int ret;
++
++	ret = fbtft_overlay_parse_str(par, tmp_overlay, buf, count);
++	if (ret)
++		return ret;
++
++	mutex_lock(&par->overlay.lock);
++	par->overlay.x = tmp_overlay[0];
++	par->overlay.y = tmp_overlay[1];
++	par->overlay.w = tmp_overlay[2];
++	par->overlay.h = tmp_overlay[3];
++	mutex_unlock(&par->overlay.lock);
++
++	return count;
++}
++
++static ssize_t show_overlay(struct device *device,
++				struct device_attribute *attr, char *buf)
++{
++	struct fb_info *fb_info = dev_get_drvdata(device);
++	struct fbtft_par *par = fb_info->par;
++
++	ssize_t len = sprintf(buf, "%u,%u,%u,%u\n", par->overlay.x, par->overlay.y,
++		par->overlay.w, par->overlay.h);
++
++	return len;
++}
++
++static struct device_attribute overlay_device_attrs[] = {
++	__ATTR(overlay, 0660, show_overlay, store_overlay),
++};
++
++void fbtft_expand_rotate_soft_value(unsigned long *rotate_soft)
++{
++	switch (*rotate_soft) {
++	case 0:
++	case 90:
++	case 180:
++	case 270:
++		break;
++	case 1:
++		*rotate_soft = 90;
++		break;
++	case 2:
++		*rotate_soft = 180;
++		break;
++	case 3:
++		*rotate_soft = 270;
++	default:
++		printk("Wrong Rotate soft value: %lu\n", *rotate_soft);
++		 *rotate_soft = 0;
++		break;
++	}
++}
++
++static ssize_t store_rotate_soft(struct device *device,
++			   struct device_attribute *attr,
++			   const char *buf, size_t count)
++{
++	struct fb_info *fb_info = dev_get_drvdata(device);
++	struct fbtft_par *par = fb_info->par;
++	int ret;
++
++	ret = kstrtoul(buf, 10, &par->pdata->rotate_soft);
++	if (ret)
++		return ret;
++	fbtft_expand_rotate_soft_value(&par->pdata->rotate_soft);
++	
++	/* Schedule deferred_io to update display (no-op if already on queue)*/
++	if (!par->spi_async_mode){	
++		par->dirty_lines_start = 0;
++		par->dirty_lines_end = par->info->var.yres - 1;
++		schedule_delayed_work(&par->info->deferred_work, par->info->fbdefio->delay);
++	}
++
++	return count;
++}
++
++static ssize_t show_rotate_soft(struct device *device,
++			  struct device_attribute *attr, char *buf)
++{
++	struct fb_info *fb_info = dev_get_drvdata(device);
++	struct fbtft_par *par = fb_info->par;
++
++	return snprintf(buf, PAGE_SIZE, "%lu\n", par->pdata->rotate_soft);
++}
++
++static struct device_attribute rotate_soft_device_attr =
++	__ATTR(rotate_soft, 0660, show_rotate_soft, store_rotate_soft);
++
++static ssize_t store_notification(struct device *device,
++			   struct device_attribute *attr,
++			   const char *buf, size_t count)
++{
++	struct fb_info *fb_info = dev_get_drvdata(device);
++	struct fbtft_par *par = fb_info->par;
++	char *tmp;
++
++	fbtft_par_dbg(DEBUG_SYSFS, par, "%s(), count=%d, str=%s\n", __func__, count, buf);
++	//printk("%s(), count=%d, str=%s\n", __func__, count, buf);
++
++	tmp = kmemdup(buf, count + 1, GFP_KERNEL);
++	if (!tmp)
++		return -ENOMEM;
++
++	/* Clear notif buffer if empty string */
++	if (!strcmp(buf, "clear")){
++		fbtft_par_dbg(DEBUG_SYSFS, par, "Clearing notif buffer\n");
++		par->notification[0] = 0;
++	}
++	else{
++		strncpy(par->notification, tmp, FBTFT_NOTIF_MAX_SIZE);
++	}
++
++	/* Schedule deferred_io to update display (no-op if already on queue)*/
++	if (!par->spi_async_mode){	
++		par->dirty_lines_start = 0;
++		par->dirty_lines_end = par->info->var.yres - 1;
++		schedule_delayed_work(&par->info->deferred_work, par->info->fbdefio->delay);
++	}
++
++	return count;
++}
++
++static ssize_t show_notification(struct device *device,
++			  struct device_attribute *attr, char *buf)
++{
++	struct fb_info *fb_info = dev_get_drvdata(device);
++	struct fbtft_par *par = fb_info->par;
++
++	return snprintf(buf, PAGE_SIZE, "%s\n", par->notification);
++}
++
++static struct device_attribute notification_device_attr =
++	__ATTR(notification, 0660, show_notification, store_notification);
++
+ void fbtft_expand_debug_value(unsigned long *debug)
+ {
+ 	switch (*debug & 0x7) {
+@@ -167,8 +409,11 @@ void fbtft_expand_debug_value(unsigned long *debug)
+ 		*debug |= DEBUG_LEVEL_6;
+ 		break;
+ 	case 7:
+-		*debug = 0xFFFFFFFF;
++		*debug = DEBUG_LEVEL_7; 
+ 		break;
++	/*case 8:
++		*debug = DEBUG_LEVEL_8; // FPS
++		break;*/
+ 	}
+ }
+ 
+@@ -203,6 +448,9 @@ static ssize_t show_debug(struct device *device,
+ void fbtft_sysfs_init(struct fbtft_par *par)
+ {
+ 	device_create_file(par->info->dev, &debug_device_attr);
++	device_create_file(par->info->dev, &rotate_soft_device_attr);
++	device_create_file(par->info->dev, &notification_device_attr);
++	device_create_file(par->info->dev, &overlay_device_attrs[0]);
+ 	if (par->gamma.curves && par->fbtftops.set_gamma)
+ 		device_create_file(par->info->dev, &gamma_device_attrs[0]);
+ }
+@@ -210,6 +458,11 @@ void fbtft_sysfs_init(struct fbtft_par *par)
+ void fbtft_sysfs_exit(struct fbtft_par *par)
+ {
+ 	device_remove_file(par->info->dev, &debug_device_attr);
++	device_remove_file(par->info->dev, &rotate_soft_device_attr);
++	device_remove_file(par->info->dev, &notification_device_attr);
++	device_remove_file(par->info->dev, &overlay_device_attrs[0]);
+ 	if (par->gamma.curves && par->fbtftops.set_gamma)
+ 		device_remove_file(par->info->dev, &gamma_device_attrs[0]);
+ }
++
++//par->spi->controller->dma_tx->chan_id
+\ No newline at end of file
+diff --git a/drivers/staging/fbtft/fbtft.h b/drivers/staging/fbtft/fbtft.h
+index 488ab78..e6b4c59 100644
+--- a/drivers/staging/fbtft/fbtft.h
++++ b/drivers/staging/fbtft/fbtft.h
+@@ -20,15 +20,18 @@
+ #include <linux/spi/spi.h>
+ #include <linux/platform_device.h>
+ 
+-#define FBTFT_ONBOARD_BACKLIGHT 2
++#define FBTFT_ONBOARD_BACKLIGHT 		2
+ 
+-#define FBTFT_GPIO_NO_MATCH		0xFFFF
+-#define FBTFT_GPIO_NAME_SIZE	32
+-#define FBTFT_MAX_INIT_SEQUENCE      512
+-#define FBTFT_GAMMA_MAX_VALUES_TOTAL 128
++#define FBTFT_GPIO_NO_MATCH				0xFFFF
++#define FBTFT_GPIO_NAME_SIZE			32
++#define FBTFT_MAX_INIT_SEQUENCE      	512
++#define FBTFT_GAMMA_MAX_VALUES_TOTAL 	128
++#define FBTFT_OVERLAY_NB_VALUES			4
+ 
+-#define FBTFT_OF_INIT_CMD	BIT(24)
+-#define FBTFT_OF_INIT_DELAY	BIT(25)
++#define FBTFT_NOTIF_MAX_SIZE			256
++
++#define FBTFT_OF_INIT_CMD				BIT(24)
++#define FBTFT_OF_INIT_DELAY				BIT(25)
+ 
+ /**
+  * struct fbtft_gpio - Structure that holds one pinname to gpio mapping
+@@ -70,6 +73,7 @@ struct fbtft_gpio {
+  */
+ struct fbtft_ops {
+ 	int (*write)(struct fbtft_par *par, void *buf, size_t len);
++	int (*write_async)(struct fbtft_par *par, void *buf, size_t len, void (*cb)(void *context));
+ 	int (*read)(struct fbtft_par *par, void *buf, size_t len);
+ 	int (*write_vmem)(struct fbtft_par *par, size_t offset, size_t len);
+ 	void (*write_register)(struct fbtft_par *par, int len, ...);
+@@ -147,7 +151,9 @@ struct fbtft_platform_data {
+ 	struct fbtft_display display;
+ 	const struct fbtft_gpio *gpios;
+ 	unsigned int rotate;
++	unsigned long rotate_soft;
+ 	bool bgr;
++	bool spi_async_mode;
+ 	unsigned int fps;
+ 	int txbuflen;
+ 	u8 startbyte;
+@@ -212,6 +218,8 @@ struct fbtft_par {
+ 		size_t len;
+ 	} txbuf;
+ 	u8 *buf;
++	u8 *vmem_ptr;
++	u8 *vmem_post_process;
+ 	u8 startbyte;
+ 	struct fbtft_ops fbtftops;
+ 	spinlock_t dirty_lock;
+@@ -235,11 +243,22 @@ struct fbtft_par {
+ 		int num_values;
+ 		int num_curves;
+ 	} gamma;
++	struct {
++		struct mutex lock;
++		u32 x;
++		u32 y;
++		u32 w;
++		u32 h;
++	} overlay;
++	char notification[FBTFT_NOTIF_MAX_SIZE+1];
+ 	unsigned long debug;
+ 	bool first_update_done;
+ 	ktime_t update_time;
++	long avg_fps;
++	int nb_fps_values;
+ 	bool bgr;
+ 	void *extra;
++	bool spi_async_mode;
+ };
+ 
+ #define NUMARGS(...)  (sizeof((int[]){__VA_ARGS__})/sizeof(int))
+@@ -263,9 +282,13 @@ struct fb_info *fbtft_framebuffer_alloc(struct fbtft_display *display,
+ int fbtft_probe_common(struct fbtft_display *display, struct spi_device *sdev,
+ 		       struct platform_device *pdev);
+ int fbtft_remove_common(struct device *dev, struct fb_info *info);
++void fbtft_rotate_soft(u16 *mat, int size, int rotation);
++void fbtft_post_process_screen(struct fbtft_par *par, 
++			unsigned int dirty_lines_start, unsigned int dirty_lines_end);
+ 
+ /* fbtft-io.c */
+ int fbtft_write_spi(struct fbtft_par *par, void *buf, size_t len);
++int fbtft_write_spi_async(struct fbtft_par *par, void *buf, size_t len, void (*cb)(void *context));
+ int fbtft_write_spi_emulate_9(struct fbtft_par *par, void *buf, size_t len);
+ int fbtft_read_spi(struct fbtft_par *par, void *buf, size_t len);
+ int fbtft_write_gpio8_wr(struct fbtft_par *par, void *buf, size_t len);
+@@ -273,8 +296,10 @@ int fbtft_probe_common(struct fbtft_display *display, struct spi_device *sdev,
+ int fbtft_write_gpio16_wr_latched(struct fbtft_par *par, void *buf, size_t len);
+ 
+ /* fbtft-bus.c */
++int fbtft_write_init_cmd_data_transfers(struct fbtft_par *par);
+ int fbtft_write_vmem8_bus8(struct fbtft_par *par, size_t offset, size_t len);
+ int fbtft_write_vmem16_bus16(struct fbtft_par *par, size_t offset, size_t len);
++int fbtft_write_vmem16_bus8_async(struct fbtft_par *par, size_t offset, size_t len);
+ int fbtft_write_vmem16_bus8(struct fbtft_par *par, size_t offset, size_t len);
+ int fbtft_write_vmem16_bus9(struct fbtft_par *par, size_t offset, size_t len);
+ void fbtft_write_reg8_bus8(struct fbtft_par *par, int len, ...);
+@@ -358,7 +383,7 @@ static void __exit fbtft_driver_module_exit(void)                          \
+ 
+ /* shorthand debug levels */
+ #define DEBUG_LEVEL_1	DEBUG_REQUEST_GPIOS
+-#define DEBUG_LEVEL_2	(DEBUG_LEVEL_1 | DEBUG_DRIVER_INIT_FUNCTIONS | DEBUG_TIME_FIRST_UPDATE)
++#define DEBUG_LEVEL_2	(DEBUG_LEVEL_1 | DEBUG_DRIVER_INIT_FUNCTIONS | DEBUG_TIME_FIRST_UPDATE | DEBUG_TIME_EACH_UPDATE)
+ #define DEBUG_LEVEL_3	(DEBUG_LEVEL_2 | DEBUG_RESET | DEBUG_INIT_DISPLAY | DEBUG_BLANK | DEBUG_REQUEST_GPIOS | DEBUG_FREE_GPIOS | DEBUG_VERIFY_GPIOS | DEBUG_BACKLIGHT | DEBUG_SYSFS)
+ #define DEBUG_LEVEL_4	(DEBUG_LEVEL_2 | DEBUG_FB_READ | DEBUG_FB_WRITE | DEBUG_FB_FILLRECT | DEBUG_FB_COPYAREA | DEBUG_FB_IMAGEBLIT | DEBUG_FB_BLANK)
+ #define DEBUG_LEVEL_5	(DEBUG_LEVEL_3 | DEBUG_UPDATE_DISPLAY)
+-- 
+1.9.1
+
+
+From c22a3142aa4f092145324c4fa7afe42321d1a680 Mon Sep 17 00:00:00 2001
+From: vincent <vbusoenseirb@gmail.com>
+Date: Sun, 15 Dec 2019 17:48:57 +0100
+Subject: [PATCH 2/2] new fbtft with spi async mode, notifs, soft rotation
+
+---
+ drivers/staging/fbtft/fb_text.c | 1550 +++++++++++++++++++++++++++++++++++++++
+ drivers/staging/fbtft/fb_text.h |   26 +
+ 2 files changed, 1576 insertions(+)
+ create mode 100644 drivers/staging/fbtft/fb_text.c
+ create mode 100644 drivers/staging/fbtft/fb_text.h
+
+diff --git a/drivers/staging/fbtft/fb_text.c b/drivers/staging/fbtft/fb_text.c
+new file mode 100644
+index 0000000..9f873b5
+--- /dev/null
++++ b/drivers/staging/fbtft/fb_text.c
+@@ -0,0 +1,1550 @@
++#include "fb_text.h"
++
++#define AT(x, y) (y)*W+(x)
++#define MIN(a,b) (((a)<(b))?(a):(b))
++#define MAX(a,b) (((a)>(b))?(a):(b))
++
++
++
++static u8 monaco_font[] = {
++
++/*
++.....
++.....
++.....
++.....
++.....
++.....
++.....
++.....
++   */ 0x00,0x00,0x00,0x00,0x00,
++
++/*
++#....
++#....
++#....
++#....
++#....
++.....
++#....
++.....
++  !*/ 0x21,0x84,0x10,0x40,0x00,
++
++/*
++#.#..
++#.#..
++.....
++.....
++.....
++.....
++.....
++.....
++  "*/ 0xa5,0x00,0x00,0x00,0x00,
++
++/*
++..##.
++..##.
++#####
++.#.#.
++#####
++.##..
++.##..
++.....
++  #*/ 0x8c,0x7d,0xf5,0x8d,0x01,
++
++/*
++..#..
++.####
++#.#..
++#.#..
++.##..
++..###
++..#.#
++####.
++  $*/ 0xc4,0x97,0x62,0x38,0x7d,
++
++/*
++#...#
++##..#
++#..#.
++..#..
++..##.
++.#.##
++#..#.
++.....
++  %*/ 0x71,0x26,0xc2,0x74,0x02,
++
++/*
++.#...
++#.#..
++#.#..
++.#...
++#.##.
++#..#.
++.###.
++.....
++  &*/ 0xa2,0x14,0xd1,0x92,0x03,
++
++/*
++#....
++#....
++.....
++.....
++.....
++.....
++.....
++.....
++  '*/ 0x21,0x00,0x00,0x00,0x00,
++
++/*
++..#..
++.#...
++#....
++#....
++#....
++#....
++.#...
++..#..
++  (*/ 0x44,0x84,0x10,0x82,0x20,
++
++/*
++#....
++.#...
++..#..
++..#..
++..#..
++..#..
++.#...
++#....
++  )*/ 0x41,0x10,0x42,0x88,0x08,
++
++/*
++.#...
++###..
++###..
++.#...
++.....
++.....
++.....
++.....
++  **/ 0xe2,0x1c,0x01,0x00,0x00,
++
++/*
++..#..
++..#..
++#####
++..#..
++..#..
++.....
++.....
++.....
++  +*/ 0x84,0x7c,0x42,0x00,0x00,
++
++/*
++#....
++#....
++#....
++.....
++.....
++.....
++.....
++.....
++  ,*/ 0x21,0x04,0x00,0x00,0x00,
++
++/*
++###..
++.....
++.....
++.....
++.....
++.....
++.....
++.....
++  -*/ 0x07,0x00,0x00,0x00,0x00,
++
++/*
++#....
++.....
++.....
++.....
++.....
++.....
++.....
++.....
++  .*/ 0x01,0x00,0x00,0x00,0x00,
++
++/*
++...#.
++...#.
++..#..
++.#...
++.#...
++#....
++.....
++.....
++  /*/ 0x08,0x11,0x21,0x02,0x00,
++
++/*
++.##..
++#.##.
++#.##.
++##.#.
++##.#.
++##.#.
++.##..
++.....
++  0*/ 0xa6,0xb5,0xb5,0x96,0x01,
++
++/*
++.#...
++##...
++.#...
++.#...
++.#...
++.#...
++###..
++.....
++  1*/ 0x62,0x08,0x21,0xc4,0x01,
++
++/*
++###..
++...#.
++...#.
++..#..
++.#...
++#....
++####.
++.....
++  2*/ 0x07,0x21,0x22,0xc2,0x03,
++
++/*
++###..
++...#.
++...#.
++.##..
++...#.
++...#.
++###..
++.....
++  3*/ 0x07,0x21,0x83,0xd0,0x01,
++
++/*
++...#.
++..##.
++.#.#.
++#..#.
++#####
++...#.
++...#.
++.....
++  4*/ 0x88,0xa9,0xf4,0x11,0x02,
++
++/*
++####.
++#....
++###..
++...#.
++...#.
++...#.
++###..
++.....
++  5*/ 0x2f,0x1c,0x84,0xd0,0x01,
++
++/*
++.##..
++#....
++#.#..
++##.#.
++##.#.
++##.#.
++.##..
++.....
++  6*/ 0x26,0x94,0xb5,0x96,0x01,
++
++/*
++####.
++...#.
++...#.
++..#..
++.##..
++.#...
++.#...
++.....
++  7*/ 0x0f,0x21,0x62,0x84,0x00,
++
++/*
++.###.
++#..#.
++#..#.
++.##..
++#..#.
++#..#.
++###..
++.....
++  8*/ 0x2e,0x25,0x93,0xd2,0x01,
++
++/*
++.##..
++#..#.
++#..#.
++#..#.
++.###.
++...#.
++.##..
++.....
++  9*/ 0x26,0xa5,0xe4,0x90,0x01,
++
++/*
++#....
++.....
++.....
++.....
++#....
++.....
++.....
++.....
++  :*/ 0x01,0x00,0x10,0x00,0x00,
++
++/*
++#....
++.....
++.....
++.....
++#....
++#....
++#....
++.....
++  ;*/ 0x01,0x00,0x10,0x42,0x00,
++
++/*
++....#
++..##.
++##...
++..##.
++....#
++.....
++.....
++.....
++  <*/ 0x90,0x0d,0x06,0x01,0x00,
++
++/*
++####.
++.....
++####.
++.....
++.....
++.....
++.....
++.....
++  =*/ 0x0f,0x3c,0x00,0x00,0x00,
++
++/*
++#....
++.##..
++...##
++.##..
++#....
++.....
++.....
++.....
++  >*/ 0xc1,0x60,0x13,0x00,0x00,
++
++/*
++###..
++..#..
++..#..
++.#...
++.#...
++.....
++.#...
++.....
++  ?*/ 0x87,0x10,0x21,0x80,0x00,
++
++/*
++.###.
++#...#
++#.###
++##.##
++##.##
++#.##.
++.##..
++.....
++  @*/ 0x2e,0xf6,0xbd,0x9b,0x01,
++
++/*
++.##..
++.##..
++.##..
++.##..
++####.
++####.
++#..#.
++.....
++  A*/ 0xc6,0x18,0xf3,0x5e,0x02,
++
++/*
++##...
++#.#..
++#.#..
++##...
++#.#..
++#.#..
++##...
++.....
++  B*/ 0xa3,0x94,0x51,0xca,0x00,
++
++/*
++.###.
++#....
++#....
++#....
++#....
++#....
++.###.
++.....
++  C*/ 0x2e,0x84,0x10,0x82,0x03,
++
++/*
++###..
++#..#.
++#..#.
++#..#.
++#..#.
++#..#.
++###..
++.....
++  D*/ 0x27,0xa5,0x94,0xd2,0x01,
++
++/*
++####.
++#....
++#....
++####.
++#....
++#....
++####.
++.....
++  E*/ 0x2f,0x84,0x17,0xc2,0x03,
++
++/*
++####.
++#....
++#....
++####.
++#....
++#....
++#....
++.....
++  F*/ 0x2f,0x84,0x17,0x42,0x00,
++
++/*
++.###.
++#....
++#....
++#.##.
++#..#.
++#..#.
++.###.
++.....
++  G*/ 0x2e,0x84,0x96,0x92,0x03,
++
++/*
++#..#.
++#..#.
++#..#.
++####.
++#..#.
++#..#.
++#..#.
++.....
++  H*/ 0x29,0xa5,0x97,0x52,0x02,
++
++/*
++###..
++.#...
++.#...
++.#...
++.#...
++.#...
++###..
++.....
++  I*/ 0x47,0x08,0x21,0xc4,0x01,
++
++/*
++.###.
++...#.
++...#.
++...#.
++...#.
++...#.
++###..
++.....
++  J*/ 0x0e,0x21,0x84,0xd0,0x01,
++
++/*
++#..#.
++#..#.
++#.#..
++##...
++#.#..
++#.#..
++#..#.
++.....
++  K*/ 0x29,0x95,0x51,0x4a,0x02,
++
++/*
++#....
++#....
++#....
++#....
++#....
++#....
++###..
++.....
++  L*/ 0x21,0x84,0x10,0xc2,0x01,
++
++/*
++##.##
++##.##
++##.##
++##.##
++###.#
++#.#.#
++#...#
++.....
++  M*/ 0x7b,0xef,0x7d,0x6b,0x04,
++
++/*
++#..#.
++##.#.
++##.#.
++#.##.
++#.##.
++#.##.
++#..#.
++.....
++  N*/ 0x69,0xad,0xd6,0x5a,0x02,
++
++/*
++.##..
++#..#.
++#..#.
++#..#.
++#..#.
++#..#.
++.##..
++.....
++  O*/ 0x26,0xa5,0x94,0x92,0x01,
++
++/*
++###..
++#..#.
++#..#.
++#..#.
++###..
++#....
++#....
++.....
++  P*/ 0x27,0xa5,0x74,0x42,0x00,
++
++/*
++.##..
++#..#.
++#..#.
++#..#.
++#..#.
++#..#.
++.##..
++..#..
++  Q*/ 0x26,0xa5,0x94,0x92,0x21,
++
++/*
++##...
++#.#..
++#.#..
++##...
++##...
++#.#..
++#.#..
++.....
++  R*/ 0xa3,0x94,0x31,0x4a,0x01,
++
++/*
++###..
++#....
++#....
++.#...
++..#..
++..#..
++###..
++.....
++  S*/ 0x27,0x04,0x41,0xc8,0x01,
++
++/*
++#####
++..#..
++..#..
++..#..
++..#..
++..#..
++..#..
++.....
++  T*/ 0x9f,0x10,0x42,0x08,0x01,
++
++/*
++#..#.
++#..#.
++#..#.
++#..#.
++#..#.
++#..#.
++.##..
++.....
++  U*/ 0x29,0xa5,0x94,0x92,0x01,
++
++/*
++#.#..
++#.#..
++#.#..
++#.#..
++#.#..
++.#...
++.#...
++.....
++  V*/ 0xa5,0x94,0x52,0x84,0x00,
++
++/*
++#.#.#
++#.#.#
++###.#
++##.##
++.#.#.
++.#.#.
++.#.#.
++.....
++  W*/ 0xb5,0xde,0xad,0x94,0x02,
++
++/*
++.#.#.
++.#.#.
++..#..
++..#..
++..#..
++.#.#.
++.#.#.
++.....
++  X*/ 0x4a,0x11,0x42,0x94,0x02,
++
++/*
++#.#..
++#.#..
++#.#..
++.#...
++.#...
++.#...
++.#...
++.....
++  Y*/ 0xa5,0x14,0x21,0x84,0x00,
++
++/*
++####.
++...#.
++..#..
++.#...
++.#...
++#....
++####.
++.....
++  Z*/ 0x0f,0x11,0x21,0xc2,0x03,
++
++/*
++###..
++#....
++#....
++#....
++#....
++#....
++#....
++###..
++  [*/ 0x27,0x84,0x10,0x42,0x38,
++
++/*
++#....
++#....
++.#...
++.#...
++..#..
++...#.
++.....
++.....
++  \*/ 0x21,0x08,0x41,0x10,0x00,
++
++/*
++###..
++..#..
++..#..
++..#..
++..#..
++..#..
++..#..
++###..
++  ]*/ 0x87,0x10,0x42,0x08,0x39,
++
++/*
++.#...
++.##..
++.##..
++#..#.
++.....
++.....
++.....
++.....
++  ^*/ 0xc2,0x98,0x04,0x00,0x00,
++
++/*
++####.
++.....
++.....
++.....
++.....
++.....
++.....
++.....
++  _*/ 0x0f,0x00,0x00,0x00,0x00,
++
++/*
++.#...
++.....
++.....
++.....
++.....
++.....
++.....
++.....
++  `*/ 0x02,0x00,0x00,0x00,0x00,
++
++/*
++.####
++#...#
++#...#
++#...#
++.####
++.....
++.....
++.....
++  a*/ 0x3e,0xc6,0xe8,0x01,0x00,
++
++/*
++#....
++#....
++####.
++#...#
++#...#
++#...#
++####.
++.....
++  b*/ 0x21,0xbc,0x18,0xe3,0x03,
++
++/*
++.###.
++#....
++#....
++#....
++.###.
++.....
++.....
++.....
++  c*/ 0x2e,0x84,0xe0,0x00,0x00,
++
++/*
++...#.
++...#.
++.###.
++#..#.
++#..#.
++#..#.
++.###.
++.....
++  d*/ 0x08,0xb9,0x94,0x92,0x03,
++
++/*
++.##..
++#..#.
++####.
++#....
++.###.
++.....
++.....
++.....
++  e*/ 0x26,0xbd,0xe0,0x00,0x00,
++
++/*
++..###
++.#...
++####.
++.#...
++.#...
++.#...
++.#...
++.....
++  f*/ 0x5c,0x3c,0x21,0x84,0x00,
++
++/*
++.###.
++#..#.
++#..#.
++#..#.
++.###.
++...#.
++###..
++.....
++  g*/ 0x2e,0xa5,0xe4,0xd0,0x01,
++
++/*
++#....
++#....
++###..
++#..#.
++#..#.
++#..#.
++#..#.
++.....
++  h*/ 0x21,0x9c,0x94,0x52,0x02,
++
++/*
++.#...
++.....
++##...
++.#...
++.#...
++.#...
++.##..
++.....
++  i*/ 0x02,0x0c,0x21,0x84,0x01,
++
++/*
++..#..
++.....
++###..
++..#..
++..#..
++..#..
++..#..
++..#..
++  j*/ 0x04,0x1c,0x42,0x08,0x21,
++
++/*
++#....
++#....
++#.#..
++##...
++##...
++#.#..
++#..#.
++.....
++  k*/ 0x21,0x94,0x31,0x4a,0x02,
++
++/*
++##...
++.#...
++.#...
++.#...
++.#...
++.#...
++.##..
++.....
++  l*/ 0x43,0x08,0x21,0x84,0x01,
++
++/*
++#####
++#.#.#
++#.#.#
++#.#.#
++#.#.#
++.....
++.....
++.....
++  m*/ 0xbf,0xd6,0x5a,0x01,0x00,
++
++/*
++###..
++#..#.
++#..#.
++#..#.
++#..#.
++.....
++.....
++.....
++  n*/ 0x27,0xa5,0x94,0x00,0x00,
++
++/*
++.##..
++#..#.
++#..#.
++#..#.
++.##..
++.....
++.....
++.....
++  o*/ 0x26,0xa5,0x64,0x00,0x00,
++
++/*
++####.
++#...#
++#...#
++#...#
++####.
++#....
++#....
++.....
++  p*/ 0x2f,0xc6,0xf8,0x42,0x00,
++
++/*
++.###.
++#..#.
++#..#.
++#..#.
++.###.
++...#.
++...#.
++.....
++  q*/ 0x2e,0xa5,0xe4,0x10,0x02,
++
++/*
++###..
++#.#..
++#....
++#....
++#....
++.....
++.....
++.....
++  r*/ 0xa7,0x84,0x10,0x00,0x00,
++
++/*
++.###.
++#..#.
++.###.
++#..#.
++###..
++.....
++.....
++.....
++  s*/ 0x2e,0xb9,0x74,0x00,0x00,
++
++/*
++.#...
++.#...
++####.
++.#...
++.#...
++..##.
++.....
++.....
++  t*/ 0x42,0x3c,0x21,0x18,0x00,
++
++/*
++#..#.
++#..#.
++#..#.
++#..#.
++.###.
++.....
++.....
++.....
++  u*/ 0x29,0xa5,0xe4,0x00,0x00,
++
++/*
++#.#..
++#.#..
++#.#..
++###..
++.#...
++.....
++.....
++.....
++  v*/ 0xa5,0x94,0x23,0x00,0x00,
++
++/*
++#.#.#
++###.#
++###.#
++####.
++.#.#.
++.....
++.....
++.....
++  w*/ 0xf5,0xde,0xa7,0x00,0x00,
++
++/*
++.#.#.
++.##..
++..#..
++.#.#.
++.#.#.
++.....
++.....
++.....
++  x*/ 0xca,0x10,0xa5,0x00,0x00,
++
++/*
++.#.#.
++.#.#.
++.#.#.
++..##.
++..#..
++..#..
++##...
++.....
++  y*/ 0x4a,0x29,0x46,0xc8,0x00,
++
++/*
++####.
++..#..
++.#...
++#....
++####.
++.....
++.....
++.....
++  z*/ 0x8f,0x88,0xf0,0x00,0x00,
++
++/*
++.##..
++.#...
++.#...
++.#...
++#....
++.#...
++.#...
++.##..
++  {*/ 0x46,0x08,0x11,0x84,0x30,
++
++/*
++#....
++#....
++#....
++#....
++#....
++#....
++.....
++.....
++  |*/ 0x21,0x84,0x10,0x02,0x00,
++
++/*
++##...
++.#...
++.#...
++.#...
++..#..
++.#...
++.#...
++##...
++  }*/ 0x43,0x08,0x41,0x84,0x18,
++
++/*
++#####
++.....
++.....
++.....
++.....
++.....
++.....
++.....
++  ~*/ 0x1f,0x00,0x00,0x00,0x00,
++
++};
++
++//static u8 monaco_font_outline[127*MONACO_BYTES_PER_CHAR] = {};
++
++static const s8 monaco_height_adjust[] = {
++   6,-1,-1,-1,-2,-1,-1,-1,-1,-1,-1,1,5,3,5,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,1,1,2,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,6,0,1,-1,1,-1,1,-1,1,-1,-1,-1,-1,-1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,-1,-1,-1,4,
++};
++
++unsigned char fontdata8x8[64*16] =
++{
++  0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
++  0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
++  0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
++  0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
++  0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
++  0x3C,0x42,0x99,0xBD,0xBD,0x99,0x42,0x3C,0x3C,0x42,0x81,0x81,0x81,0x81,0x42,0x3C,
++  0xFE,0x82,0x8A,0xD2,0xA2,0x82,0xFE,0x00,0xFE,0x82,0x82,0x82,0x82,0x82,0xFE,0x00,
++  0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x38,0x64,0x74,0x7C,0x38,0x00,0x00,
++  0x80,0xC0,0xF0,0xFC,0xF0,0xC0,0x80,0x00,0x01,0x03,0x0F,0x3F,0x0F,0x03,0x01,0x00,
++  0x18,0x3C,0x7E,0x18,0x7E,0x3C,0x18,0x00,0xEE,0xEE,0xEE,0xCC,0x00,0xCC,0xCC,0x00,
++  0x00,0x00,0x30,0x68,0x78,0x30,0x00,0x00,0x00,0x38,0x64,0x74,0x7C,0x38,0x00,0x00,
++  0x3C,0x66,0x7A,0x7A,0x7E,0x7E,0x3C,0x00,0x0E,0x3E,0x3A,0x22,0x26,0x6E,0xE4,0x40,
++  0x18,0x3C,0x7E,0x3C,0x3C,0x3C,0x3C,0x00,0x3C,0x3C,0x3C,0x3C,0x7E,0x3C,0x18,0x00,
++  0x08,0x7C,0x7E,0x7E,0x7C,0x08,0x00,0x00,0x10,0x3E,0x7E,0x7E,0x3E,0x10,0x00,0x00,
++  0x58,0x2A,0xDC,0xC8,0xDC,0x2A,0x58,0x00,0x24,0x66,0xFF,0xFF,0x66,0x24,0x00,0x00,
++  0x00,0x10,0x10,0x38,0x38,0x7C,0xFE,0x00,0xFE,0x7C,0x38,0x38,0x10,0x10,0x00,0x00,
++  0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x1C,0x1C,0x1C,0x18,0x00,0x18,0x18,0x00,
++  0x6C,0x6C,0x24,0x00,0x00,0x00,0x00,0x00,0x00,0x28,0x7C,0x28,0x7C,0x28,0x00,0x00,
++  0x10,0x38,0x60,0x38,0x0C,0x78,0x10,0x00,0x40,0xA4,0x48,0x10,0x24,0x4A,0x04,0x00,
++  0x18,0x34,0x18,0x3A,0x6C,0x66,0x3A,0x00,0x18,0x18,0x20,0x00,0x00,0x00,0x00,0x00,
++  0x30,0x60,0x60,0x60,0x60,0x60,0x30,0x00,0x0C,0x06,0x06,0x06,0x06,0x06,0x0C,0x00,
++  0x10,0x54,0x38,0x7C,0x38,0x54,0x10,0x00,0x00,0x18,0x18,0x7E,0x18,0x18,0x00,0x00,
++  0x00,0x00,0x00,0x00,0x18,0x18,0x30,0x00,0x00,0x00,0x00,0x00,0x3E,0x00,0x00,0x00,
++  0x00,0x00,0x00,0x00,0x18,0x18,0x00,0x00,0x00,0x04,0x08,0x10,0x20,0x40,0x00,0x00,
++  0x38,0x4C,0xC6,0xC6,0xC6,0x64,0x38,0x00,0x18,0x38,0x18,0x18,0x18,0x18,0x7E,0x00,
++  0x7C,0xC6,0x0E,0x3C,0x78,0xE0,0xFE,0x00,0x7E,0x0C,0x18,0x3C,0x06,0xC6,0x7C,0x00,
++  0x1C,0x3C,0x6C,0xCC,0xFE,0x0C,0x0C,0x00,0xFC,0xC0,0xFC,0x06,0x06,0xC6,0x7C,0x00,
++  0x3C,0x60,0xC0,0xFC,0xC6,0xC6,0x7C,0x00,0xFE,0xC6,0x0C,0x18,0x30,0x30,0x30,0x00,
++  0x78,0xC4,0xE4,0x78,0x86,0x86,0x7C,0x00,0x7C,0xC6,0xC6,0x7E,0x06,0x0C,0x78,0x00,
++  0x00,0x00,0x18,0x00,0x00,0x18,0x00,0x00,0x00,0x00,0x18,0x00,0x00,0x18,0x18,0x30,
++  0x1C,0x38,0x70,0xE0,0x70,0x38,0x1C,0x00,0x00,0x7C,0x00,0x00,0x7C,0x00,0x00,0x00,
++  0x70,0x38,0x1C,0x0E,0x1C,0x38,0x70,0x00,0x7C,0xC6,0xC6,0x1C,0x18,0x00,0x18,0x00,
++  0x3C,0x42,0x99,0xA1,0xA5,0x99,0x42,0x3C,0x38,0x6C,0xC6,0xC6,0xFE,0xC6,0xC6,0x00,
++  0xFC,0xC6,0xC6,0xFC,0xC6,0xC6,0xFC,0x00,0x3C,0x66,0xC0,0xC0,0xC0,0x66,0x3C,0x00,
++  0xF8,0xCC,0xC6,0xC6,0xC6,0xCC,0xF8,0x00,0xFE,0xC0,0xC0,0xFC,0xC0,0xC0,0xFE,0x00,
++  0xFE,0xC0,0xC0,0xFC,0xC0,0xC0,0xC0,0x00,0x3E,0x60,0xC0,0xCE,0xC6,0x66,0x3E,0x00,
++  0xC6,0xC6,0xC6,0xFE,0xC6,0xC6,0xC6,0x00,0x7E,0x18,0x18,0x18,0x18,0x18,0x7E,0x00,
++  0x06,0x06,0x06,0x06,0xC6,0xC6,0x7C,0x00,0xC6,0xCC,0xD8,0xF0,0xF8,0xDC,0xCE,0x00,
++  0x60,0x60,0x60,0x60,0x60,0x60,0x7E,0x00,0xC6,0xEE,0xFE,0xFE,0xD6,0xC6,0xC6,0x00,
++  0xC6,0xE6,0xF6,0xFE,0xDE,0xCE,0xC6,0x00,0x7C,0xC6,0xC6,0xC6,0xC6,0xC6,0x7C,0x00,
++  0xFC,0xC6,0xC6,0xC6,0xFC,0xC0,0xC0,0x00,0x7C,0xC6,0xC6,0xC6,0xDE,0xCC,0x7A,0x00,
++  0xFC,0xC6,0xC6,0xCE,0xF8,0xDC,0xCE,0x00,0x78,0xCC,0xC0,0x7C,0x06,0xC6,0x7C,0x00,
++  0x7E,0x18,0x18,0x18,0x18,0x18,0x18,0x00,0xC6,0xC6,0xC6,0xC6,0xC6,0xC6,0x7C,0x00,
++  0xC6,0xC6,0xC6,0xEE,0x7C,0x38,0x10,0x00,0xC6,0xC6,0xD6,0xFE,0xFE,0xEE,0xC6,0x00,
++  0xC6,0xEE,0x3C,0x38,0x7C,0xEE,0xC6,0x00,0x66,0x66,0x66,0x3C,0x18,0x18,0x18,0x00,
++  0xFE,0x0E,0x1C,0x38,0x70,0xE0,0xFE,0x00,0x3C,0x30,0x30,0x30,0x30,0x30,0x3C,0x00,
++  0x60,0x60,0x30,0x18,0x0C,0x06,0x06,0x00,0x3C,0x0C,0x0C,0x0C,0x0C,0x0C,0x3C,0x00,
++  0x18,0x3C,0x66,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0xFF,
++  0x30,0x30,0x18,0x00,0x00,0x00,0x00,0x00,0x00,0x3C,0x06,0x3E,0x66,0x66,0x3C,0x00,
++  0x60,0x7C,0x66,0x66,0x66,0x66,0x7C,0x00,0x00,0x3C,0x66,0x60,0x60,0x66,0x3C,0x00,
++  0x06,0x3E,0x66,0x66,0x66,0x66,0x3E,0x00,0x00,0x3C,0x66,0x66,0x7E,0x60,0x3C,0x00,
++  0x1C,0x30,0x78,0x30,0x30,0x30,0x30,0x00,0x00,0x3E,0x66,0x66,0x66,0x3E,0x06,0x3C,
++  0x60,0x7C,0x76,0x66,0x66,0x66,0x66,0x00,0x18,0x00,0x38,0x18,0x18,0x18,0x18,0x00,
++  0x0C,0x00,0x1C,0x0C,0x0C,0x0C,0x0C,0x38,0x60,0x60,0x66,0x6C,0x78,0x6C,0x66,0x00,
++  0x38,0x18,0x18,0x18,0x18,0x18,0x18,0x00,0x00,0xEC,0xFE,0xFE,0xFE,0xD6,0xC6,0x00,
++  0x00,0x7C,0x76,0x66,0x66,0x66,0x66,0x00,0x00,0x3C,0x66,0x66,0x66,0x66,0x3C,0x00,
++  0x00,0x7C,0x66,0x66,0x66,0x7C,0x60,0x60,0x00,0x3E,0x66,0x66,0x66,0x3E,0x06,0x06,
++  0x00,0x7E,0x70,0x60,0x60,0x60,0x60,0x00,0x00,0x3C,0x60,0x3C,0x06,0x66,0x3C,0x00,
++  0x30,0x78,0x30,0x30,0x30,0x30,0x1C,0x00,0x00,0x66,0x66,0x66,0x66,0x6E,0x3E,0x00,
++  0x00,0x66,0x66,0x66,0x66,0x3C,0x18,0x00,0x00,0xC6,0xD6,0xFE,0xFE,0x7C,0x6C,0x00,
++  0x00,0x66,0x3C,0x18,0x3C,0x66,0x66,0x00,0x00,0x66,0x66,0x66,0x66,0x3E,0x06,0x3C,
++  0x00,0x7E,0x0C,0x18,0x30,0x60,0x7E,0x00,0x0E,0x18,0x0C,0x38,0x0C,0x18,0x0E,0x00,
++  0x18,0x18,0x18,0x00,0x18,0x18,0x18,0x00,0x70,0x18,0x30,0x1C,0x30,0x18,0x70,0x00,
++  0x00,0x00,0x76,0xDC,0x00,0x00,0x00,0x00,0x10,0x28,0x10,0x54,0xAA,0x44,0x00,0x00,
++};
++
++
++/* The font is generated from Xorg clR5x8.bdf */
++/*
++COMMENT  Copyright 1989 Dale Schumacher, dal@syntel.mn.org
++COMMENT                 399 Beacon Ave.
++COMMENT                 St. Paul, MN  55104-3527
++COMMENT
++COMMENT  Permission to use, copy, modify, and distribute this software and
++COMMENT  its documentation for any purpose and without fee is hereby
++COMMENT  granted, provided that the above copyright notice appear in all
++COMMENT  copies and that both that copyright notice and this permission
++COMMENT  notice appear in supporting documentation, and that the name of
++COMMENT  Dale Schumacher not be used in advertising or publicity pertaining to
++COMMENT  distribution of the software without specific, written prior
++COMMENT  permission.  Dale Schumacher makes no representations about the
++COMMENT  suitability of this software for any purpose.  It is provided "as
++COMMENT  is" without express or implied warranty.
++COMMENT
++*/
++unsigned char fontdata6x8[256][8] = {
++{ 0x7c>>2, 0x44>>2, 0x7c>>2, 0x44>>2, 0x44>>2, 0x44>>2, 0xff>>2, 0x7c>>2, },
++{ 0x00>>2, 0x00>>2, 0x10>>2, 0x28>>2, 0x44>>2, 0x7c>>2, 0x44>>2, 0x00>>2, },
++{ 0x00>>2, 0x00>>2, 0x78>>2, 0x44>>2, 0x78>>2, 0x44>>2, 0x78>>2, 0x00>>2, },
++{ 0x00>>2, 0x00>>2, 0x38>>2, 0x44>>2, 0x40>>2, 0x44>>2, 0x38>>2, 0x00>>2, },
++{ 0x00>>2, 0x00>>2, 0x78>>2, 0x44>>2, 0x44>>2, 0x44>>2, 0x78>>2, 0x00>>2, },
++{ 0x00>>2, 0x00>>2, 0x7c>>2, 0x40>>2, 0x78>>2, 0x40>>2, 0x7c>>2, 0x00>>2, },
++{ 0x00>>2, 0x00>>2, 0x7c>>2, 0x40>>2, 0x78>>2, 0x40>>2, 0x40>>2, 0x00>>2, },
++{ 0x00>>2, 0x00>>2, 0x3c>>2, 0x40>>2, 0x4c>>2, 0x44>>2, 0x3c>>2, 0x00>>2, },
++{ 0x00>>2, 0x00>>2, 0x44>>2, 0x44>>2, 0x7c>>2, 0x44>>2, 0x44>>2, 0x00>>2, },
++{ 0x00>>2, 0x00>>2, 0x38>>2, 0x10>>2, 0x10>>2, 0x10>>2, 0x38>>2, 0x00>>2, },
++{ 0x00>>2, 0x00>>2, 0x1c>>2, 0x04>>2, 0x04>>2, 0x44>>2, 0x38>>2, 0x00>>2, },
++{ 0x00>>2, 0x00>>2, 0x48>>2, 0x50>>2, 0x60>>2, 0x50>>2, 0x48>>2, 0x00>>2, },
++{ 0x00>>2, 0x00>>2, 0x40>>2, 0x40>>2, 0x40>>2, 0x40>>2, 0x7c>>2, 0x00>>2, },
++{ 0x00>>2, 0x00>>2, 0x44>>2, 0x6c>>2, 0x54>>2, 0x54>>2, 0x44>>2, 0x00>>2, },
++{ 0x00>>2, 0x00>>2, 0x44>>2, 0x64>>2, 0x54>>2, 0x4c>>2, 0x44>>2, 0x00>>2, },
++{ 0x00>>2, 0x00>>2, 0x38>>2, 0x44>>2, 0x44>>2, 0x44>>2, 0x38>>2, 0x00>>2, },
++{ 0x00>>2, 0x00>>2, 0x78>>2, 0x44>>2, 0x78>>2, 0x40>>2, 0x40>>2, 0x00>>2, },
++{ 0x00>>2, 0x00>>2, 0x38>>2, 0x44>>2, 0x44>>2, 0x44>>2, 0x38>>2, 0x0c>>2, },
++{ 0x00>>2, 0x00>>2, 0x78>>2, 0x44>>2, 0x78>>2, 0x50>>2, 0x4c>>2, 0x00>>2, },
++{ 0x00>>2, 0x00>>2, 0x3c>>2, 0x40>>2, 0x38>>2, 0x04>>2, 0x78>>2, 0x00>>2, },
++{ 0x00>>2, 0x00>>2, 0x7c>>2, 0x10>>2, 0x10>>2, 0x10>>2, 0x10>>2, 0x00>>2, },
++{ 0x00>>2, 0x00>>2, 0x44>>2, 0x44>>2, 0x44>>2, 0x44>>2, 0x38>>2, 0x00>>2, },
++{ 0x00>>2, 0x00>>2, 0x44>>2, 0x44>>2, 0x28>>2, 0x28>>2, 0x10>>2, 0x00>>2, },
++{ 0x00>>2, 0x00>>2, 0x44>>2, 0x54>>2, 0x54>>2, 0x6c>>2, 0x44>>2, 0x00>>2, },
++{ 0x00>>2, 0x00>>2, 0x44>>2, 0x28>>2, 0x10>>2, 0x28>>2, 0x44>>2, 0x00>>2, },
++{ 0x00>>2, 0x00>>2, 0x44>>2, 0x28>>2, 0x10>>2, 0x10>>2, 0x10>>2, 0x00>>2, },
++{ 0x00>>2, 0x00>>2, 0x7c>>2, 0x08>>2, 0x10>>2, 0x20>>2, 0x7c>>2, 0x00>>2, },
++{ 0xe0>>2, 0x80>>2, 0xe0>>2, 0x8c>>2, 0xf0>>2, 0x10>>2, 0x10>>2, 0x0c>>2, },
++{ 0x00>>2, 0x10>>2, 0x38>>2, 0x7c>>2, 0x10>>2, 0x10>>2, 0x10>>2, 0x00>>2, },
++{ 0x00>>2, 0x10>>2, 0x10>>2, 0x10>>2, 0x7c>>2, 0x38>>2, 0x10>>2, 0x00>>2, },
++{ 0x00>>2, 0x10>>2, 0x18>>2, 0xfc>>2, 0x18>>2, 0x10>>2, 0x00>>2, 0x00>>2, },
++{ 0x00>>2, 0x20>>2, 0x60>>2, 0xfc>>2, 0x60>>2, 0x20>>2, 0x00>>2, 0x00>>2, },
++{ 0x00>>2, 0x00>>2, 0x00>>2, 0x00>>2, 0x00>>2, 0x00>>2, 0x00>>2, 0x00>>2, },
++{ 0x10>>2, 0x10>>2, 0x10>>2, 0x10>>2, 0x10>>2, 0x00>>2, 0x10>>2, 0x00>>2, },
++{ 0x28>>2, 0x28>>2, 0x00>>2, 0x00>>2, 0x00>>2, 0x00>>2, 0x00>>2, 0x00>>2, },
++{ 0x00>>2, 0x28>>2, 0x7c>>2, 0x28>>2, 0x7c>>2, 0x28>>2, 0x00>>2, 0x00>>2, },
++{ 0x10>>2, 0x3c>>2, 0x50>>2, 0x38>>2, 0x14>>2, 0x78>>2, 0x10>>2, 0x00>>2, },
++{ 0x60>>2, 0x64>>2, 0x08>>2, 0x10>>2, 0x20>>2, 0x4c>>2, 0x0c>>2, 0x00>>2, },
++{ 0x38>>2, 0x40>>2, 0x40>>2, 0x20>>2, 0x54>>2, 0x48>>2, 0x34>>2, 0x00>>2, },
++{ 0x10>>2, 0x20>>2, 0x00>>2, 0x00>>2, 0x00>>2, 0x00>>2, 0x00>>2, 0x00>>2, },
++{ 0x04>>2, 0x08>>2, 0x10>>2, 0x10>>2, 0x10>>2, 0x08>>2, 0x04>>2, 0x00>>2, },
++{ 0x40>>2, 0x20>>2, 0x10>>2, 0x10>>2, 0x10>>2, 0x20>>2, 0x40>>2, 0x00>>2, },
++{ 0x00>>2, 0x10>>2, 0x54>>2, 0x38>>2, 0x54>>2, 0x10>>2, 0x00>>2, 0x00>>2, },
++{ 0x00>>2, 0x10>>2, 0x10>>2, 0x7c>>2, 0x10>>2, 0x10>>2, 0x00>>2, 0x00>>2, },
++{ 0x00>>2, 0x00>>2, 0x00>>2, 0x00>>2, 0x00>>2, 0x10>>2, 0x10>>2, 0x20>>2, },
++{ 0x00>>2, 0x00>>2, 0x00>>2, 0x7c>>2, 0x00>>2, 0x00>>2, 0x00>>2, 0x00>>2, },
++{ 0x00>>2, 0x00>>2, 0x00>>2, 0x00>>2, 0x00>>2, 0x10>>2, 0x10>>2, 0x00>>2, },
++{ 0x04>>2, 0x04>>2, 0x08>>2, 0x08>>2, 0x10>>2, 0x10>>2, 0x20>>2, 0x20>>2, },
++{ 0x38>>2, 0x44>>2, 0x4c>>2, 0x54>>2, 0x64>>2, 0x44>>2, 0x38>>2, 0x00>>2, },
++{ 0x10>>2, 0x30>>2, 0x10>>2, 0x10>>2, 0x10>>2, 0x10>>2, 0x10>>2, 0x00>>2, },
++{ 0x38>>2, 0x44>>2, 0x04>>2, 0x08>>2, 0x10>>2, 0x20>>2, 0x7c>>2, 0x00>>2, },
++{ 0x38>>2, 0x44>>2, 0x04>>2, 0x18>>2, 0x04>>2, 0x44>>2, 0x38>>2, 0x00>>2, },
++{ 0x18>>2, 0x18>>2, 0x28>>2, 0x28>>2, 0x7c>>2, 0x08>>2, 0x1c>>2, 0x00>>2, },
++{ 0x7c>>2, 0x40>>2, 0x78>>2, 0x04>>2, 0x04>>2, 0x44>>2, 0x38>>2, 0x00>>2, },
++{ 0x18>>2, 0x20>>2, 0x40>>2, 0x78>>2, 0x44>>2, 0x44>>2, 0x38>>2, 0x00>>2, },
++{ 0x7c>>2, 0x44>>2, 0x04>>2, 0x08>>2, 0x08>>2, 0x10>>2, 0x10>>2, 0x00>>2, },
++{ 0x38>>2, 0x44>>2, 0x44>>2, 0x38>>2, 0x44>>2, 0x44>>2, 0x38>>2, 0x00>>2, },
++{ 0x38>>2, 0x44>>2, 0x44>>2, 0x3c>>2, 0x04>>2, 0x08>>2, 0x30>>2, 0x00>>2, },
++{ 0x00>>2, 0x10>>2, 0x10>>2, 0x00>>2, 0x00>>2, 0x10>>2, 0x10>>2, 0x00>>2, },
++{ 0x00>>2, 0x10>>2, 0x10>>2, 0x00>>2, 0x00>>2, 0x10>>2, 0x10>>2, 0x20>>2, },
++{ 0x00>>2, 0x0c>>2, 0x30>>2, 0xc0>>2, 0x30>>2, 0x0c>>2, 0x00>>2, 0x00>>2, },
++{ 0x00>>2, 0x00>>2, 0x7c>>2, 0x00>>2, 0x7c>>2, 0x00>>2, 0x00>>2, 0x00>>2, },
++{ 0x00>>2, 0xc0>>2, 0x30>>2, 0x0c>>2, 0x30>>2, 0xc0>>2, 0x00>>2, 0x00>>2, },
++{ 0x38>>2, 0x44>>2, 0x04>>2, 0x08>>2, 0x10>>2, 0x00>>2, 0x10>>2, 0x00>>2, },
++{ 0x38>>2, 0x44>>2, 0x5c>>2, 0x5c>>2, 0x58>>2, 0x40>>2, 0x38>>2, 0x00>>2, },
++{ 0x10>>2, 0x28>>2, 0x44>>2, 0x44>>2, 0x7c>>2, 0x44>>2, 0x44>>2, 0x00>>2, },
++{ 0x78>>2, 0x44>>2, 0x44>>2, 0x78>>2, 0x44>>2, 0x44>>2, 0x78>>2, 0x00>>2, },
++{ 0x38>>2, 0x44>>2, 0x40>>2, 0x40>>2, 0x40>>2, 0x44>>2, 0x38>>2, 0x00>>2, },
++{ 0x70>>2, 0x48>>2, 0x44>>2, 0x44>>2, 0x44>>2, 0x48>>2, 0x70>>2, 0x00>>2, },
++{ 0x7c>>2, 0x40>>2, 0x40>>2, 0x78>>2, 0x40>>2, 0x40>>2, 0x7c>>2, 0x00>>2, },
++{ 0x7c>>2, 0x40>>2, 0x40>>2, 0x78>>2, 0x40>>2, 0x40>>2, 0x40>>2, 0x00>>2, },
++{ 0x38>>2, 0x44>>2, 0x40>>2, 0x4c>>2, 0x44>>2, 0x44>>2, 0x3c>>2, 0x00>>2, },
++{ 0x44>>2, 0x44>>2, 0x44>>2, 0x7c>>2, 0x44>>2, 0x44>>2, 0x44>>2, 0x00>>2, },
++{ 0x7c>>2, 0x10>>2, 0x10>>2, 0x10>>2, 0x10>>2, 0x10>>2, 0x7c>>2, 0x00>>2, },
++{ 0x1c>>2, 0x04>>2, 0x04>>2, 0x04>>2, 0x44>>2, 0x44>>2, 0x38>>2, 0x00>>2, },
++{ 0x44>>2, 0x48>>2, 0x50>>2, 0x60>>2, 0x50>>2, 0x48>>2, 0x44>>2, 0x00>>2, },
++{ 0x40>>2, 0x40>>2, 0x40>>2, 0x40>>2, 0x40>>2, 0x40>>2, 0x7c>>2, 0x00>>2, },
++{ 0x44>>2, 0x6c>>2, 0x54>>2, 0x54>>2, 0x44>>2, 0x44>>2, 0x44>>2, 0x00>>2, },
++{ 0x44>>2, 0x64>>2, 0x64>>2, 0x54>>2, 0x4c>>2, 0x4c>>2, 0x44>>2, 0x00>>2, },
++{ 0x38>>2, 0x44>>2, 0x44>>2, 0x44>>2, 0x44>>2, 0x44>>2, 0x38>>2, 0x00>>2, },
++{ 0x78>>2, 0x44>>2, 0x44>>2, 0x78>>2, 0x40>>2, 0x40>>2, 0x40>>2, 0x00>>2, },
++{ 0x38>>2, 0x44>>2, 0x44>>2, 0x44>>2, 0x44>>2, 0x44>>2, 0x38>>2, 0x0c>>2, },
++{ 0x78>>2, 0x44>>2, 0x44>>2, 0x78>>2, 0x50>>2, 0x48>>2, 0x44>>2, 0x00>>2, },
++{ 0x38>>2, 0x44>>2, 0x40>>2, 0x38>>2, 0x04>>2, 0x44>>2, 0x38>>2, 0x00>>2, },
++{ 0x7c>>2, 0x10>>2, 0x10>>2, 0x10>>2, 0x10>>2, 0x10>>2, 0x10>>2, 0x00>>2, },
++{ 0x44>>2, 0x44>>2, 0x44>>2, 0x44>>2, 0x44>>2, 0x44>>2, 0x38>>2, 0x00>>2, },
++{ 0x44>>2, 0x44>>2, 0x44>>2, 0x28>>2, 0x28>>2, 0x10>>2, 0x10>>2, 0x00>>2, },
++{ 0x44>>2, 0x44>>2, 0x44>>2, 0x54>>2, 0x54>>2, 0x6c>>2, 0x44>>2, 0x00>>2, },
++{ 0x44>>2, 0x44>>2, 0x28>>2, 0x10>>2, 0x28>>2, 0x44>>2, 0x44>>2, 0x00>>2, },
++{ 0x44>>2, 0x44>>2, 0x28>>2, 0x10>>2, 0x10>>2, 0x10>>2, 0x10>>2, 0x00>>2, },
++{ 0x7c>>2, 0x04>>2, 0x08>>2, 0x10>>2, 0x20>>2, 0x40>>2, 0x7c>>2, 0x00>>2, },
++{ 0x1c>>2, 0x10>>2, 0x10>>2, 0x10>>2, 0x10>>2, 0x10>>2, 0x1c>>2, 0x00>>2, },
++{ 0x20>>2, 0x20>>2, 0x10>>2, 0x10>>2, 0x08>>2, 0x08>>2, 0x04>>2, 0x04>>2, },
++{ 0x70>>2, 0x10>>2, 0x10>>2, 0x10>>2, 0x10>>2, 0x10>>2, 0x70>>2, 0x00>>2, },
++{ 0x10>>2, 0x28>>2, 0x44>>2, 0x00>>2, 0x00>>2, 0x00>>2, 0x00>>2, 0x00>>2, },
++{ 0x00>>2, 0x00>>2, 0x00>>2, 0x00>>2, 0x00>>2, 0x00>>2, 0xfc>>2, 0x00>>2, },
++{ 0x10>>2, 0x08>>2, 0x00>>2, 0x00>>2, 0x00>>2, 0x00>>2, 0x00>>2, 0x00>>2, },
++{ 0x00>>2, 0x00>>2, 0x3c>>2, 0x44>>2, 0x44>>2, 0x4c>>2, 0x34>>2, 0x00>>2, },
++{ 0x40>>2, 0x40>>2, 0x78>>2, 0x44>>2, 0x44>>2, 0x44>>2, 0x78>>2, 0x00>>2, },
++{ 0x00>>2, 0x00>>2, 0x3c>>2, 0x40>>2, 0x40>>2, 0x40>>2, 0x3c>>2, 0x00>>2, },
++{ 0x04>>2, 0x04>>2, 0x3c>>2, 0x44>>2, 0x44>>2, 0x44>>2, 0x3c>>2, 0x00>>2, },
++{ 0x00>>2, 0x00>>2, 0x38>>2, 0x44>>2, 0x7c>>2, 0x40>>2, 0x38>>2, 0x00>>2, },
++{ 0x1c>>2, 0x20>>2, 0x78>>2, 0x20>>2, 0x20>>2, 0x20>>2, 0x20>>2, 0x00>>2, },
++{ 0x00>>2, 0x00>>2, 0x3c>>2, 0x44>>2, 0x44>>2, 0x3c>>2, 0x04>>2, 0x38>>2, },
++{ 0x40>>2, 0x40>>2, 0x78>>2, 0x44>>2, 0x44>>2, 0x44>>2, 0x44>>2, 0x00>>2, },
++{ 0x10>>2, 0x00>>2, 0x30>>2, 0x10>>2, 0x10>>2, 0x10>>2, 0x38>>2, 0x00>>2, },
++{ 0x08>>2, 0x00>>2, 0x38>>2, 0x08>>2, 0x08>>2, 0x08>>2, 0x08>>2, 0x70>>2, },
++{ 0x40>>2, 0x40>>2, 0x48>>2, 0x50>>2, 0x60>>2, 0x50>>2, 0x48>>2, 0x00>>2, },
++{ 0x30>>2, 0x10>>2, 0x10>>2, 0x10>>2, 0x10>>2, 0x10>>2, 0x38>>2, 0x00>>2, },
++{ 0x00>>2, 0x00>>2, 0x68>>2, 0x54>>2, 0x54>>2, 0x54>>2, 0x44>>2, 0x00>>2, },
++{ 0x00>>2, 0x00>>2, 0x58>>2, 0x64>>2, 0x44>>2, 0x44>>2, 0x44>>2, 0x00>>2, },
++{ 0x00>>2, 0x00>>2, 0x38>>2, 0x44>>2, 0x44>>2, 0x44>>2, 0x38>>2, 0x00>>2, },
++{ 0x00>>2, 0x00>>2, 0x78>>2, 0x44>>2, 0x44>>2, 0x44>>2, 0x78>>2, 0x40>>2, },
++{ 0x00>>2, 0x00>>2, 0x3c>>2, 0x44>>2, 0x44>>2, 0x44>>2, 0x3c>>2, 0x04>>2, },
++{ 0x00>>2, 0x00>>2, 0x58>>2, 0x60>>2, 0x40>>2, 0x40>>2, 0x40>>2, 0x00>>2, },
++{ 0x00>>2, 0x00>>2, 0x3c>>2, 0x40>>2, 0x38>>2, 0x04>>2, 0x78>>2, 0x00>>2, },
++{ 0x10>>2, 0x10>>2, 0x7c>>2, 0x10>>2, 0x10>>2, 0x10>>2, 0x0c>>2, 0x00>>2, },
++{ 0x00>>2, 0x00>>2, 0x44>>2, 0x44>>2, 0x44>>2, 0x4c>>2, 0x34>>2, 0x00>>2, },
++{ 0x00>>2, 0x00>>2, 0x6c>>2, 0x28>>2, 0x28>>2, 0x10>>2, 0x10>>2, 0x00>>2, },
++{ 0x00>>2, 0x00>>2, 0x44>>2, 0x54>>2, 0x54>>2, 0x54>>2, 0x28>>2, 0x00>>2, },
++{ 0x00>>2, 0x00>>2, 0x44>>2, 0x28>>2, 0x10>>2, 0x28>>2, 0x44>>2, 0x00>>2, },
++{ 0x00>>2, 0x00>>2, 0x44>>2, 0x44>>2, 0x44>>2, 0x3c>>2, 0x04>>2, 0x38>>2, },
++{ 0x00>>2, 0x00>>2, 0x7c>>2, 0x08>>2, 0x10>>2, 0x20>>2, 0x7c>>2, 0x00>>2, },
++{ 0x04>>2, 0x08>>2, 0x08>>2, 0x10>>2, 0x08>>2, 0x08>>2, 0x04>>2, 0x00>>2, },
++{ 0x10>>2, 0x10>>2, 0x10>>2, 0x10>>2, 0x10>>2, 0x10>>2, 0x10>>2, 0x00>>2, },
++{ 0x40>>2, 0x20>>2, 0x20>>2, 0x10>>2, 0x20>>2, 0x20>>2, 0x40>>2, 0x00>>2, },
++{ 0x20>>2, 0x54>>2, 0x08>>2, 0x00>>2, 0x00>>2, 0x00>>2, 0x00>>2, 0x00>>2, },
++{ 0x00>>2, 0x10>>2, 0x10>>2, 0x28>>2, 0x28>>2, 0x44>>2, 0x7c>>2, 0x00>>2, },
++};
++
++static void paint_bg(unsigned short *screen, int W, int y, int height, unsigned short bg_color){
++  int x_bg, y_bg;
++  for(y_bg = y; y_bg < y+height; y_bg++){
++    for(x_bg = 0; x_bg < W; x_bg++){
++      screen[AT(x_bg, y_bg)] = bg_color;
++    }
++  }
++}
++
++/* note: may use 1 extra pixel on the right */
++void basic_text_out16_bg(void *fb, int w, int h, int x, int y, 
++  unsigned short fg_color, unsigned short bg_color, const char *text)
++{
++  int i, l;
++  int W = w;
++  int cur_line = 0;
++  unsigned short *screen;
++  unsigned short *screen_line_start;
++  unsigned short val = fg_color;
++  unsigned short font_width = 8;
++  unsigned short font_height = 8;
++  unsigned short y_padding_lines = 6;
++
++  /* Paint background */
++  paint_bg((unsigned short *)fb, W, y, y_padding_lines, bg_color);
++
++  /* Draw chars */
++  cur_line = y+y_padding_lines;
++  //printk("New line, y=%d\n", cur_line);
++  paint_bg((unsigned short *)fb, W, cur_line, font_height+y_padding_lines, bg_color);
++  screen = (unsigned short *)fb + x + cur_line * w;
++  screen_line_start = screen;
++  for (i = 0; ; i++, screen += font_width)
++  {
++    char c = text[i];
++    //printk("c=%c,0x%02X,%d\n", c, c, c);
++
++    if (c == 0)
++      break;
++
++    if(screen >= screen_line_start + w || (c == '\n') || (c == '^')){
++      cur_line += (font_height + y_padding_lines);
++      //printk("New line, y=%d\n", cur_line);
++      if(cur_line+font_height >= h) // reached bottom of screen
++        break;
++      else{
++        paint_bg((unsigned short *)fb, W, cur_line, font_height+y_padding_lines, bg_color);
++        screen = (unsigned short *)fb + x + cur_line * w;
++        screen_line_start = screen;
++      }
++    }
++
++    if (c == ' ' || c == '\n' || (c == '^'))
++      continue;
++
++    for (l = 0; l < font_height; l++)
++    {
++      unsigned char fd = fontdata8x8[c * font_width + l];
++      unsigned short *s = screen + l * w;
++
++      if (fd&0x80) s[0] = val;
++      if (fd&0x40) s[1] = val;
++      if (fd&0x20) s[2] = val;
++      if (fd&0x10) s[3] = val;
++      if (fd&0x08) s[4] = val;
++      if (fd&0x04) s[5] = val;
++      if (fd&0x02) s[6] = val;
++      if (fd&0x01) s[7] = val;
++
++#if 0
++      // draw "shadow" (RGB1555 compatible)
++      unsigned char fd1, fdp = 0;
++      if (l > 0)
++        fdp = fontdata8x8[c * font_width + l - 1];
++
++      for (fd1 = 0x80; fd1 != 0; fd1 >>= 1, s++)
++        if (!(fd & (fd1 >> 1)) && ((fdp | fd) & fd1))
++          s[1] = (s[1] >> 1) & 0x39ef;
++#endif
++    }
++  }
++}
++
++/* note: may use 1 extra pixel on the right */
++void basic_text_out16_nf(void *fb, int w, int h, int x, int y, 
++  unsigned short fg_color, const char *text)
++{
++  int i, l;
++  int cur_line = 0;
++  unsigned short *screen;
++  unsigned short *screen_line_start;
++  unsigned short val = fg_color;
++  unsigned short font_width = 8;
++  unsigned short font_height = 8;
++  unsigned short y_padding_lines = 6;
++
++  /* Draw chars */
++  cur_line = y+y_padding_lines;
++  //printk("New line, y=%d\n", cur_line);
++  screen = (unsigned short *)fb + x + cur_line * w;
++  screen_line_start = screen;
++  for (i = 0; ; i++, screen += font_width)
++  {
++    char c = text[i];
++    //printk("c=%c,0x%02X,%d\n", c, c, c);
++
++    if (c == 0)
++      break;
++
++    if(screen >= screen_line_start + w || (c == '\n') || (c == '^')){
++      cur_line += (font_height + y_padding_lines);
++      //printk("New line, y=%d\n", cur_line);
++      if(cur_line+font_height >= h) // reached bottom of screen
++        break;
++      else{
++        screen = (unsigned short *)fb + x + cur_line * w;
++        screen_line_start = screen;
++      }
++    }
++
++    if (c == ' ' || c == '\n' || (c == '^'))
++      continue;
++
++    for (l = 0; l < font_height; l++)
++    {
++      unsigned char fd = fontdata8x8[c * font_width + l];
++      unsigned short *s = screen + l * w;
++      unsigned char fd1, fdp = 0;
++
++      if (fd&0x80) s[0] = val;
++      if (fd&0x40) s[1] = val;
++      if (fd&0x20) s[2] = val;
++      if (fd&0x10) s[3] = val;
++      if (fd&0x08) s[4] = val;
++      if (fd&0x04) s[5] = val;
++      if (fd&0x02) s[6] = val;
++      if (fd&0x01) s[7] = val;
++
++      // draw "shadow" (RGB1555 compatible)
++      if (l > 0)
++        fdp = fontdata8x8[c * font_width + l - 1];
++
++      for (fd1 = 0x80; fd1 != 0; fd1 >>= 1, s++)
++        if (!(fd & (fd1 >> 1)) && ((fdp | fd) & fd1))
++          s[1] = (s[1] >> 1) & 0x39ef;
++    }
++  }
++}
++
++void basic_text_out_uyvy_nf(void *fb, int w, int x, int y, const char *text)
++{
++  int i, l;
++  unsigned short *screen;
++
++  screen = (unsigned short *)fb + x + y * w;
++  for (i = 0; ; i++, screen += 8)
++  {
++    char c = text[i];
++    if (c == 0)
++      break;
++    if (c == ' ')
++      continue;
++
++    for (l = 0; l < 8; l++)
++    {
++      unsigned char fd = fontdata8x8[c * 8 + l];
++      unsigned char *s = (void *)(screen + l * w);
++      unsigned char fd1, fdp = 0;
++
++      if (fd&0x80) s[0 * 2 + 1] = 235;
++      if (fd&0x40) s[1 * 2 + 1] = 235;
++      if (fd&0x20) s[2 * 2 + 1] = 235;
++      if (fd&0x10) s[3 * 2 + 1] = 235;
++      if (fd&0x08) s[4 * 2 + 1] = 235;
++      if (fd&0x04) s[5 * 2 + 1] = 235;
++      if (fd&0x02) s[6 * 2 + 1] = 235;
++      if (fd&0x01) s[7 * 2 + 1] = 235;
++
++      // draw "shadow"
++      if (l > 0)
++        fdp = fontdata8x8[c * 8 + l - 1];
++
++      for (fd1 = 0x80; fd1 != 0; fd1 >>= 1, s += 2)
++        if (!(fd & (fd1 >> 1)) && ((fdp | fd) & fd1))
++          s[1] /= 2;
++    }
++  }
++}
++
++void basic_text_out16(void *fb, int w, int h, int x, int y,  
++  unsigned short fg_color, const char *texto, ...)
++{
++  va_list args;
++  char    buffer[256];
++
++  va_start(args, texto);
++  vsnprintf(buffer, sizeof(buffer), texto, args);
++  va_end(args);
++
++  basic_text_out16_nf(fb, w, h, x, y, fg_color, buffer);
++}
++
++
++void DrawText(u16 *framebuffer, int framebufferWidth, int framebufferStrideBytes, int framebufferHeight, const char *text, int x, int y, u16 color, u16 bgColor)
++{
++  int W = framebufferWidth;
++  int H = framebufferHeight;
++  int Y = y;
++  int X = x;
++  int cur_x;
++  int endX = x + MONACO_WIDTH;
++  int yEnd = Y + MONACO_HEIGHT - 1;
++  int i;
++  u8 *byte;
++  u8 bit;
++
++  framebufferStrideBytes >>= 1; // to uint16 elements
++  while(*text)
++  {
++    u8 ch = (u8)*text;
++
++    if (ch < 32 || ch >= 127) {
++      ch = 0;
++      return;
++    }
++    else ch -= 32;
++    
++    X = x;
++    endX = x + MONACO_WIDTH;
++
++    for(y = Y-1; y < Y + monaco_height_adjust[ch]; ++y)
++      for( cur_x = X; cur_x < endX+1; ++cur_x)
++      if (cur_x >= 0 && y >= 0 && cur_x < W && y < H)
++      {
++        framebuffer[AT(cur_x,y)] = bgColor;
++      }
++
++    y = Y + monaco_height_adjust[ch];
++    yEnd = Y + MONACO_HEIGHT - 1;
++
++    byte = monaco_font + ch*MONACO_BYTES_PER_CHAR;
++    for( i = 0; i < MONACO_BYTES_PER_CHAR; ++i, ++byte)
++    {
++      for( bit = 1; bit; bit <<= 1)
++      {
++        if (x >= 0 && y >= 0 && x < W && y < H)
++        {
++          if ((*byte & bit)) framebuffer[AT(x,y)] = color;
++          else framebuffer[AT(x,y)] = bgColor;
++        }
++        ++x;
++        if (x == endX)
++        {
++          if (y < H) framebuffer[AT(x,y)] = bgColor;
++          x = X;
++          ++y;
++          if (y == yEnd)
++          {
++            i = MONACO_BYTES_PER_CHAR;
++            bit = 0;
++            break;
++          }
++        }
++      }
++    }
++    ++text;
++    x += 6;
++  }
++}
+diff --git a/drivers/staging/fbtft/fb_text.h b/drivers/staging/fbtft/fb_text.h
+new file mode 100644
+index 0000000..1352bdb
+--- /dev/null
++++ b/drivers/staging/fbtft/fb_text.h
+@@ -0,0 +1,26 @@
++#ifndef __LINUX_FBTFT_TEXT_H
++#define __LINUX_FBTFT_TEXT_H
++
++#include "fbtft.h"
++
++#define MONACO_WIDTH 5
++#define MONACO_HEIGHT 8
++#define MONACO_BYTES_PER_CHAR (MONACO_WIDTH*MONACO_HEIGHT/8)
++
++#define RGB565(r, g, b) (((r&0x1f) << 11) | ((g&0x3f) << 5) | (b&0x1f))
++
++void DrawText(u16 *framebuffer, int framebufferWidth, int framebufferStrideBytes, int framebufferHeight, const char *text, int x, int y, u16 color, u16 bgColor);
++
++
++/*extern unsigned char fontdata8x8[64*16];
++extern unsigned char fontdata6x8[256-32][8];*/
++
++void basic_text_out16_bg(void *fb, int w, int h, int x, int y, 
++  unsigned short fg_color, unsigned short bg_color, const char *text);
++void basic_text_out16_nf(void *fb, int w, int h, int x, int y, 
++  unsigned short fg_color, const char *text);
++void basic_text_out16(void *fb, int w, int h, int x, int y,  
++  unsigned short fg_color, const char *texto, ...);
++void basic_text_out_uyvy_nf(void *fb, int w, int x, int y, const char *text);
++
++#endif //__LINUX_FBTFT_TEXT_H
+\ No newline at end of file
+-- 
+1.9.1
+
