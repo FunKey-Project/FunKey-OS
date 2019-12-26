@@ -1,0 +1,851 @@
+From 71fc9be7b624c13355d37fa85162ba4f24e5d248 Mon Sep 17 00:00:00 2001
+From: vincent <vbusoenseirb@gmail.com>
+Date: Thu, 26 Dec 2019 17:29:03 +0100
+Subject: [PATCH] added fbtft boot logo, soft rotate and fixed soft tearing
+ issue
+
+---
+ arch/arm/boot/dts/sun8i-v3s-funkey.dts |   3 +-
+ drivers/staging/fbtft/fb_st7789v.c     |   5 +-
+ drivers/staging/fbtft/fb_text.c        |  59 ++++++++
+ drivers/staging/fbtft/fb_text.h        |   2 +-
+ drivers/staging/fbtft/fbtft-bus.c      | 256 ++++++++++++++++++++++++++++-----
+ drivers/staging/fbtft/fbtft-core.c     | 148 +++++++++++++++----
+ drivers/staging/fbtft/fbtft-io.c       |   5 +-
+ drivers/staging/fbtft/fbtft-sysfs.c    |  31 ++++
+ drivers/staging/fbtft/fbtft.h          |  16 ++-
+ 9 files changed, 452 insertions(+), 73 deletions(-)
+
+diff --git a/arch/arm/boot/dts/sun8i-v3s-funkey.dts b/arch/arm/boot/dts/sun8i-v3s-funkey.dts
+index 88f1c0f..d25521c 100644
+--- a/arch/arm/boot/dts/sun8i-v3s-funkey.dts
++++ b/arch/arm/boot/dts/sun8i-v3s-funkey.dts
+@@ -179,8 +179,9 @@
+                txbuflen = <115202>;
+ //               txbuflen = <0>;
+                spi_async_mode = "true";
++               //interlacing = "true";
+                rotate = <0>;
+-               rotate_soft = <0>;
++               rotate_soft = <270>;
+                fps = <100>;
+                buswidth = <8>;
+                reset-gpios = <&pio 4 1 GPIO_ACTIVE_LOW>;	//PE1
+diff --git a/drivers/staging/fbtft/fb_st7789v.c b/drivers/staging/fbtft/fb_st7789v.c
+index ba21ab5..e2c9078 100755
+--- a/drivers/staging/fbtft/fb_st7789v.c
++++ b/drivers/staging/fbtft/fb_st7789v.c
+@@ -157,12 +157,15 @@ static int init_display(struct fbtft_par *par)
+ 	//write_reg(par, 0xC6,0x1F); //39Hz 
+ 	//write_reg(par, 0xC6,0x1A); //44Hz 
+ 	//write_reg(par, 0xC6,0x17); //48Hz 
++	//write_reg(par, 0xC6,0x16); //49Hz 
+ 	//write_reg(par, 0xC6,0x15); //50Hz 
++	//write_reg(par, 0xC6,0x14); //52Hz 
+ 	//write_reg(par, 0xC6,0x12); //55Hz 
+ 	//write_reg(par, 0xC6,0x10); //58Hz 
+ 	//write_reg(par, 0xC6,0x0F); //60Hz
+-	write_reg(par, 0xC6,0x09); //60Hz
++	//write_reg(par, 0xC6,0x09); //60Hz
+ 	//write_reg(par, 0xC6,0x03); //99Hz
++	write_reg(par, 0xC6,0x02); //105Hz
+ 
+ 	write_reg(par, MIPI_DCS_SET_DISPLAY_ON);
+ 
+diff --git a/drivers/staging/fbtft/fb_text.c b/drivers/staging/fbtft/fb_text.c
+index 9f873b5..650535d 100644
+--- a/drivers/staging/fbtft/fb_text.c
++++ b/drivers/staging/fbtft/fb_text.c
+@@ -4,6 +4,38 @@
+ #define MIN(a,b) (((a)<(b))?(a):(b))
+ #define MAX(a,b) (((a)>(b))?(a):(b))
+ 
++#define LOW_BATTERY_ICON_TOP_LEFT_X 10
++#define LOW_BATTERY_ICON_TOP_LEFT_Y 10
++#define LOW_BATTERY_ICON_WIDTH 35
++#define LOW_BATTERY_ICON_HEIGHT 20
++//#define LOW_BATTERY_FORE_COLOR 65535
++#define LOW_BATTERY_FORE_COLOR 0xF800
++#define LOW_BATTERY_BACK_COLOR 0
++
++
++// Battery icon from: https://github.com/martinohanlon/grrl-bat-monitor
++static u16 lowBatteryIcon [LOW_BATTERY_ICON_HEIGHT][LOW_BATTERY_ICON_WIDTH] = {
++        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
++        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
++        {0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0},
++        {0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0},
++        {0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0},
++        {0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0},
++        {0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0},
++        {0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0},
++        {0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0},
++        {0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0},
++        {0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0},
++        {0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0},
++        {0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0},
++        {0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0},
++        {0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0},
++        {0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0},
++        {0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0},
++        {0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0},
++        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
++        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
++
+ 
+ 
+ static u8 monaco_font[] = {
+@@ -1548,3 +1580,30 @@ void DrawText(u16 *framebuffer, int framebufferWidth, int framebufferStrideBytes
+     x += 6;
+   }
+ }
++
++void draw_low_battery(u16 *framebuffer, int framebufferWidth, int framebufferHeight)
++{
++  int x_offset = LOW_BATTERY_ICON_TOP_LEFT_X;
++  int y_offset = LOW_BATTERY_ICON_TOP_LEFT_Y;
++  int x, y;
++
++  /* Sanity check - width */
++  if(x_offset >= framebufferWidth ){
++    x_offset = framebufferWidth-1-LOW_BATTERY_ICON_WIDTH;
++  }
++
++  /* Sanity check - height */
++  if(y_offset >= framebufferHeight ){
++    y_offset = framebufferHeight-1-LOW_BATTERY_ICON_HEIGHT;
++  }
++
++  /* Printing low battery icon */
++  for(y = 0; y < MIN(LOW_BATTERY_ICON_HEIGHT, framebufferHeight-y_offset); ++y){
++    for(x = 0; x < MIN(LOW_BATTERY_ICON_WIDTH, framebufferWidth-x_offset); ++x){
++      if(lowBatteryIcon[y][x]){
++        framebuffer[(y+y_offset)*framebufferWidth + (x+x_offset)] = LOW_BATTERY_FORE_COLOR;
++      }
++      //lowBatteryIcon[y][x] = lowBatteryIcon[y][x] ? LOW_BATTERY_FORE_COLOR : LOW_BATTERY_BACK_COLOR;
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/drivers/staging/fbtft/fb_text.h b/drivers/staging/fbtft/fb_text.h
+index 1352bdb..e03df39 100644
+--- a/drivers/staging/fbtft/fb_text.h
++++ b/drivers/staging/fbtft/fb_text.h
+@@ -10,7 +10,7 @@
+ #define RGB565(r, g, b) (((r&0x1f) << 11) | ((g&0x3f) << 5) | (b&0x1f))
+ 
+ void DrawText(u16 *framebuffer, int framebufferWidth, int framebufferStrideBytes, int framebufferHeight, const char *text, int x, int y, u16 color, u16 bgColor);
+-
++void draw_low_battery(u16 *framebuffer, int framebufferWidth, int framebufferHeight);
+ 
+ /*extern unsigned char fontdata8x8[64*16];
+ extern unsigned char fontdata6x8[256-32][8];*/
+diff --git a/drivers/staging/fbtft/fbtft-bus.c b/drivers/staging/fbtft/fbtft-bus.c
+index 23488ea..ce865ed 100644
+--- a/drivers/staging/fbtft/fbtft-bus.c
++++ b/drivers/staging/fbtft/fbtft-bus.c
+@@ -7,6 +7,8 @@
+ #include <video/mipi_display.h>
+ #include "fbtft.h"
+ #include "fb_text.h"
++#include <linux/rmap.h>
++#include <linux/pagemap.h>
+ 
+ /*****************************************************************************
+  *
+@@ -110,38 +112,203 @@ void fbtft_write_reg8_bus9(struct fbtft_par *par, int len, ...)
+ 
+ 
+ 
+-static void spi_complete_cmd_init_data_write(void *arg)
+-{
+-	struct fbtft_par *par = (struct fbtft_par *) arg;
++
++
++static int prev_write_line_start = -1;
++static int prev_write_line_end = -1;
++static int write_line_start = -1;
++static int write_line_end = -1;
++static bool lock = false;
++
++
++
++int fbtft_start_new_screen_transfer_async(struct fbtft_par *par){
+ 	//printk("%s\n", __func__);
++	if(lock){
++		return -1;
++	}
++	lock = true;
++
++	/*if(par->write_line_start == -1 || par->write_line_end == -1){
++		lock = false;
++		return;
++	}*/
++
++	/* Debug fps */ 
++#define FPS_DEBUG	1
++#if FPS_DEBUG
++	long fps;
++	ktime_t ts_now = ktime_get();
++
++	/* First measurement */
++	if (!ktime_to_ns(par->update_time))
++			par->update_time = ts_now;
++
++	fps = ktime_us_delta(ts_now, par->update_time);
++	par->update_time = ts_now;
++	fps = fps ? 1000000 / fps : 0;
++
++	if(fps){
++		par->avg_fps += fps;
++		par->nb_fps_values++;
++
++		if(par->nb_fps_values == 200){
++			fbtft_par_dbg(DEBUG_TIME_EACH_UPDATE, par,
++				 "Display update: fps=%ld\n", par->avg_fps/par->nb_fps_values);
++			par->avg_fps = 0;
++			par->nb_fps_values = 0;
++		}
++	}
++
++#endif //FPS_DEBUG
++
++	/* Post process screen for doufle buf cpy, notifs, rotation soft... */
++	fbtft_post_process_screen(par);
++
++	/* new line to write */
++	write_line_start = par->write_line_start;
++	write_line_end = par->write_line_end;
++	par->write_line_start = -1;
++	par->write_line_end = -1;
++
++	/* Set window for interlacing */
++	if(par->interlacing){
++		par->length_data_transfer = par->info->var.yres * 2;
++		write_line_start = par->odd_line?1:0;
++		write_line_end = write_line_start;
++		fbtft_write_cmd_window_line(par);
++
++	} /* Start sending full screen */
++	else{
++		/*par->length_data_transfer = (write_line_end - write_line_start + 1) * par->info->fix.line_length;
++		if(write_line_start != prev_write_line_start || write_line_end != prev_write_line_end){
++			prev_write_line_start = write_line_start;
++			prev_write_line_end = write_line_end;
++			fbtft_write_cmd_window_line(par);
++		}
++		else{
++			fbtft_write_init_cmd_data_transfers(par);
++		}*/
++
++
++		par->length_data_transfer = par->info->var.yres * par->info->fix.line_length;
++		write_line_start = 0;
++		write_line_end = par->info->var.yres-1;
++		fbtft_write_init_cmd_data_transfers(par);
++	}
++
+ 
+-	/* Start new data write (full display) */
+-	int len = par->info->var.yres * par->info->fix.line_length;
+-	fbtft_write_vmem16_bus8_async(par, 0, len);
+-	
++	return 0;
+ }
++EXPORT_SYMBOL(fbtft_start_new_screen_transfer_async);
+ 
+-static void spi_complete_data_write(void *arg)
++
++
++
++
++
++
++
++static u8 cmd_window_line = MIPI_DCS_SET_PAGE_ADDRESS;
++static u8 buf_ylim[4];
++
++
++static void spi_complete_cmd_window_line(void *arg)
+ {
+ 	struct fbtft_par *par = (struct fbtft_par *) arg;
+ 	//printk("%s\n", __func__);
+ 
+-	/* sleep */
+-	//msleep(1);
++	/* Start data write for line info */
++	fbtft_write_data_window_line(par);
++}
++
++int fbtft_write_cmd_window_line(struct fbtft_par *par){
++
++	int ret = 0;
++
++	//printk("%s\n", __func__);
++
++	/* Resetting to 0 for incoming cmd init data write */
++	if (gpio_is_valid(par->gpio.dc))
++		gpio_set_value(par->gpio.dc, 0);
+ 
+ 	/* Start sending cmd init data */
++	ret = par->fbtftops.write_async(par, &cmd_window_line, 1, spi_complete_cmd_window_line);
++	if (ret < 0)
++		dev_err(par->info->device,
++			"write() failed and returned %d\n", ret);
++
++	return ret;
++
++}
++EXPORT_SYMBOL(fbtft_write_cmd_window_line);
++
++
++
++
++
++
++
++
++
++static void spi_complete_data_window_line(void *arg)
++{
++	struct fbtft_par *par = (struct fbtft_par *) arg;
++	//printk("%s\n", __func__);
++
++	/* Start sending cmd for real data transfer */
+ 	fbtft_write_init_cmd_data_transfers(par);
+ }
+ 
++int fbtft_write_data_window_line(struct fbtft_par *par){
++	int ret = 0;
++
++	/* Setting new line coordinates */
++	buf_ylim[0] = (write_line_start >> 8) & 0xFF; 
++	buf_ylim[1] = write_line_start & 0xFF; 
++	buf_ylim[2] = (write_line_end >> 8) & 0xFF; 
++	buf_ylim[3] = write_line_end & 0xFF;
++
++	//printk("%s, buf[0] = %d, buf[1] = %d, buf[2] = %d, buf[3] = %d\n", __func__, buf[0], buf[1], buf[2], buf[3]);
++
++	/* Resetting to 1 for incoming data */
++	if (gpio_is_valid(par->gpio.dc))
++		gpio_set_value(par->gpio.dc, 1);
++
++	/* Start sending window_line data */
++	ret = par->fbtftops.write_async(par, buf_ylim, 4, spi_complete_data_window_line);
++	if (ret < 0)
++		dev_err(par->info->device,
++			"write() failed and returned %d\n", ret);
++
++	return ret;
++
++}
++EXPORT_SYMBOL(fbtft_write_data_window_line);
++
++
++
++
++
++
++
++
++
++
++static void spi_complete_cmd_init_data_write(void *arg)
++{
++	struct fbtft_par *par = (struct fbtft_par *) arg;
++	//printk("%s\n", __func__);
++
++	fbtft_write_vmem16_bus8_async(par, write_line_start * par->info->fix.line_length, par->length_data_transfer);
++}
++
+ int fbtft_write_init_cmd_data_transfers(struct fbtft_par *par){
+ 	static u8 init_data_cmd_buf = MIPI_DCS_WRITE_MEMORY_START;
+ 	int ret = 0;
+ 
+ 	//printk("%s\n", __func__);
+ 
+-	/* Post process */
+-	fbtft_post_process_screen(par, 0, par->info->var.yres-1);
+-
+ 	/* Resetting to 0 for incoming cmd init data write */
+ 	if (gpio_is_valid(par->gpio.dc))
+ 		gpio_set_value(par->gpio.dc, 0);
+@@ -152,37 +319,52 @@ int fbtft_write_init_cmd_data_transfers(struct fbtft_par *par){
+ 		dev_err(par->info->device,
+ 			"write() failed and returned %d\n", ret);
+ 
+-	/* Debug fps */ 
+-#define FPS_DEBUG	0
+-#if FPS_DEBUG
+-	ktime_t ts_now = ktime_get();
++	return ret;
++
++}
++EXPORT_SYMBOL(fbtft_write_init_cmd_data_transfers);
+ 
+-	/* First measurement */
+-	if (!ktime_to_ns(par->update_time))
+-			par->update_time = ts_now;
+ 
+-	long fps = ktime_us_delta(ts_now, par->update_time);
+-	par->update_time = ts_now;
+-	fps = fps ? 1000000 / fps : 0;
+ 
+-	if(fps){
+-		par->avg_fps += fps;
+-		par->nb_fps_values++;
+ 
+-		if(par->nb_fps_values == 200){
+-			dev_info(par->info->device,
+-				"Display update: fps=%ld\n", par->avg_fps/par->nb_fps_values);
+-			par->avg_fps = 0;
+-			par->nb_fps_values = 0;
+-		}
+-	}
+ 
+-#endif //FPS_DEBUG
+ 
+-	return ret;
+ 
++
++
++
++static void spi_complete_data_write(void *arg)
++{
++	struct fbtft_par *par = (struct fbtft_par *) arg;
++	//printk("%s, par->interlacing=%d, write_line_start=%d\n", __func__, par->interlacing?1:0, write_line_start);
++
++	/* sleep */
++	//msleep(1);
++
++	if(par->interlacing){
++		/* Check if last line */
++		bool last_line = (par->odd_line && write_line_start >= par->info->var.yres-1) || 
++						(!par->odd_line && write_line_start >= par->info->var.yres-2);
++
++		if(last_line){
++			/* Start sending cmd init data */
++			par->odd_line = !par->odd_line;
++			lock = false;
++			fbtft_start_new_screen_transfer_async(par);
++		}
++		else{
++			write_line_start += 2;
++			write_line_end = write_line_start;
++
++			/* Setting window for next line */
++			fbtft_write_cmd_window_line(par);
++		}
++	}
++	else{
++		lock = false;
++		fbtft_start_new_screen_transfer_async(par);
++	}
+ }
+-EXPORT_SYMBOL(fbtft_write_init_cmd_data_transfers);
+ 
+ /*****************************************************************************
+  *
+@@ -206,8 +388,6 @@ int fbtft_write_vmem16_bus8_async(struct fbtft_par *par, size_t offset, size_t l
+ 		__func__, offset, len);
+ 
+ 	remain = len / 2;
+-	//vmem16 = (u16 *)(par->info->screen_buffer + offset);
+-	//vmem16 = (u16 *)(par->vmem_post_process + offset);
+ 	vmem16 = (u16 *)(par->vmem_ptr + offset);
+ 
+ 	if (par->gpio.dc != -1)
+diff --git a/drivers/staging/fbtft/fbtft-core.c b/drivers/staging/fbtft/fbtft-core.c
+index d576d0c..bcfa8c4 100755
+--- a/drivers/staging/fbtft/fbtft-core.c
++++ b/drivers/staging/fbtft/fbtft-core.c
+@@ -344,18 +344,27 @@ static void fbtft_set_addr_win(struct fbtft_par *par, int xs, int ys, int xe,
+ 	static int prev_ye = -1;
+ 
+ 	// Check if values need to be sent
+-	if(prev_xs!=xs || prev_ys!=ys || prev_xe!=xe || prev_ye!=ye){
++	if(prev_xs!=xs || prev_xe!=xe){
+ 
+ 		// Save prev bounding box values
+ 		prev_xs = xs;
+-		prev_ys = ys;
+ 		prev_xe = xe;
+-		prev_ye = ye;
+ 
+ 		//Set new bounding Box
++		//printk("			[%s] First write_reg: xs = %d, xe = %d\r\n", __func__, xs, xe);
+ 		write_reg(par, MIPI_DCS_SET_COLUMN_ADDRESS,
+ 			  (xs >> 8) & 0xFF, xs & 0xFF, (xe >> 8) & 0xFF, xe & 0xFF);
++	}
++
++	// Check if values need to be sent
++	if(prev_ys!=ys || prev_ye!=ye){
++
++		// Save prev bounding box values
++		prev_ys = ys;
++		prev_ye = ye;
+ 
++		//Set new bounding Box
++		//printk("			[%s] 2nd write_reg: ys = %d, ye = %d\r\n", __func__, ys, ye);
+ 		write_reg(par, MIPI_DCS_SET_PAGE_ADDRESS,
+ 			  (ys >> 8) & 0xFF, ys & 0xFF, (ye >> 8) & 0xFF, ye & 0xFF);
+ 	}
+@@ -539,38 +548,55 @@ static void fbtft_mkdirty(struct fb_info *info, int y, int height)
+ 	schedule_delayed_work(&info->deferred_work, fbdefio->delay);
+ }
+ 
+-void fbtft_post_process_screen(struct fbtft_par *par, unsigned int dirty_lines_start, unsigned int dirty_lines_end){
++void fbtft_post_process_screen(struct fbtft_par *par){
+ 	int x_notif = 0;
+ 	int y_notif = 0;
+ 	bool screen_post_process = false;
+ 
+-	/* Reset default write buffer */
+-	par->vmem_ptr = par->info->screen_buffer;
++	/* bypass */
++	screen_post_process = true;
++	par->write_line_start = 0;
++	par->write_line_end = par->info->var.yres-1;
+ 
+ 	/* If soft rotation, mark whole screen to update to avoid data non rotated */
+ 	if(par->pdata->rotate_soft)
+ 	{
+-		dirty_lines_start = 0;
+-		dirty_lines_end = par->info->var.yres-1;
+-		par->vmem_ptr = par->vmem_post_process;
++		par->write_line_start = 0;
++		par->write_line_end = par->info->var.yres-1;
+ 		screen_post_process = true;
+ 	}
++
++	/* If notification, mark whole screen to update */
+ 	if(par->notification[0]){
+-		if (y_notif < dirty_lines_start)
+-			dirty_lines_start = y_notif;
+-		if (y_notif + MONACO_HEIGHT > dirty_lines_end){
+-			dirty_lines_end = y_notif + MONACO_HEIGHT;
+-		}
+-		par->vmem_ptr = par->vmem_post_process;
++		/*if (y_notif < par->write_line_start)
++			par->write_line_start = y_notif;
++		if (y_notif + MONACO_HEIGHT > par->write_line_end){
++			par->write_line_end = y_notif + MONACO_HEIGHT;
++		}*/
++
++		/* bypass*/
++		par->write_line_start = 0;
++		par->write_line_end = par->info->var.yres-1;
++		screen_post_process = true;
++	}
++
++	/* Low battery icon */
++	if(par->low_battery)
++	{
++		par->write_line_start = 0;
++		par->write_line_end = par->info->var.yres-1;
+ 		screen_post_process = true;
+ 	}
+ 
+ 	/* Post process */
+ 	if(screen_post_process){
++		/* Change vmem ptr to send by SPI */
++		par->vmem_ptr = par->vmem_post_process;
++
+ 		/* Copy buffer */
+-		memcpy(par->vmem_post_process + dirty_lines_start * par->info->fix.line_length, 
+-			par->info->screen_buffer + dirty_lines_start * par->info->fix.line_length, 
+-			(dirty_lines_end-dirty_lines_start+1) * par->info->fix.line_length);
++		memcpy(par->vmem_post_process + par->write_line_start * par->info->fix.line_length, 
++			par->info->screen_buffer + par->write_line_start * par->info->fix.line_length, 
++			(par->write_line_end-par->write_line_start+1) * par->info->fix.line_length);
+ 
+ 		/* Notifications */
+ 		if(par->notification[0]){
+@@ -579,10 +605,16 @@ void fbtft_post_process_screen(struct fbtft_par *par, unsigned int dirty_lines_s
+ 			basic_text_out16_bg((u16*)par->vmem_post_process, par->info->var.xres, par->info->var.yres, 
+ 				x_notif, y_notif, RGB565(255, 255, 255), RGB565(0, 0, 0), par->notification);
+ 
+-		  	if (y_notif < dirty_lines_start)
+-				dirty_lines_start = y_notif;
+-			if (y_notif + MONACO_HEIGHT > dirty_lines_end)
+-				dirty_lines_end = y_notif + MONACO_HEIGHT;
++		  	if (y_notif < par->write_line_start)
++				par->write_line_start = y_notif;
++			if (y_notif + MONACO_HEIGHT > par->write_line_end)
++				par->write_line_end = y_notif + MONACO_HEIGHT;
++		}
++
++		/* Low battery icon */
++		if(par->low_battery)
++		{
++			draw_low_battery((u16*)par->vmem_post_process, par->info->var.xres, par->info->var.yres);
+ 		}
+ 
+ 		/* Soft rotation */
+@@ -602,6 +634,36 @@ static void fbtft_deferred_io(struct fb_info *info, struct list_head *pagelist)
+ 	unsigned int y_low = 0, y_high = 0;
+ 	int count = 0;
+ 
++	//#define FPS_DEBUG
++	#if 0
++		long fps;
++		static ktime_t update_time;
++		static int nb_fps_values = 0;
++		static long avg_fps = 0;
++		ktime_t ts_now = ktime_get();
++
++		/* First measurement */
++		if (!ktime_to_ns(update_time))
++				update_time = ts_now;
++
++		fps = ktime_us_delta(ts_now, update_time);
++		update_time = ts_now;
++		fps = fps ? 1000000 / fps : 0;
++
++		if(fps){
++			avg_fps += fps;
++			nb_fps_values++;
++
++			if(nb_fps_values == 200){
++				fbtft_par_dbg(DEBUG_TIME_EACH_UPDATE, par,
++					 "fbtft_deferred_io update: fps=%ld\n", avg_fps/nb_fps_values);
++				avg_fps = 0;
++				nb_fps_values = 0;
++			}
++		}
++
++	#endif //FPS_DEBUG
++
+ 	spin_lock(&par->dirty_lock);
+ 	dirty_lines_start = par->dirty_lines_start;
+ 	dirty_lines_end = par->dirty_lines_end;
+@@ -627,10 +689,32 @@ static void fbtft_deferred_io(struct fb_info *info, struct list_head *pagelist)
+ 			dirty_lines_end = y_high;
+ 	}
+ 
+-	fbtft_post_process_screen(par, dirty_lines_start, dirty_lines_end);
++	/* Copy buffer */
++	if(dirty_lines_start!=0 || dirty_lines_end!=par->info->var.yres - 1){
++		printk("dirty_lines_start = %d, dirty_lines_end = %d\n", dirty_lines_start, dirty_lines_end);
++	}
++	/*dirty_lines_start = 0;
++	dirty_lines_end = par->info->var.yres - 1;*/
++	par->write_line_start = dirty_lines_start;
++	par->write_line_end = dirty_lines_end;
++	memcpy(par->vmem_post_process + dirty_lines_start * par->info->fix.line_length, 
++			par->info->screen_buffer + dirty_lines_start * par->info->fix.line_length, 
++			(dirty_lines_end-dirty_lines_start+1) * par->info->fix.line_length);
++	par->vmem_ptr = par->vmem_post_process;
++
+ 
+-	/* Screen upgrade */
+-	par->fbtftops.update_display(par, dirty_lines_start, dirty_lines_end);
++	/* Exit in SPI async mode, otherwise update screen now */
++	if (par->spi_async_mode){
++		fbtft_start_new_screen_transfer_async(par);
++		return;
++	}
++	else{
++		/* Post process screen for doufle buf cpy, notifs, rotation soft... */
++		fbtft_post_process_screen(par);
++
++		/* Screen upgrade */
++		par->fbtftops.update_display(par, dirty_lines_start, dirty_lines_end);
++	}
+ }
+ 
+ static void fbtft_fb_fillrect(struct fb_info *info,
+@@ -739,11 +823,13 @@ static int fb_deferred_io_mkwrite(struct vm_fault *vmf)
+ 	struct page *cur;
+ 	struct fbtft_par *par = info->par;
+ 
++#if 1
+ 	/* This disables fbtft's defered io, useful in spi_async mode or 
+ 	if any other driver handles screens updates instead of fbtft */
+ 	if (par->spi_async_mode){
+ 		return VM_FAULT_LOCKED;
+ 	}
++#endif
+ 
+ 	/* this is a callback we get when userspace first tries to
+ 	write to the page. we schedule a workqueue. that workqueue
+@@ -1101,6 +1187,7 @@ struct fb_info *fbtft_framebuffer_alloc(struct fbtft_display *display,
+ 	spin_lock_init(&par->dirty_lock);
+ 	par->bgr = pdata->bgr;
+ 	par->spi_async_mode = pdata->spi_async_mode;
++	par->interlacing = pdata->interlacing;
+ 	par->startbyte = pdata->startbyte;
+ 	par->init_sequence = init_sequence;
+ 	par->gamma.curves = gamma_curves;
+@@ -1262,10 +1349,12 @@ int fbtft_register_framebuffer(struct fb_info *fb_info)
+ 		sprintf(text2, ", spi%d.%d at %d MHz", spi->master->bus_num,
+ 			spi->chip_select, spi->max_speed_hz / 1000000);
+ 	dev_info(fb_info->dev,
+-		 "%s frame buffer, %dx%d, %d KiB video memory%s, fps=%lu%s\n",
++		 "%s frame buffer, %dx%d, %d KiB video memory%s, fps=%lu%s, %s%s\n",
+ 		 fb_info->fix.id, fb_info->var.xres, fb_info->var.yres,
+ 		 fb_info->fix.smem_len >> 10, text1,
+-		 HZ / fb_info->fbdefio->delay, text2);
++		 HZ / fb_info->fbdefio->delay, text2,
++		 par->spi_async_mode?"SPI mode asynchrone, ":"",
++		 par->interlacing?"Interlaced":"");
+ 
+ #ifdef CONFIG_FB_BACKLIGHT
+ 	/* Turn on backlight if available */
+@@ -1584,6 +1673,7 @@ static struct fbtft_platform_data *fbtft_probe_dt(struct device *dev)
+ 	pdata->rotate_soft = fbtft_of_value(node, "rotate_soft");
+ 	pdata->bgr = of_property_read_bool(node, "bgr");
+ 	pdata->spi_async_mode = of_property_read_bool(node, "spi_async_mode");
++	pdata->interlacing = of_property_read_bool(node, "interlacing");
+ 	pdata->fps = fbtft_of_value(node, "fps");
+ 	pdata->txbuflen = fbtft_of_value(node, "txbuflen");
+ 	pdata->startbyte = fbtft_of_value(node, "startbyte");
+@@ -1725,7 +1815,9 @@ int fbtft_probe_common(struct fbtft_display *display,
+ 
+ 	if (par->spi_async_mode){
+   		/* Start constant Display update using spi async*/
+-  		fbtft_write_init_cmd_data_transfers(par);
++		par->write_line_start = 0;
++		par->write_line_end = par->info->var.yres - 1;
++  		fbtft_start_new_screen_transfer_async(par);
+   	}
+ 
+ 	return 0;
+diff --git a/drivers/staging/fbtft/fbtft-io.c b/drivers/staging/fbtft/fbtft-io.c
+index 1b269ee..40d31b5 100644
+--- a/drivers/staging/fbtft/fbtft-io.c
++++ b/drivers/staging/fbtft/fbtft-io.c
+@@ -6,7 +6,7 @@
+ #include "fbtft.h"
+ 
+ /* Ugly static declarations for now */
+-#define NB_STORED_SPI_MSG	100
++#define NB_STORED_SPI_MSG	1
+ static int idx_spi_msg = 0;
+ static struct spi_transfer stored_spi_transfers[NB_STORED_SPI_MSG];
+ static struct spi_message stored_spi_msg[NB_STORED_SPI_MSG];
+@@ -84,8 +84,9 @@ int fbtft_write_spi(struct fbtft_par *par, void *buf, size_t len)
+ 
+ 	spi_message_init(&m);
+ 	spi_message_add_tail(&t, &m);
++	//spi_sync(par->spi, &m);
+ 	return spi_sync(par->spi, &m);
+-	//return spi_async(par->spi, &m);
++	//return 0;
+ }
+ EXPORT_SYMBOL(fbtft_write_spi);
+ 
+diff --git a/drivers/staging/fbtft/fbtft-sysfs.c b/drivers/staging/fbtft/fbtft-sysfs.c
+index 5141b32..b73a26d 100644
+--- a/drivers/staging/fbtft/fbtft-sysfs.c
++++ b/drivers/staging/fbtft/fbtft-sysfs.c
+@@ -387,6 +387,35 @@ static ssize_t show_notification(struct device *device,
+ static struct device_attribute notification_device_attr =
+ 	__ATTR(notification, 0660, show_notification, store_notification);
+ 
++static ssize_t store_low_battery(struct device *device,
++			   struct device_attribute *attr,
++			   const char *buf, size_t count)
++{
++	struct fb_info *fb_info = dev_get_drvdata(device);
++	struct fbtft_par *par = fb_info->par;
++	int ret;
++
++	ret = kstrtoul(buf, 10, &par->low_battery);
++	if (ret)
++		return ret;
++
++	par->low_battery = par->low_battery?1:0;
++
++	return count;
++}
++
++static ssize_t show_low_battery(struct device *device,
++			  struct device_attribute *attr, char *buf)
++{
++	struct fb_info *fb_info = dev_get_drvdata(device);
++	struct fbtft_par *par = fb_info->par;
++
++	return snprintf(buf, PAGE_SIZE, "%lu\n", par->low_battery);
++}
++
++static struct device_attribute low_battery_device_attr =
++	__ATTR(low_battery, 0660, show_low_battery, store_low_battery);
++
+ void fbtft_expand_debug_value(unsigned long *debug)
+ {
+ 	switch (*debug & 0x7) {
+@@ -448,6 +477,7 @@ static ssize_t show_debug(struct device *device,
+ void fbtft_sysfs_init(struct fbtft_par *par)
+ {
+ 	device_create_file(par->info->dev, &debug_device_attr);
++	device_create_file(par->info->dev, &low_battery_device_attr);
+ 	device_create_file(par->info->dev, &rotate_soft_device_attr);
+ 	device_create_file(par->info->dev, &notification_device_attr);
+ 	device_create_file(par->info->dev, &overlay_device_attrs[0]);
+@@ -458,6 +488,7 @@ void fbtft_sysfs_init(struct fbtft_par *par)
+ void fbtft_sysfs_exit(struct fbtft_par *par)
+ {
+ 	device_remove_file(par->info->dev, &debug_device_attr);
++	device_remove_file(par->info->dev, &low_battery_device_attr);
+ 	device_remove_file(par->info->dev, &rotate_soft_device_attr);
+ 	device_remove_file(par->info->dev, &notification_device_attr);
+ 	device_remove_file(par->info->dev, &overlay_device_attrs[0]);
+diff --git a/drivers/staging/fbtft/fbtft.h b/drivers/staging/fbtft/fbtft.h
+index e6b4c59..64dec83 100644
+--- a/drivers/staging/fbtft/fbtft.h
++++ b/drivers/staging/fbtft/fbtft.h
+@@ -154,6 +154,7 @@ struct fbtft_platform_data {
+ 	unsigned long rotate_soft;
+ 	bool bgr;
+ 	bool spi_async_mode;
++	bool interlacing;
+ 	unsigned int fps;
+ 	int txbuflen;
+ 	u8 startbyte;
+@@ -252,13 +253,22 @@ struct fbtft_par {
+ 	} overlay;
+ 	char notification[FBTFT_NOTIF_MAX_SIZE+1];
+ 	unsigned long debug;
++	unsigned long low_battery;
+ 	bool first_update_done;
+ 	ktime_t update_time;
+ 	long avg_fps;
+ 	int nb_fps_values;
+ 	bool bgr;
+ 	void *extra;
++	
++	/* SPI async */
+ 	bool spi_async_mode;
++	bool interlacing;
++	bool odd_line;
++	int cur_line;
++	int write_line_start;
++	int write_line_end;
++	u32 length_data_transfer;
+ };
+ 
+ #define NUMARGS(...)  (sizeof((int[]){__VA_ARGS__})/sizeof(int))
+@@ -283,8 +293,7 @@ int fbtft_probe_common(struct fbtft_display *display, struct spi_device *sdev,
+ 		       struct platform_device *pdev);
+ int fbtft_remove_common(struct device *dev, struct fb_info *info);
+ void fbtft_rotate_soft(u16 *mat, int size, int rotation);
+-void fbtft_post_process_screen(struct fbtft_par *par, 
+-			unsigned int dirty_lines_start, unsigned int dirty_lines_end);
++void fbtft_post_process_screen(struct fbtft_par *par);
+ 
+ /* fbtft-io.c */
+ int fbtft_write_spi(struct fbtft_par *par, void *buf, size_t len);
+@@ -296,6 +305,9 @@ void fbtft_post_process_screen(struct fbtft_par *par,
+ int fbtft_write_gpio16_wr_latched(struct fbtft_par *par, void *buf, size_t len);
+ 
+ /* fbtft-bus.c */
++int fbtft_start_new_screen_transfer_async(struct fbtft_par *par);
++int fbtft_write_cmd_window_line(struct fbtft_par *par);
++int fbtft_write_data_window_line(struct fbtft_par *par);
+ int fbtft_write_init_cmd_data_transfers(struct fbtft_par *par);
+ int fbtft_write_vmem8_bus8(struct fbtft_par *par, size_t offset, size_t len);
+ int fbtft_write_vmem16_bus16(struct fbtft_par *par, size_t offset, size_t len);
+-- 
+1.9.1
+
