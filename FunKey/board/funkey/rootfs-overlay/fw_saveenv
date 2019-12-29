@@ -1,0 +1,59 @@
+#!/bin/bash
+
+# Uncomment the following line to get debug info
+#set -xv
+
+fw_saveenv () {
+
+    # Check arguments
+    if [ $# -ne 1 ]; then
+	echo "usage: fw_saveenv filename" >&2 | tee /dev/kmsg
+	exit 1
+    fi
+
+    # Save the input file name
+    local input_file=${1}
+
+    # Read the fw_env config file
+    local config=$(sed -e 's/#.*$//' -e '/^$/d' /etc/fw_env.config)
+    set ${config}
+    local of=${1}
+    local seek=$((${2} / 1024))
+    local count=$((${3} / 1024))
+
+    # Create 2 temporary files
+    local tmp_file=$(mktemp /tmp/fw_saveenv.XXXXXX)
+    local raw_file=$(mktemp /tmp/fw_saveenv.XXXXXX)
+    local raw2_file=$(mktemp /tmp/fw_saveenv.XXXXXX)
+
+    # Convert provided file to null-terminated string blob
+    cat ${input_file} | tr '\n' '\0' > ${tmp_file}
+
+    # Compute blob length in bytes
+    local length=$(stat --printf="%s" ${tmp_file})
+
+    # Compute the padding size
+    let length=${count}*1024-4-${length}
+
+    # Pad blob with zeros up to the total size
+    dd if=/dev/zero bs=1 count=${length} >>${tmp_file} 2>/dev/null
+
+    # Compute the CRC32 for the padded blob and store it into the final file
+    cat ${tmp_file} | gzip -1 | tail -c 8 | head -c 4 | \
+	hexdump -e '1/4 "%08x" "\n"' | xxd -r -p > ${raw_file}
+
+    # Convert CRC32 to little endian
+    tac -rs '.' ${raw_file} > ${raw2_file}
+
+    # Append the binary blob to the final file
+    cat ${tmp_file} >> ${raw2_file}
+
+    # Write the final file to the raw device
+    dd if=${raw2_file} of=${1} bs=1k count=$((${3} / 1024)) seek=$((${2} / 1024)) 2>/dev/null
+
+    # Remove the temporay files
+    rm ${tmp_file} ${raw_file} ${raw2_file}
+    return 0
+}
+
+fw_saveenv $*
