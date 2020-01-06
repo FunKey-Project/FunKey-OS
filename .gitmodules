@@ -10,3 +10,6 @@
 [submodule "funkey_sdl1.2"]
 	path = funkey_sdl1.2
 	url = git@bitbucket.org:keymu2/funkey_sdl1.2.git
+[submodule "funkey-gpio-mapping"]
+	path = funkey-gpio-mapping
+	url = git@bitbucket.org:keymu2/funkey-gpio-mapping.git
