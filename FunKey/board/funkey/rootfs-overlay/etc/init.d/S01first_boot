@@ -1,0 +1,17 @@
+#!/bin/sh
+
+THIS=$(basename $0)
+
+case "$1" in
+    start)
+	if [ ! -f /swap ]; then
+	    first_boot
+	fi
+	;;
+    stop)
+	;;
+    *)
+	echo "Usage: $0 {start|stop}" >&2
+	exit 1
+	;;
+esac

@@ -1,0 +1,7 @@
+allow-hotplug usb0
+
+iface usb0 inet static
+address 192.168.137.2/24
+gateway 192.168.137.1
+pre-up ip addr flush usb0 || true
+up echo "nameserver 8.8.8.8" > /etc/resolv.conf

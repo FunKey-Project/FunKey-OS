@@ -1,0 +1,147 @@
+#!/bin/sh
+
+# Uncomment the following line to get debug info
+#set -x
+
+SELF=${SELF:-$(basename $0)}
+LOCK_FILE=/var/lock/share.lock
+
+source /usr/local/lib/utils
+source usb_gadget
+
+# The USB network interface file
+USB_IF=/etc/network/interfaces.d/usb0
+
+# The USB mass storag ebacking store file or partition
+BACKING_STORE_FILE=/sys/kernel/config/usb_gadget/funkey/functions/mass_storage.funkey/lun.0/file
+
+# Unmount a local share
+unmount_share () {
+
+    umount /mnt || die 1 "cannot unmount the backing store partition"
+    return 0
+}
+
+# Mount a share locally
+mount_share () {
+
+    mount | grep -q /dev/mmcblk0p3
+    if [ $? -ne 0 ]; then
+
+	# Check if the FAT32 partition has been unmounted cleanly
+	fsck.fat -n /dev/mmcblk0p3 2>/dev/null | egrep -q "Dirty bit"
+	if [ $? -eq 0 ]; then
+
+	    # The FAT32 partition was not cleanly unmounted, try to
+	    # clean it
+	    warn "the backing store partition was not properly unmounted"
+	    #warn "the backing store partition was not properly
+	    #unmounted, clean it"
+    	    # fsck.fat -a -t -w /dev/loop0 >/dev/null 2>&1
+	    # if [ $? -gt 1 ]; then
+	    #     die 3 "cannot clean backing store file"
+	    # fi
+	fi
+
+	# Mount the backing store file locally
+	mount /mnt/ || die 4 "cannot mount backing store partition"
+    fi
+
+    # Create the directory structure if required
+    (cd /mnt; mkdir -p atari_lynx gb gba megadrive neo_geo_pocket nes ps1 snes wonderswan)
+    return 0
+}
+
+# Initialize the backing store if needed and mount it locally
+init_share () {
+    if [ -f ${LOCK_FILE} ]; then
+	return 0
+    fi
+    touch ${LOCK_FILE}
+
+    # Initialize the USB gadget
+    init_usb_gadget
+
+    # Mount the backing store partition locally
+    mount_share
+    return 0
+}
+
+# Stop sharing the backing store partition
+stop_share () {
+
+    # Stop sharing the backing store partition
+    echo > $BACKING_STORE_FILE || die 11 "the backing store partition is still mounted on host"
+
+    # 3) Mount the backing store partition locally
+    mount_share
+
+    info "stopped sharing the backing store partition"
+
+    return 0
+}
+
+# Start sharing the backing store partition
+start_share () {
+
+    # 1) Check if the backing store partition is already shared
+    cat $BACKING_STORE_FILE | egrep -q ^/dev/mmcblk0p3 && die 12 "the backing store partition is already shared"
+
+    # 2) Unmount the backing store partition if it is locally mounted
+    unmount_share
+
+    # Everything is now clear to start sharing the backing store partition
+    info "start sharing the backing store partition"
+    echo /dev/mmcblk0p3 > $BACKING_STORE_FILE || die 13 "cannot share the backing store partition"
+
+    # Check if we are connected to an USB host
+    local trials=0
+    local not_ready=1
+    while [ ${trials} -lt 5 -a ${not_ready} -eq 1 ]; do
+        
+        # Get connection state
+	local udc_state=$(cat /sys/class/udc/musb-hdrc.1.auto/state)
+	sleep 1
+	let trial=$trial+1
+
+	# Check if USB is mounted
+        if [ x"$udc_state" == "xconfigured" ]; then
+
+            # Connected succesfully to a host
+            info "backing store file shared"
+            return 0
+	elif [ x"$udc_state" == "xdefault" ]; then
+
+            # Connected succesfully to a host
+            info "USB sharing in progress"
+        else
+            # Connection failed
+            not_ready=0
+        fi
+    done
+
+    # No USB host connected
+    warn "no host, stop USB sharing"
+    stop_share
+    die 14 "not connected to a host"
+}
+
+case "$1" in
+
+    init)
+	init_share
+	;;
+
+    start)
+	start_share
+	;;
+    
+    stop)
+	stop_share
+	;;
+
+    *)
+	die 15 "Usage $0 {init|start|stop}"
+	;;
+esac
+exit $?
