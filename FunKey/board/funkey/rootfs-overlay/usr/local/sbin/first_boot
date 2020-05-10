@@ -7,6 +7,15 @@ SELF=$(basename $0)
 
 source /usr/local/lib/utils
 
+notif () {
+    info "$@"
+    printf "$@" > /sys/class/graphics/fb0/notification
+}
+
+clear_notif () {
+    printf "clear" > /sys/class/graphics/fb0/notification
+}
+
 check_swap () {
     [ -f /swap ] && die 0 "nothing to do"
     return 0
@@ -142,35 +151,37 @@ format_backing_store_partition () {
     return 0
 }
 
-info "First boot detected!"
+notif "First boot detected!"
 check_swap
 check_root_id
 
-info "Step 1/9 - Resize the rootfs partition"
+notif "1/9 Resize root partition"
 resize_rootfs_partition
 
-info "Step 2/9 - Reload the partition table"
+notif "2/9 Reload partition table"
 reload_partition_table
 
-info "Step 3/9 - Resize the root filesystem"
+notif "3/9 Resize root filsystem"
 resize_rootfs_filesystem
 
-info "Step 4/9 - Write the bootloader environment"
+notif "4/9 Write boot environment"
 write_bootloader_env
 
-info "Step 5/9 - Create the swap file"
+notif "5/9 Create swap"
 create_swap_file
 
-info "Step 6/9 - Enable the swap file"
+notif "6/9 Enable swap"
 enable_swap_file
 
-info "Step 7/9 - Create the backing store partition"
+notif "6/9 Create share partition"
 create_backing_store_partition
 
-info "Step 8/9 - Reload the partition table"
+notif "8/9 Reload partition table"
 reload_partition_table
 
-info "Step 9/9 - Format the backing store partition"
+notif "9/9 Format share partition"
 format_backing_store_partition
 
-info "First boot setup finished!"
+notif "First boot setup finished!"
+sleep 1
+clear_notif

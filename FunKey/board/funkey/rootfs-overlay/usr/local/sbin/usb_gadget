@@ -7,7 +7,7 @@ SELF=${SELF:-$(basename $0)}
 source /usr/local/lib/utils
 
 # The composite gadget directory
-GADGET=/sys/kernel/config/usb_gadget/funkey
+GADGET=/sys/kernel/config/usb_gadget/FunKey
 
 # Check if Ethernet over USB network is requested
 [ ! -f /mnt/usbnet ]
@@ -50,10 +50,10 @@ init_usb_gadget() {
     # Create our gadget directory
     mkdir ${GADGET}
     mkdir ${GADGET}/strings/0x409
-    mkdir ${GADGET}/configs/c.1
-    mkdir ${GADGET}/configs/c.1/strings/0x409
+    mkdir ${GADGET}/configs/FunKey.1
+    mkdir ${GADGET}/configs/FunKey.1/strings/0x409
     test $USBNET -eq 1 && mkdir ${GADGET}/functions/rndis.usb0
-    mkdir ${GADGET}/functions/mass_storage.funkey
+    mkdir ${GADGET}/functions/mass_storage.mmcblk0p3
 
     # USB2
     echo "0x0200" > ${GADGET}/bcdUSB
@@ -86,19 +86,19 @@ init_usb_gadget() {
     # Configuration
 
     # Maximum power is 500 mA
-    echo 500 > ${GADGET}/configs/c.1/MaxPower
+    echo 500 > ${GADGET}/configs/FunKey.1/MaxPower
 
     # Configruation String Descriptors
     if [ $USBNET -eq 1 ]; then
-	echo "Mass Storage + RNDIS" > ${GADGET}/configs/c.1/strings/0x409/configuration
+	echo "Mass Storage + RNDIS" > ${GADGET}/configs/FunKey.1/strings/0x409/configuration
     else
-	echo "Mass Storage" > ${GADGET}/configs/c.1/strings/0x409/configuration
+	echo "Mass Storage" > ${GADGET}/configs/FunKey.1/strings/0x409/configuration
     fi
 
     if [ $USBNET -eq 1 ]; then
 
-	# Make c.1 the one associated with OS Descriptors
-	ln -s ${GADGET}/configs/c.1 ${GADGET}/os_desc
+	# Make the FunKey.1 configuration the one associated with OS Descriptors
+	ln -s ${GADGET}/configs/FunKey.1 ${GADGET}/os_desc
 
 	# RNDIS Function
 
@@ -124,27 +124,27 @@ init_usb_gadget() {
     # Mass Storage Function
 
     # Backing Store file
-    #echo "/dev/mmcblk0p3" > ${GADGET}/functions/mass_storage.funkey/lun.0/file
+    #echo "/dev/mmcblk0p3" > ${GADGET}/functions/mass_storage.mmcblk0p3/lun.0/file
 
     # Gadget is not allowed to halt bulk endpoints
-    echo 0 > ${GADGET}/functions/mass_storage.funkey/stall
+    echo 0 > ${GADGET}/functions/mass_storage.mmcblk0p3/stall
 
     # Do not simulate a CDROM
-    echo 0 > ${GADGET}/functions/mass_storage.funkey/lun.0/cdrom
+    echo 0 > ${GADGET}/functions/mass_storage.mmcblk0p3/lun.0/cdrom
 
     # No SCSI Force Unit Access (FUA) to work in synchronous mode ?!?
-    echo 0 > ${GADGET}/functions/mass_storage.funkey/lun.0/nofua
+    echo 0 > ${GADGET}/functions/mass_storage.mmcblk0p3/lun.0/nofua
 
     # LUN is removable
-    echo 1 > ${GADGET}/functions/mass_storage.funkey/lun.0/removable
+    echo 1 > ${GADGET}/functions/mass_storage.mmcblk0p3/lun.0/removable
 
     # Inquiry String
-    echo "FunKey S Shared Disk" > ${GADGET}/functions/mass_storage.funkey/lun.0/inquiry_string
+    echo "FunKey S Shared Disk" > ${GADGET}/functions/mass_storage.mmcblk0p3/lun.0/inquiry_string
 
     if [ $USBNET -eq 1 ]; then
 
-	# Add the RNDIS function to the c.1 configuration
-	ln -s ${GADGET}/functions/rndis.usb0 ${GADGET}/configs/c.1
+	# Add the RNDIS function to the FunKey.1 configuration
+	ln -s ${GADGET}/functions/rndis.usb0 ${GADGET}/configs/FunKey.1
 
 	# Bind the USB Gadget as RNDIS device
 	echo ${udc_driver} > ${GADGET}/UDC
@@ -157,8 +157,8 @@ init_usb_gadget() {
 	echo > ${GADGET}/UDC
     fi
 
-    # Add the Mass Storage function to the c.1 configuration
-    ln -s ${GADGET}/functions/mass_storage.funkey ${GADGET}/configs/c.1
+    # Add the Mass Storage function to the FunKey.1 configuration
+    ln -s ${GADGET}/functions/mass_storage.mmcblk0p3 ${GADGET}/configs/FunKey.1
 
     # Each interface specifies its own class code
     echo "0x00" > ${GADGET}/bDeviceClass

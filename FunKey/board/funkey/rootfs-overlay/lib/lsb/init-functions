@@ -10,7 +10,7 @@ log_action_msg () {
 }
 
 log_action_begin_msg () {
-    echo "${THIS}${@}..." | tee /dev/kmsg
+    echo -n "${THIS}${@}: " | tee /dev/kmsg
 }
 
 log_action_cont_msg () {
@@ -20,15 +20,15 @@ log_action_cont_msg () {
 log_action_end_msg () {
     local end
     if [ -z "${2:-}" ]; then
-        end="."
+        end=""
     else
-        end=" ($2)."
+        end=" ($2)"
     fi
 
     if [ $1 -eq 0 ]; then
-        echo "${THIS}done${end}" | tee /dev/kmsg
+        echo "${THIS}OK${end}" | tee /dev/kmsg
     else
-        echo "${THIS}failed${end}" | tee /dev/kmsg
+        echo "${THIS}ERROR${end}" | tee /dev/kmsg
     fi
 }
 

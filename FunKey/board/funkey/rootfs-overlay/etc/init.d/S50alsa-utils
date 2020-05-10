@@ -161,8 +161,8 @@ case "$1" in
 	EXITSTATUS=0
 	TARGET_CARD="$2"
 	case "$TARGET_CARD" in
-	  ""|all) TARGET_CARD=all ; log_action_begin_msg "Setting up ALSA" ;;
-	  *) log_action_begin_msg "Setting up ALSA card ${TARGET_CARD}" ;;
+	  ""|all) TARGET_CARD=all ; log_action_begin_msg "Starting ALSA" ;;
+	  *) log_action_begin_msg "Starting ALSA card ${TARGET_CARD}" ;;
 	esac
 	card_OK "$TARGET_CARD" || log_action_end_msg_and_exit "$( [ ! "$2" ] ; echo $? ; )" "none loaded"
 	preinit_levels "$TARGET_CARD" || EXITSTATUS=1
@@ -176,8 +176,8 @@ case "$1" in
 	EXITSTATUS=0
 	TARGET_CARD="$2"
 	case "$TARGET_CARD" in
-	  ""|all) TARGET_CARD=all ; log_action_begin_msg "Shutting down ALSA" ;;
-	  *) log_action_begin_msg "Shutting down ALSA card ${TARGET_CARD}" ;;
+	  ""|all) TARGET_CARD=all ; log_action_begin_msg "Stopping ALSA" ;;
+	  *) log_action_begin_msg "Stopping ALSA card ${TARGET_CARD}" ;;
 	esac
 	card_OK "$TARGET_CARD" || log_action_end_msg_and_exit "$( [ ! "$2" ] ; echo $? ; )" "none loaded"
 	store_levels "$TARGET_CARD" || EXITSTATUS=1

@@ -14,7 +14,7 @@
 # process   == program to run
 
 # Startup the system
-::sysinit:/bin/sh -c 'echo "Starting FunKey-OS ..."'
+::sysinit:/bin/cat /etc/issue
 ::sysinit:/bin/mount -t proc proc /proc
 ::sysinit:/bin/mount -o remount,rw /
 ::sysinit:/bin/mkdir -p /dev/pts /dev/shm
