@@ -1,4 +1,4 @@
 config BR2_PACKAGE_FUNKEY_GPIO_MAPPING
-	bool "funkey gpio mapping"
+	bool "FunKey GPIO Mapping"
 	help
 	  The FunKey GPIO mapping utility.

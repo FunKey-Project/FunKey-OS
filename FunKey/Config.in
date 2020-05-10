@@ -1,4 +1,4 @@
 source "$BR2_EXTERNAL_FUNKEY_PATH/package/mednafen/Config.in"
 source "$BR2_EXTERNAL_FUNKEY_PATH/package/retrofe/Config.in"
 source "$BR2_EXTERNAL_FUNKEY_PATH/package/retrofe-layout/Config.in"
-source "$BR2_EXTERNAL_FUNKEY_PATH/package/funkey-gpio-mapping/Config.in"
+source "$BR2_EXTERNAL_FUNKEY_PATH/package/FunKey-GPIO-Mapping/Config.in"
