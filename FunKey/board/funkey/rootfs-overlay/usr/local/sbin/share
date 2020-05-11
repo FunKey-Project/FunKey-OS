@@ -12,8 +12,8 @@ source usb_gadget
 # The USB network interface file
 USB_IF=/etc/network/interfaces.d/usb0
 
-# The USB mass storag ebacking store file or partition
-BACKING_STORE_FILE=/sys/kernel/config/usb_gadget/funkey/functions/mass_storage.funkey/lun.0/file
+# The USB mass storage backing store file or partition
+BACKING_STORE_FILE=/sys/kernel/config/usb_gadget/FunKey/functions/mass_storage.mmcblk0p3/lun.0/file
 
 # Unmount a local share
 unmount_share () {
