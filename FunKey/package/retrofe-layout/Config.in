@@ -1,6 +1,0 @@
-config BR2_PACKAGE_RETROFE_LAYOUT
-	bool "retrofe layout"
-	help
-	  The cross-platform game frontend layout.
-
-	  https://bitbucket.org/phulshof/retrofe/src/default/

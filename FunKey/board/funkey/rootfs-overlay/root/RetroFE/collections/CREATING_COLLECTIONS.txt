@@ -1,0 +1,14 @@
+To create a new collection run the following commands at a command prompt.
+(assuming you are in the root of your RetroFE directory)
+
+For Windows:
+    Core/RetroFE.exe -createcollection "Nintendo Entertainment System"
+
+For Linux:
+    ./RetroFE -createcollection "Nintendo Entertainment System"
+
+
+Replace "Nintendo Entertainment System" with the collection name of your choosing.
+
+This will create a "Nintendo Entertainment System Folder", create the rom folder, 
+artwork folders and default configuration files.

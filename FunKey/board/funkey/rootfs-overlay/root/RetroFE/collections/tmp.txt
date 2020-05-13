@@ -1,0 +1,11 @@
+./Sega Genesis/system_artwork/fallback.png
+./NES/system_artwork/fallback.png
+./PS1/system_artwork/fallback.png
+./Neo Geo Pocket/system_artwork/fallback.png
+./Atari lynx/system_artwork/fallback.png
+./Game Gear/system_artwork/fallback.png
+./WonderSwan/system_artwork/fallback.png
+./Game Boy/system_artwork/fallback.png
+./SNES/system_artwork/fallback.png
+./Game Boy Advance/system_artwork/fallback.png
+./Sega Master System/system_artwork/fallback.png
