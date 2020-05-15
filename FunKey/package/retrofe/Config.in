@@ -1,0 +1,19 @@
+config BR2_PACKAGE_RETROFE
+	bool "RetroFE retro game front-end"
+	default y
+	select BR2_PACKAGE_GSTREAMER1
+	select BR2_PACKAGE_GST1_PLUGINS_BASE
+	select BR2_PACKAGE_LIBGLIB2
+	select BR2_PACKAGE_SDL
+	select BR2_PACKAGE_SDL_IMAGE
+	select BR2_PACKAGE_SDL_MIXER
+	select BR2_PACKAGE_SDL_TTF
+	select BR2_PACKAGE_SQLITE
+	select BR2_PACKAGE_ZLIB
+	help
+	RetroFE is a front-end, which can be used as a graphical user
+	interface to display, select and launch your games, videos,
+	and programs. Its most common usage is for game
+	emulation. RetroFE allows you to define collections, which can
+	be displayed using a menu structure with additional artwork
+	like video, box art, screenshots, etc.
