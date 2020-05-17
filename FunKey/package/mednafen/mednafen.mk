@@ -4,13 +4,16 @@
 #
 ################################################################################
 
-MEDNAFEN_VERSION = 0.9.48
-MEDNAFEN_SOURCE = mednafen-$(MEDNAFEN_VERSION).tar.xz
-MEDNAFEN_SITE = http://downloads.sourceforge.net/sourceforge/mednafen
+#MEDNAFEN_VERSION = 0.9.48
+#MEDNAFEN_SOURCE = mednafen-$(MEDNAFEN_VERSION).tar.xz
+#MEDNAFEN_SITE = http://downloads.sourceforge.net/sourceforge/mednafen
+MEDNAFEN_VERSION = f8407499b30099817a762d98499f1e885125c6a2
+MEDNAFEN_SITE_METHOD = git
+MEDNAFEN_SITE = ssh://git@fk/FunKey-Project/FunKey-Emulator-mednafen-0.9.48
 MEDNAFEN_LICENSE = GPL-2.0+
 MEDNAFEN_LICENSE_FILES = COPYING
 
-MEDNAFEN_DEPENDENCIES = sdl zlib
+MEDNAFEN_DEPENDENCIES = sdl sdl_image sdl_mixer sdl_ttf zlib
 
 MEDNAFEN_CFLAGS = $(TARGET_CFLAGS) -ggdb -O3 -ftree-vectorize
 ifeq ($(BR2_PACKAGE_MEDNAFEN_FAST),y)

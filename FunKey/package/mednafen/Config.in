@@ -1,5 +1,10 @@
 config BR2_PACKAGE_MEDNAFEN
 	bool "mednafen"
+	select BR2_PACKAGE_SDL
+	select BR2_PACKAGE_SDL_IMAGE
+	select BR2_PACKAGE_SDL_MIXER
+	select BR2_PACKAGE_SDL_TTF
+	select BR2_PACKAGE_ZLIB
 	help
 	  The mednafen game engine.
 
