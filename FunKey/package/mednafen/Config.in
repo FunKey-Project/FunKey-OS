@@ -1,5 +1,6 @@
 config BR2_PACKAGE_MEDNAFEN
 	bool "mednafen"
+	default y
 	select BR2_PACKAGE_SDL
 	select BR2_PACKAGE_SDL_IMAGE
 	select BR2_PACKAGE_SDL_MIXER
