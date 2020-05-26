@@ -60,5 +60,4 @@ define PCSX_REARMED_INSTALL_TARGET_CMDS
 	$(INSTALL) -m 0755 $(@D)/pcsx $(TARGET_DIR)/usr/games/pcsx
 endef
 
-
 $(eval $(generic-package))
