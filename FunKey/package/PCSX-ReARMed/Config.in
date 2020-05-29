@@ -9,4 +9,4 @@ config BR2_PACKAGE_PCSX_REARMED
 	help
 	  Yet another PCSX fork
 
-	  https://mednafen.github.io/
+	  https://github.com/notaz/pcsx_rearmed.git

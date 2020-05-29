@@ -11,9 +11,11 @@ config BR2_PACKAGE_RETROFE
 	select BR2_PACKAGE_SQLITE
 	select BR2_PACKAGE_ZLIB
 	help
-	RetroFE is a front-end, which can be used as a graphical user
-	interface to display, select and launch your games, videos,
-	and programs. Its most common usage is for game
-	emulation. RetroFE allows you to define collections, which can
-	be displayed using a menu structure with additional artwork
-	like video, box art, screenshots, etc.
+	  RetroFE is a front-end, which can be used as a graphical
+	  user interface to display, select and launch your games,
+	  videos, and programs. Its most common usage is for game
+	  emulation. RetroFE allows you to define collections, which
+	  can be displayed using a menu structure with additional
+	  artwork like video, box art, screenshots, etc.
+
+	  https://bitbucket.org/phulshof/retrofe

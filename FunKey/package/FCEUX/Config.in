@@ -11,4 +11,4 @@ config BR2_PACKAGE_FCEUX
 	  features solid emulation accuracy and state of the art tools
 	  for power users. For some reason casual gamers use it too.
 
-	  http://fceux.com/
+	  https://github.com/pingflood/fceux.git
