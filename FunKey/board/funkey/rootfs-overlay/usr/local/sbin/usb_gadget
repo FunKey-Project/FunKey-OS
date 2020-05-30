@@ -11,7 +11,7 @@ GADGET=/sys/kernel/config/usb_gadget/FunKey
 
 # Check if Ethernet over USB network is requested
 [ ! -f /mnt/usbnet ]
-USBNET=$?
+USBNET=${?}
 
 # USB VID for Linux Foundation
 ID_VENDOR="0x1d6b"
@@ -52,14 +52,14 @@ init_usb_gadget() {
     mkdir ${GADGET}/strings/0x409
     mkdir ${GADGET}/configs/FunKey.1
     mkdir ${GADGET}/configs/FunKey.1/strings/0x409
-    test $USBNET -eq 1 && mkdir ${GADGET}/functions/rndis.usb0
+    test ${USBNET} -eq 1 && mkdir ${GADGET}/functions/rndis.usb0
     mkdir ${GADGET}/functions/mass_storage.mmcblk0p3
 
     # USB2
     echo "0x0200" > ${GADGET}/bcdUSB
 
     # Communication Device Class
-    if [ $USBNET -eq 1 ]; then
+    if [ ${USBNET} -eq 1 ]; then
 	echo "0x02" > ${GADGET}/bDeviceClass
 	echo "0x00" > ${GADGET}/bDeviceSubClass
     fi
@@ -72,12 +72,12 @@ init_usb_gadget() {
     echo "0x0100" > ${GADGET}/bcdDevice
 
     # Device String Descriptiors
-    echo "FunKey" > ${GADGET}/strings/0x409/manufacturer 
-    echo "FunKey S" > ${GADGET}/strings/0x409/product 
-    echo ${SERIAL} > ${GADGET}/strings/0x409/serialnumber 
+    echo "FunKey" > ${GADGET}/strings/0x409/manufacturer
+    echo "FunKey S" > ${GADGET}/strings/0x409/product
+    echo ${SERIAL} > ${GADGET}/strings/0x409/serialnumber
 
     # Turn on "OS Descriptors" support for RNDIS
-    if [ $USBNET -eq 1 ]; then
+    if [ ${USBNET} -eq 1 ]; then
 	echo 1 > ${GADGET}/os_desc/use
 	echo "0xcd" > ${GADGET}/os_desc/b_vendor_code
 	echo "MSFT100" > ${GADGET}/os_desc/qw_sign
@@ -89,13 +89,13 @@ init_usb_gadget() {
     echo 500 > ${GADGET}/configs/FunKey.1/MaxPower
 
     # Configruation String Descriptors
-    if [ $USBNET -eq 1 ]; then
+    if [ ${USBNET} -eq 1 ]; then
 	echo "Mass Storage + RNDIS" > ${GADGET}/configs/FunKey.1/strings/0x409/configuration
     else
 	echo "Mass Storage" > ${GADGET}/configs/FunKey.1/strings/0x409/configuration
     fi
 
-    if [ $USBNET -eq 1 ]; then
+    if [ ${USBNET} -eq 1 ]; then
 
 	# Make the FunKey.1 configuration the one associated with OS Descriptors
 	ln -s ${GADGET}/configs/FunKey.1 ${GADGET}/os_desc
@@ -141,7 +141,7 @@ init_usb_gadget() {
     # Inquiry String
     echo "FunKey S Shared Disk" > ${GADGET}/functions/mass_storage.mmcblk0p3/lun.0/inquiry_string
 
-    if [ $USBNET -eq 1 ]; then
+    if [ ${USBNET} -eq 1 ]; then
 
 	# Add the RNDIS function to the FunKey.1 configuration
 	ln -s ${GADGET}/functions/rndis.usb0 ${GADGET}/configs/FunKey.1
