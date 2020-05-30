@@ -1,0 +1,17 @@
+#!/bin/sh
+
+# Write quick load file args
+QUICK_LOAD_FILE="/root/quick_load_cmd"
+
+printf "" > $QUICK_LOAD_FILE
+
+whitespace="[[:space:]]"
+for i in "$@"; do
+    if [[ "$i" != $whitespace && "$i" != "SDL_NOMOUSE=1" ]]
+    then
+        i=\""$i"\"
+    fi
+    printf "%s" "$i " >> $QUICK_LOAD_FILE
+done
+printf "\n" >> $QUICK_LOAD_FILE
+exit 0

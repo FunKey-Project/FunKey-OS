@@ -1,0 +1,4 @@
+#!/bin/sh
+
+amixer sget 'Headphone' | tail -1 | cut -d' ' -f7 | sed 's/[^0-9]//g'
+exit 0

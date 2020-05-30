@@ -1,0 +1,7 @@
+#!/bin/sh
+
+SYSTEM_BRIGHTNESS="/sys/class/backlight/backlight/brightness"
+
+let brightness=$(cat "${SYSTEM_BRIGHTNESS}")*10-10
+echo ${brightness}
+exit 0

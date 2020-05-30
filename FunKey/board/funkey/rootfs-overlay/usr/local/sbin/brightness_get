@@ -1,0 +1,20 @@
+#!/bin/sh
+
+BRIGHTNESS_FILE="/etc/current_brightness"
+BRIGHTNESS_DEFAULT_VALUE=100
+
+# Sanity check: File does not exist
+if [ ! -f "${BRIGHTNESS_FILE}" ]; then
+    #echo "error:  \"${BRIGHTNESS_FILE}\" does not exist" >&2
+    echo ${BRIGHTNESS_DEFAULT_VALUE} > "${BRIGHTNESS_FILE}"
+fi
+
+# Sanity check: Check if integer
+brightness=$(cat "${BRIGHTNESS_FILE}")
+if ! [ "${brightness}" -ne "${brightness}" ] 2> /dev/null; then
+    #echo "error: \"${brightness}\" is not a number" >&2
+    echo ${BRIGHTNESS_DEFAULT_VALUE} > "${BRIGHTNESS_FILE}"
+    brightness=${BRIGHTNESS_DEFAULT_VALUE}
+fi
+echo ${brightness}
+exit 0

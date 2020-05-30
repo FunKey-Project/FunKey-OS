@@ -1,0 +1,6 @@
+#!/bin/sh
+
+for i in $(seq 0 11); do
+	termfix /dev/tty$i
+done
+exit 0

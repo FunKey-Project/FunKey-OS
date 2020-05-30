@@ -1,0 +1,22 @@
+#!/bin/sh
+
+STEP_VOLUME=10
+NOTIF_TIME_ON=2
+
+# Get current value
+current_volume=$(volume_get)
+
+# Compute new volume value
+new_volume=0
+if [ "${current_volume}" -gt "${STEP_VOLUME}" ]; then
+    new_volume=${current_volume}-${STEP_VOLUME}
+fi
+
+# Change volume
+if [ "${new_volume}" -ne "${current_volume}" ]; then
+    volume_set ${new_volume}
+fi
+
+# Notif
+notif_set ${NOTIF_TIME_ON} "         VOLUME: ${new_volume}%%"
+exit 0

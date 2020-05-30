@@ -1,0 +1,15 @@
+#!/bin/sh
+
+if [ "${#}" != "1" ]; then
+    echo "Usage: $0	seconds_before_shutdown"
+    exit 1
+fi
+
+nb_secs_to_wait=$1
+
+# Wait $nb_secs_to_wait seconds to catch signal USR2
+# If the signal is caught, then it means a process canceled this shutdown
+sleep ${nbl_secs_to_wait}
+
+# Too late to cancel: init shutdown
+shutdown_funkey

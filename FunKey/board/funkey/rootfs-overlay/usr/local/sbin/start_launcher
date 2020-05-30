@@ -1,0 +1,43 @@
+#!/bin/sh
+
+LOCK_FILE="/var/lock/launcher.lock"
+PREVENT_LAUNCHER_FILE="/mnt/prevent_launcher"
+PREVENT_LAUNCHER_FILE2="/boot/prevent_launcher"
+
+if [ -f "${LOCK_FILE}" ]; then
+    echo "${LOCK_FILE} already exists"
+    exit 1
+fi
+touch "${LOCK_FILE}"
+
+# Launch Previous Game
+QUICK_LOAD_FILE="/root/quick_load_cmd"
+if [ -f "${QUICK_LOAD_FILE}" ]; then
+    command=$(cat "${QUICK_LOAD_FILE}")
+    echo "Found quick load file, restarting previous game with command:"
+    echo ${command}
+    rm "${QUICK_LOAD_FILE}"
+    eval ${command}
+    termfix_all
+fi
+
+# Loop to launch launcher indefinitely
+while true; do
+	
+    # Check if prevent launcher file present
+    if [ -f "${PREVENT_LAUNCHER_FILE}" ]; then
+	echo "Found file: ${PREVENT_LAUNCHER_FILE}, not launching launcher" 
+	sleep 5
+    elif [ -f "${PREVENT_LAUNCHER_FILE2}" ]; then
+	echo "Found file: ${PREVENT_LAUNCHER_FILE2}, not launching launcher" 
+	sleep 5
+    else
+	# Launch Retrofe
+	retrofe
+
+	# In case retrofe quits with errors, clear graphic VT
+	termfix_all
+    fi
+done
+rm "${LOCK_FILE}"
+exit 0

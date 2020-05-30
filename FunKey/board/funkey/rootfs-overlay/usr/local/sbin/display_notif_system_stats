@@ -1,0 +1,5 @@
+#!/bin/sh
+
+notif_set 0 "Getting system stats..."
+killall -s USR1 system_stats
+exit 0
