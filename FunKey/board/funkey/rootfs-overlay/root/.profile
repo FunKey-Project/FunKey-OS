@@ -36,39 +36,20 @@ resize() {
     fi
 }
 
-# Mount /dev/mmcblk0p1 in /boot
-#echo "Mount /dev/mmcblk0p1 in /boot"
-#mount /dev/mmcblk0p1 /boot/ >/dev/null 2>&1
-
 # Start ampli if necessary
-#echo "Start ampli if necessary"
+echo "Start audio amplifier if necessary"
 if [[ "$(volume_get)" -ne "0" ]]; then
 	start_audio_amp 1 >/dev/null 2>&1
 fi
 
 # Force unmute sound card and reset volume
-#echo "Force unmute sound card and reset volume"
+echo "Force unmute sound card and reset volume"
 volume_set $(volume_get) >/dev/null 2>&1
 
 # Reset saved brightness
-#echo "Reset saved brightness"
+echo "Reset saved brightness"
 brightness_set $(brightness_get) >/dev/null 2>&1
 
-# Enable USB gadget share and internet forwarding over USB
-share init&
-
 # Start launcher
-#echo "Start launcher"
+echo "Start launcher"
 start_launcher >/dev/null 2>&1 &
-
-# Init GPIO manager
-#echo "Init GPIO manager"
-PREVENT_GPIOMNG_FILE=/mnt/prevent_gpiomanager
-PREVENT_GPIOMNG_FILE2=/boot/prevent_gpiomanager
-if [ -f $PREVENT_GPIOMNG_FILE ]; then
-	echo "Found file: $PREVENT_GPIOMNG_FILE, not launching gpio manager" 
-elif [ -f $PREVENT_GPIOMNG_FILE2 ]; then
-	echo "Found file: $PREVENT_GPIOMNG_FILE2, not launching gpio manager" 
-else
-	start_gpio_manager >/dev/null 2>&1 &
-fi
