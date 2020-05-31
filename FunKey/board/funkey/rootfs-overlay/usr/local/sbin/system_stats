@@ -25,7 +25,7 @@ while true; do
 	ram_swap=$(printf "%.1f\n" $(free | grep Swap | awk '{print $3/$2 * 100.0}'))
 
 	# Notif
-	if [ ${notif_dirty} == 1 ]]; then
+	if [ ${notif_dirty} -eq 1 ]; then
 	    notif_clear
 	    notif_dirty=0
 	else
