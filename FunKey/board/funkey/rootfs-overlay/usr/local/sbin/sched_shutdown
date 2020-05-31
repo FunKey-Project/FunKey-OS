@@ -1,6 +1,6 @@
 #!/bin/sh
 
-if [ "${#}" != "1" ]; then
+if [ ${#} != 1 ]; then
     echo "Usage: $0	seconds_before_shutdown"
     exit 1
 fi

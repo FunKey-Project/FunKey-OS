@@ -1,19 +1,23 @@
 #!/bin/sh
 
-VOLUME_FILE="/etc/current_volume"
+VOLUME_FILE=/etc/current_volume
 VOLUME_DEFAULT_VALUE=50
 
+# Check args
+if [ ${#} -ne 0 ]; then
+    echo "Usage: $(basename ${0})"
+    exit 1
+fi
+
 # Sanity check: File does not exist
-if [ ! -f "${VOLUME_FILE}" ]; then
-	#echo "error: \"${VOLUME_FILE}\" does not exist" >&2
-	echo ${VOLUME_DEFAULT_VALUE} > "${VOLUME_FILE}"
+if [ ! -f ${VOLUME_FILE} ]; then
+	echo ${VOLUME_DEFAULT_VALUE} > ${VOLUME_FILE}
 fi
 
 # Sanity check: Check if integer
 volume=$(cat "${VOLUME_FILE}")
-if ! [ "${volume}" -ne "${volume}" ] ; then
-   	#echo "error: \"${volume}\" is not a number" >&2
-	echo ${VOLUME_DEFAULT_VALUE} > "${VOLUME_FILE}"
+if ! [ ! "${volume}" -ne "${volume}" ] 2> /dev/null; then
+	echo ${VOLUME_DEFAULT_VALUE} > ${VOLUME_FILE}
 	volume=${VOLUME_DEFAULT_VALUE}
 fi
 echo ${volume}

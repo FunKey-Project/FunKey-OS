@@ -1,3 +1,4 @@
 #!/bin/sh
+
 killall mednafen gpsp psnes pcsx sdlgnuboy PicoDriveBin
 exit 0

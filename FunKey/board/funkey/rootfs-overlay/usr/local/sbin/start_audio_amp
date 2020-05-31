@@ -1,19 +1,19 @@
 #!/bin/sh
 
 # Check number of args
-if [ "${#}" -ne "1" ]; then
-    echo "Usage: $0 [1 for on, 0 for off]"
+if [ ${#} -ne 1 ]; then
+    echo "Usage: $(basename ${0}) [1 for on, 0 for off]"
     exit 1
 fi
 
 # Check Enable arg
-enable=$1
-if [ "${enable}" -eq "1" ]; then
-    echo "Turning ampli ON"
-elif [ "${enable}" -eq "0" ]; then
-    echo "Turning ampli OFF"
+enable=${1}
+if [ ${enable} -eq 1 ]; then
+    echo "Turning audio amplifier ON"
+elif [ ${enable} -eq 0 ]; then
+    echo "Turning audio amplifier OFF"
 else
-    echo "Usage: ${0} [1 for on, 0 for off]"
+    echo "Usage: $(basename ${0}) [1 for on, 0 for off]"
     exit 1
 fi
 
@@ -21,11 +21,11 @@ fi
 GPIO_PF6=166
 
 # Export GPIO
-if [ ! -d "/sys/class/gpio/gpio${GPIO_PF6}" ]; then
-    echo ${GPIO_PF6} > "/sys/class/gpio/export"
+if [ ! -d /sys/class/gpio/gpio${GPIO_PF6} ]; then
+    echo ${GPIO_PF6} > /sys/class/gpio/export
 fi
 
 # Enable/disable cmd
-echo "out" > "/sys/class/gpio/gpio${GPIO_PF6}/direction"
-echo ${enable} > "/sys/class/gpio/gpio${GPIO_PF6}/value"
+echo "out" > /sys/class/gpio/gpio${GPIO_PF6}/direction
+echo ${enable} > /sys/class/gpio/gpio${GPIO_PF6}/value
 exit 0

@@ -1,11 +1,11 @@
 #!/bin/sh
 
-BRIGHTNESS_FILE="/etc/current_brightness"
-SYSTEM_BRIGHTNESS="/sys/class/backlight/backlight/brightness"
+BRIGHTNESS_FILE=/etc/current_brightness
+SYSTEM_BRIGHTNESS=/sys/class/backlight/backlight/brightness
 
 # Check args
-if [ ${#} != 1 ]; then
-    echo "Usage: ${0} new_brightness_percentage"
+if [ ${#} -ne 1 ]; then
+    echo "Usage: $(basename ${0}) new_brightness_percentage"
     exit 1
 fi
 
@@ -19,10 +19,10 @@ brightness_percentage=${1}
 # Set new brightness percentage
 let value=${1}+10
 let value/=10
-echo ${value} > "${SYSTEM_BRIGHTNESS}"
+echo ${value} > ${SYSTEM_BRIGHTNESS}
 
 # Set new brightness value in brightness file
 if [ ${?} -eq 0 ]; then
-    echo ${brightness_percentage} > "${BRIGHTNESS_FILE}"
+    echo ${brightness_percentage} > ${BRIGHTNESS_FILE}
 fi
 exit 0

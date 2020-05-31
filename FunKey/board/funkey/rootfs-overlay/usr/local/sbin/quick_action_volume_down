@@ -8,12 +8,12 @@ current_volume=$(volume_get)
 
 # Compute new volume value
 new_volume=0
-if [ "${current_volume}" -gt "${STEP_VOLUME}" ]; then
+if [ ${current_volume} -gt ${STEP_VOLUME} ]; then
     new_volume=${current_volume}-${STEP_VOLUME}
 fi
 
 # Change volume
-if [ "${new_volume}" -ne "${current_volume}" ]; then
+if [ ${new_volume} -ne ${current_volume} ]; then
     volume_set ${new_volume}
 fi
 

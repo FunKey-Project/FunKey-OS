@@ -1,11 +1,14 @@
 #!/bin/sh
 
-SYSTEM_BRIGHTNESS="/sys/class/backlight/backlight/brightness"
+SYSTEM_BRIGHTNESS=/sys/class/backlight/backlight/brightness
 
-if [ ${#} != 1 ]; then
-    echo "Usage: $0 new_brightness_percentage"
+# Check args
+if [ ${#} -ne 1 ]; then
+    echo "Usage: $(basename ${0}) new_brightness_percentage"
     exit 1
 fi
+
+# Check value's range
 if [ ${1} -gt 100 ]; then
     echo "Usage: Wrong brightness percentage (${1}), must be between 0 and 100"
     exit 1
@@ -14,5 +17,5 @@ fi
 # Set new brightness percentage
 let value=${1}+10
 let value/=10
-echo ${value} > "${SYSTEM_BRIGHTNESS}"
+echo ${value} > ${SYSTEM_BRIGHTNESS}
 exit 0

@@ -8,12 +8,12 @@ current_brightness=$(brightness_get)
 
 # Compute new brightness value
 new_brightness=0
-if [ "${current_brightness}" -gt "${STEP_BRIGHTNESS}" ]; then
+if [ ${current_brightness} -gt ${STEP_BRIGHTNESS} ]; then
     let new_brightness=${current_brightness}-${STEP_BRIGHTNESS}
 fi
 
 # Change brightness
-if [ "${new_brightness}" -ne "${current_brightness}" ]; then
+if [ ${new_brightness} -ne ${current_brightness} ]; then
 	brightness_set ${new_brightness}
 fi
 
