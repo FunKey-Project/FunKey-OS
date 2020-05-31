@@ -20,10 +20,12 @@ endef
 
 define FUNKEY_GPIO_MAPPING_INSTALL_TARGET_CMDS
 	$(INSTALL) -d -m 0755 $(TARGET_DIR)/usr/local/sbin
-	$(INSTALL) -m 0755 $(@D)/funkey_gpio_management $(TARGET_DIR)/usr/local/sbin/funkey_gpio_manag
+	$(INSTALL) -m 0755 $(@D)/funkey_gpio_management $(TARGET_DIR)/usr/local/sbin/funkey_gpio_management
 	$(INSTALL) -m 0755 $(@D)/termfix $(TARGET_DIR)/usr/local/sbin/termfix
 	$(INSTALL) -d -m 0755 $(TARGET_DIR)/etc
 	$(INSTALL) -m 0644 $(@D)/funkey_gpio_mapping.conf $(TARGET_DIR)/etc/funkey_gpio_mapping.conf
+	$(INSTALL) -d -m 0755 $(TARGET_DIR)/etc/init.d
+	$(INSTALL) -m 0755 $(FUNKEY_GPIO_MAPPING_PKGDIR)etc/init.d/S06funkey-gpio-management $(TARGET_DIR)/etc/init.d/S06funkey-gpio-management
 endef
 
 $(eval $(generic-package))
