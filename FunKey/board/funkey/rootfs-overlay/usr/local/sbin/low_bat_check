@@ -29,7 +29,7 @@ cur_secs_disp=0
 cur_nb_extremely_low_bat_before_shutdown=0
 
 # Default: Hide Low Bat Icon
-eval ${ICON_HIDE_CMD}
+echo 0 > ${LOW_BAT_ICON}
 
 # Check low bat #
 while true; do
