@@ -17,8 +17,8 @@ RETROFE_SUPPORTS_IN_SOURCE_BUILD = NO
 RETROFE_CONF_OPTS += -DVERSION_MAJOR=0 -DVERSION_MINOR=0 -DVERSION_BUILD=0
 
 define RETROFE_INSTALL_TARGET_CMDS
-	$(INSTALL) -d -m 0755 $(TARGET_DIR)/root/RetroFE
-	$(INSTALL) -m 0755 $(@D)/RetroFE/Build/retrofe $(TARGET_DIR)/root/RetroFE/retrofe
+	$(INSTALL) -d -m 0755 $(TARGET_DIR)/usr/games
+	$(INSTALL) -m 0755 $(@D)/RetroFE/Build/retrofe $(TARGET_DIR)/usr/games/retrofe
 endef
 
 $(eval $(cmake-package))
