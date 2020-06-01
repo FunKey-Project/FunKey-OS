@@ -15,10 +15,4 @@
 #notif_set 0 "upgrade"
 #upgrade_fk_incremental 
 
-# Low bat check #
-low_bat_check  >/dev/null 2>&1  &
-
-# System stats #
-system_stats  >/dev/null 2>&1 &
-
 exit 0

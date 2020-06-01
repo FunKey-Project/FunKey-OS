@@ -1,0 +1,36 @@
+#!/bin/sh
+#
+# Start/stop system_stats
+#
+
+DAEMON=/usr/local/sbin/system_stats
+PIDFILE=/var/run/system_stats.pid
+
+case "$1" in
+  start)
+	echo -n "Starting system_stats: "
+	start-stop-daemon -S -x ${DAEMON} -p ${PIDFILE} -m -b -- > /dev/null 2>&1
+	if [ ${?} -eq 0 ]; then
+	  echo "OK"
+	else
+	  echo "ERROR"
+	fi
+	;;
+  stop)
+	echo -n "Stopping system_stats: "
+	start-stop-daemon -K -x ${DAEMON} -p ${PIDFILE} -o > /dev/null 2>&1
+	if [ ${?} -eq 0 ]; then
+	  echo "OK"
+	else
+	  echo "ERROR"
+	fi
+	;;
+  restart)
+	${0} stop
+	sleep 1 # Prevent race condition: ensure system_stats stops before start.
+	${0} start
+	;;
+  *)
+	echo "Usage: ${0} {start|stop|restart}"
+	exit 1
+esac

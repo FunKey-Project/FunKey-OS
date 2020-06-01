@@ -1,0 +1,36 @@
+#!/bin/sh
+#
+# Start/stop low_bat_check
+#
+
+DAEMON=/usr/local/sbin/low_bat_check
+PIDFILE=/var/run/low_bat_check.pid
+
+case "$1" in
+  start)
+	echo -n "Starting low_bat_check: "
+	start-stop-daemon -S -x ${DAEMON} -p ${PIDFILE} -m -b -- > /dev/null 2>&1
+	if [ ${?} -eq 0 ]; then
+	  echo "OK"
+	else
+	  echo "ERROR"
+	fi
+	;;
+  stop)
+	echo -n "Stopping low_bat_check: "
+	start-stop-daemon -K -x ${DAEMON} -p ${PIDFILE} -o > /dev/null 2>&1
+	if [ ${?} -eq 0 ]; then
+	  echo "OK"
+	else
+	  echo "ERROR"
+	fi
+	;;
+  restart)
+	${0} stop
+	sleep 1 # Prevent race condition: ensure low_bat_check stops before start.
+	${0} start
+	;;
+  *)
+	echo "Usage: ${0} {start|stop|restart}"
+	exit 1
+esac
