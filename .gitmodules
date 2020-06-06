@@ -1,15 +1,3 @@
 [submodule "buildroot"]
 	path = buildroot
 	url = git://git.buildroot.net/buildroot
-[submodule "funkey_retrofe"]
-	path = funkey_retrofe
-	url = git@bitbucket.org:keymu2/funkey_retrofe.git
-[submodule "funkey_retrofe_layout_240x240"]
-	path = funkey_retrofe_layout_240x240
-	url = git@bitbucket.org:keymu2/funkey_retrofe_layout_240x240.git
-[submodule "funkey_sdl1.2"]
-	path = funkey_sdl1.2
-	url = git@bitbucket.org:keymu2/funkey_sdl1.2.git
-[submodule "funkey-gpio-mapping"]
-	path = funkey-gpio-mapping
-	url = git@bitbucket.org:keymu2/funkey-gpio-mapping.git
