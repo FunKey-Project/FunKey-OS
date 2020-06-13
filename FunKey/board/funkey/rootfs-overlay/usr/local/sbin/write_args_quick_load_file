@@ -3,15 +3,15 @@
 # Write quick load file args
 QUICK_LOAD_FILE=/root/quick_load_cmd
 
-printf "" > $QUICK_LOAD_FILE
-
-whitespace="[[:space:]]"
+echo -n "" > $QUICK_LOAD_FILE
 for i in "$@"; do
-    if [[ "$i" != $whitespace && "$i" != "SDL_NOMOUSE=1" ]]
-    then
-        i=\""$i"\"
+    if $(echo "$i" | egrep -q '[[:space:]]'); then
+
+	# Add quotes around arguments containing spaces
+        echo -n "\"$i\" " >> ${QUICK_LOAD_FILE}
+    else
+	echo -n "$i "  >> ${QUICK_LOAD_FILE}
     fi
-    printf "%s" "$i " >> $QUICK_LOAD_FILE
 done
-printf "\n" >> $QUICK_LOAD_FILE
+echo "" >> ${QUICK_LOAD_FILE}
 exit 0
