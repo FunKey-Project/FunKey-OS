@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-FUNKEY_GPIO_MAPPING_VERSION = 0ac193e41e03faba8dc451177fa2b5e8936bd203
+FUNKEY_GPIO_MAPPING_VERSION = cd412528079a59eab66e7d426e28d9966c2d731c
 FUNKEY_GPIO_MAPPING_SITE_METHOD = git
 #FUNKEY_GPIO_MAPPING_SITE = ssh://git@github.com/FunKey-Project/FunKey-GPIO-Mapping.git
 FUNKEY_GPIO_MAPPING_SITE = ssh://git@fk/FunKey-Project/FunKey-GPIO-Mapping.git
