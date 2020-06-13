@@ -25,7 +25,7 @@ define FUNKEY_GPIO_MAPPING_INSTALL_TARGET_CMDS
 	$(INSTALL) -d -m 0755 $(TARGET_DIR)/etc
 	$(INSTALL) -m 0644 $(@D)/funkey_gpio_mapping.conf $(TARGET_DIR)/etc/funkey_gpio_mapping.conf
 	$(INSTALL) -d -m 0755 $(TARGET_DIR)/etc/init.d
-	$(INSTALL) -m 0755 $(FUNKEY_GPIO_MAPPING_PKGDIR)etc/init.d/S06funkey-gpio-management $(TARGET_DIR)/etc/init.d/S06funkey-gpio-management
+	$(INSTALL) -m 0755 $(FUNKEY_GPIO_MAPPING_PKGDIR)etc/init.d/S11funkey-gpio-management $(TARGET_DIR)/etc/init.d/S11funkey-gpio-management
 endef
 
 $(eval $(generic-package))
