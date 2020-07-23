@@ -1,13 +1,13 @@
 #!/bin/sh
 
 STEP_BRIGHTNESS=10
-NOTIF_TIME_ON=2
+NOTIF_DURATION=2
 
 # Get current value
 current_brightness=$(brightness_get)
 
 # Compute new brightness value
-new_brightness=${current_brightness}+${STEP_BRIGHTNESS}
+let new_brightness=${current_brightness}+${STEP_BRIGHTNESS}
 if [ ${new_brightness} -gt 100 ]; then
     new_brightness=100
 fi
@@ -18,5 +18,5 @@ if [ ${new_brightness} -ne ${current_brightness} ]; then
 fi
 
 # Notif
-notif_set ${NOTIF_TIME_ON} "       BRIGHTNESS: ${new_brightness}%%"
+notif_set ${NOTIF_DURATION} "       BRIGHTNESS: ${new_brightness}%%"
 exit 0
