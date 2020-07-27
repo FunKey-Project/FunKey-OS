@@ -1,0 +1,21 @@
+#!/bin/sh
+
+THIS=$(basename $0)
+
+case "$1" in
+    start)
+	if /etc/rc.local; then
+	    echo "Starting rc.local: OK"
+	    exit 0
+	else
+	    echo "Starting rc.local: ERROR"
+	    exit 1
+	fi
+	;;
+    stop)
+	;;
+    *)
+	echo "Usage: $0 {start|stop}" >&2
+	exit 2
+	;;
+esac

@@ -1,0 +1,34 @@
+#!/bin/sh
+
+#set -xv
+
+if [ x"$THIS" != x ]; then
+    THIS="${THIS}: "
+fi
+log_action_msg () {
+    echo "${THIS}${@}." | tee /dev/kmsg
+}
+
+log_action_begin_msg () {
+    echo -n "${THIS}${@}: " | tee /dev/kmsg
+}
+
+log_action_cont_msg () {
+    echo "${THIS}${@}..." | tee /dev/kmsg
+}
+
+log_action_end_msg () {
+    local end
+    if [ -z "${2:-}" ]; then
+        end=""
+    else
+        end=" ($2)"
+    fi
+
+    if [ $1 -eq 0 ]; then
+        echo "${THIS}OK${end}" | tee /dev/kmsg
+    else
+        echo "${THIS}ERROR${end}" | tee /dev/kmsg
+    fi
+}
+

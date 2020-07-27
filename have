@@ -4,8 +4,11 @@ case "$1" in
     fun)
 	buildroot/utils/brmake -C buildroot BR2_EXTERNAL=../FunKey O=../FunKey/output
 	;;
+    pcba)
+	buildroot/utils/brmake -C buildroot BR2_EXTERNAL=../PCBA O=../PCBA/output
+	;;
     *)
-	echo "You can only have fun!" >&2
+	echo "You can only have fun or pcba!" >&2
 	exit 1
 	;;
 esac

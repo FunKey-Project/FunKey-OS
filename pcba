@@ -1,6 +1,6 @@
 #!/bin/sh
 
-BR="make -C buildroot BR2_EXTERNAL=../FunKey O=../FunKey/output"
+BR="make -C buildroot BR2_EXTERNAL=../PCBA O=../PCBA/output"
 
 case "$1" in
     start)
