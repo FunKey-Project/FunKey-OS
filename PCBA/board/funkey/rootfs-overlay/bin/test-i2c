@@ -1,0 +1,25 @@
+#!/bin/sh
+
+# Load I2C modules
+modprobe i2c-dev
+modprobe i2c-mv64xxx
+
+# Look for PCF6416 GPIO expander
+PCF6416=$(i2cdetect -y 0 20 20 | grep 20: | cut -d ':' -f 2)
+let PCF6416=PCF6416+0
+if [ ${PCF6416} -ne 20 ]; then
+   echo "ERROR PCF6416"
+   exit 1
+fi
+
+# Look for AXP209 PMIC
+AXP209=$(i2cdetect -y 0 34 34 | grep 30: | cut -d ':' -f 2)
+let AXP2090=AXP209+0
+if [ ${AXP209} -ne 34 ]; then
+   echo "ERROR AXP209"
+   exit 1
+fi
+
+# Unload I2C modules
+modprobe -r i2c_mv64xxx i2c_dev >/dev/null 2>&1
+echo "OK"

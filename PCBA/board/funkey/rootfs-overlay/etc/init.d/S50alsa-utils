@@ -161,8 +161,8 @@ case "$1" in
 	EXITSTATUS=0
 	TARGET_CARD="$2"
 	case "$TARGET_CARD" in
-	  ""|all) TARGET_CARD=all ; log_action_begin_msg "Starting ALSA" ;;
-	  *) log_action_begin_msg "Starting ALSA card ${TARGET_CARD}" ;;
+	  ""|all) TARGET_CARD=all ;;
+	  *)  ;;
 	esac
 	card_OK "$TARGET_CARD" || log_action_end_msg_and_exit "$( [ ! "$2" ] ; echo $? ; )" "none loaded"
 	preinit_levels "$TARGET_CARD" || EXITSTATUS=1
@@ -170,19 +170,17 @@ case "$1" in
 		sanify_levels "$TARGET_CARD" || EXITSTATUS=1
 		restore_levels "$TARGET_CARD" >/dev/null 2>&1 || :
 	fi
-	log_action_end_msg_and_exit "$EXITSTATUS"
 	;;
   stop)
 	EXITSTATUS=0
 	TARGET_CARD="$2"
 	case "$TARGET_CARD" in
-	  ""|all) TARGET_CARD=all ; log_action_begin_msg "Stopping ALSA" ;;
-	  *) log_action_begin_msg "Stopping ALSA card ${TARGET_CARD}" ;;
+	  ""|all) TARGET_CARD=all ;;
+	  *)  ;;
 	esac
 	card_OK "$TARGET_CARD" || log_action_end_msg_and_exit "$( [ ! "$2" ] ; echo $? ; )" "none loaded"
 	store_levels "$TARGET_CARD" || EXITSTATUS=1
 	#mute_and_zero_levels "$TARGET_CARD" || EXITSTATUS=1
-	log_action_end_msg_and_exit "$EXITSTATUS"
 	;;
   restart|force-reload)
 	EXITSTATUS=0

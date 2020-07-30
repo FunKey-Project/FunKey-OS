@@ -1,0 +1,12 @@
+#!/bin/sh
+
+# Turn on Power Amplifier
+gpioset $(gpiofind "PA")=1
+
+# Play 1kHz sine wave
+speaker-test -t sine -s 1 -f 1000 >/dev/null 2>&1
+
+# Turn off Power Amplifier
+gpioset $(gpiofind "PA")=0
+
+echo "OK"

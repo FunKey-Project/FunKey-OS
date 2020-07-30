@@ -1,0 +1,18 @@
+#!/bin/sh
+
+if [ $# -ne 2 ]; then
+    echo "ERROR Wrong number of arguments $#"
+    exit 1
+fi
+pin=$(gpiofind "${1}")
+if [ $? -ne 0 ]; then
+    echo "ERROR Unknown GPIO ${1}"
+    exit 1
+fi
+case ${2} in
+    0) value=${2};;
+    1) value=${2};;
+    *) echo "ERROR Bad value ${2}"; exit 1;;
+esac
+gpioset ${pin}=${value}
+echo "OK"
