@@ -1,0 +1,35 @@
+#!/bin/sh
+
+# Load I2C modules
+modprobe i2c-dev
+modprobe i2c-mv64xxx
+
+# Look for U1 (PCAL6416 GPIO expander)
+U1=$(i2cdetect -y 0 20 20 | grep 20: | cut -d ':' -f 2)
+let U1=U1+0
+if [ ${U1} -ne 20 ]; then
+   echo "ERROR BATTERY CHIP"
+else
+
+    # Wait for the battery detected and charging for 10s
+    timeout=10
+    while [ ${timeout} -ne 0 ]; do
+	value=$(i2cget -y 0 34 1)
+	if [ $? -ne 0 ]; then
+	    echo "ERROR BATTERY I2C"
+	    break
+	fi
+	if [ "${value}" = "0x74" ]; then
+	    echo "OK"
+	    break
+	fi
+	sleep 1
+	let timeout=timeout-1
+    done
+    if [ ${timeout} -eq 0 ]; then
+	echo "ERROR BATTERY TIMEOUT"
+    fi
+fi
+
+# Unload I2C modules
+modprobe -r i2c_mv64xxx i2c_dev >/dev/null 2>&1

@@ -4,19 +4,19 @@
 modprobe i2c-dev
 modprobe i2c-mv64xxx
 
-# Look for PCF6416 GPIO expander
-PCF6416=$(i2cdetect -y 0 20 20 | grep 20: | cut -d ':' -f 2)
-let PCF6416=PCF6416+0
-if [ ${PCF6416} -ne 20 ]; then
-   echo "ERROR PCF6416"
+# Look for U1 (PCAL6416 GPIO expander)
+U1=$(i2cdetect -y 0 20 20 | grep 20: | cut -d ':' -f 2)
+let U1=U1+0
+if [ ${U1} -ne 20 ]; then
+   echo "ERROR I2C U1"
    exit 1
 fi
 
-# Look for AXP209 PMIC
-AXP209=$(i2cdetect -y 0 34 34 | grep 30: | cut -d ':' -f 2)
-let AXP2090=AXP209+0
-if [ ${AXP209} -ne 34 ]; then
-   echo "ERROR AXP209"
+# Look for U5 (AXP209 PMIC)
+U5=$(i2cdetect -y 0 34 34 | grep 30: | cut -d ':' -f 2)
+let U5=U5+0
+if [ ${U5} -ne 34 ]; then
+   echo "ERROR I2C U5"
    exit 1
 fi
 

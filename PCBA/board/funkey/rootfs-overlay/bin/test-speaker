@@ -2,11 +2,23 @@
 
 # Turn on Power Amplifier
 gpioset $(gpiofind "PA")=1
+if [ $? -ne 0 ]; then
+    echo "ERROR SPEAKER ON"
+else
 
-# Play 1kHz sine wave
-speaker-test -t sine -s 1 -f 1000 >/dev/null 2>&1
+    # Play 1kHz sine wave
+    speaker-test -t sine -s 1 -f 1000 >/dev/null 2>&1
+    if [ $? -ne 0 ]; then
+	echo "ERROR SPEAKER SINE"
+	gpioset $(gpiofind "PA")=0
+    else
 
-# Turn off Power Amplifier
-gpioset $(gpiofind "PA")=0
-
-echo "OK"
+	# Turn off Power Amplifier
+	gpioset $(gpiofind "PA")=0
+	if [ $? -ne 0 ]; then
+	    echo "ERROR SPEAKER OFF"
+	else
+	    echo "OK"
+	fi
+    fi
+fi
