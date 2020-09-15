@@ -1,0 +1,35 @@
+ dmtxquery/Makefile.am |    2 +-
+ dmtxread/Makefile.am  |    2 +-
+ dmtxwrite/Makefile.am |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
+
+diff -Naur a/dmtxquery/Makefile.am b/dmtxquery/Makefile.am
+--- a/dmtxquery/Makefile.am
++++ b/dmtxquery/Makefile.am
+@@ -9,5 +9,5 @@
+ dmtxquery_LDADD = $(LIBOBJS)
+ 
+ dmtxquery_debug_SOURCES = dmtxquery.c dmtxquery.h ../common/dmtxutil.c ../common/dmtxutil.h
+-dmtxquery_debug_LDFLAGS = -static $(DMTX_LIBS)
++dmtxquery_debug_LDFLAGS = $(DMTX_LIBS)
+ dmtxquery_debug_LDADD = $(LIBOBJS)
+diff -Naur a/dmtxread/Makefile.am b/dmtxread/Makefile.am
+--- a/dmtxread/Makefile.am
++++ b/dmtxread/Makefile.am
+@@ -11,5 +11,5 @@
+ 
+ dmtxread_debug_SOURCES = dmtxread.c dmtxread.h ../common/dmtxutil.c ../common/dmtxutil.h
+ dmtxread_debug_CFLAGS = $(DMTX_CFLAGS) $(MAGICK_CFLAGS) -D_MAGICK_CONFIG_H
+-dmtxread_debug_LDFLAGS = -static $(DMTX_LIBS) $(MAGICK_LIBS)
++dmtxread_debug_LDFLAGS = $(DMTX_LIBS) $(MAGICK_LIBS)
+ dmtxread_debug_LDADD = $(LIBOBJS)
+diff -Naur a/dmtxwrite/Makefile.am b/dmtxwrite/Makefile.am
+--- a/dmtxwrite/Makefile.am
++++ b/dmtxwrite/Makefile.am
+@@ -11,5 +11,5 @@
+ 
+ dmtxwrite_debug_SOURCES = dmtxwrite.c dmtxwrite.h ../common/dmtxutil.c ../common/dmtxutil.h
+ dmtxwrite_debug_CFLAGS = $(DMTX_FLAGS) $(MAGICK_CFLAGS) -D_MAGICK_CONFIG_H
+-dmtxwrite_debug_LDFLAGS = -static $(DMTX_LIBS) $(MAGICK_LIBS)
++dmtxwrite_debug_LDFLAGS = $(DMTX_LIBS) $(MAGICK_LIBS)
+ dmtxwrite_debug_LDADD = $(LIBOBJS)

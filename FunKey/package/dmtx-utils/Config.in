@@ -1,0 +1,12 @@
+config BR2_PACKAGE_DMTX_UTILS
+	bool "dmtx utils"
+	depends on BR2_PACKAGE_LIBDMTX
+	select BR2_PACKAGE_IMAGEMAGICK
+	help
+	  libdmtx is a software library that enables programs to read
+	  and write Data Matrix barcodes of the modern ECC200
+	  variety. This package, dmtx-utils, provides command line
+	  utilities that allow scripts and command line users to use
+	  libdmtx functionality.
+
+	  https://github.com/dmtx/dmtx-utils

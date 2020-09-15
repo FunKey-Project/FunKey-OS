@@ -1,0 +1,5 @@
+config BR2_PACKAGE_PRODSCREENS
+	bool "FunKey Prod screens"
+	default y
+	help
+	  The screens for production tests.
