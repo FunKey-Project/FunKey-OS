@@ -1,0 +1,36 @@
+
+    Installer Docker si pas déjà fait
+    Avoir 11.4GB de libre sur le disque (!)
+    Décompresser le ZIP et lancer une CLI dans le répertoire "FunKey-OS-docker" résultant
+    Construire l'image Docker (attention au "." final) :
+
+    docker build -t funkey-project/funkey-os .
+
+    Lancer le container :
+
+    docker run -d -it --name funkey-os funkey-project/funkey-os
+
+    En attendant d'être publics, pour pouvoir accéder à nos repositories privés sur Github, il faut configurer SSH correctement dans le container :
+
+    docker exec funkey-os mkdir .ssh
+    for i in id_rsa_funkey* config known_hosts; do docker cp $i funkey-os:/home/funkey/.ssh/;done
+
+    Se rattacher au container qui tourne :
+
+    docker attach funkey-os
+
+    Cloner notre repository FunKey-OS :
+
+    git clone --recurse-submodules git@fk:FunKey-Project/FunKey-OS.git
+
+    Là, il faut lancer les commandes habituelles pour compiler FunKey-OS :
+
+    cd FunKey-OS
+    ./fun funkey_defconfig
+    ./have fun
+
+    Et au bout d'1h47 (contre 10 min sur ma machine non virtuelle avec ccache...) la compilation est enfin terminée (Ctrl-P + Ctrl-Q pour sortir du container sans le stopper) et tu peux récupérer l'image de la carte SD sur la machine hôte :
+
+    docker cp funkey-os:/home/funkey/FunKey-OS/FunKey/output/images/sdcard.img ./
+
+
