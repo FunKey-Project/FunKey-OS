@@ -1,0 +1,2 @@
+#!/bin/sh
+echo $(for i in 0 4 8 c; do devmem 0x01c2380$i 32; done) | sed 's/ \?0x//g'
