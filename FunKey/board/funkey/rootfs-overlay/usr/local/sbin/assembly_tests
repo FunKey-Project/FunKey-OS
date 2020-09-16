@@ -1,0 +1,350 @@
+#!/bin/sh
+
+## Check if tests must be run
+RUN_FILE=/mnt/.assembly_tests
+if [ ! -f ${RUN_FILE} ]; then
+    echo "${RUN_FILE} not present, not performing assembly tests."
+    exit 0
+fi
+
+## Lock file
+LOCK_FILE=/var/lock/assembly_tests.lock
+if [ -f ${LOCK_FILE} ]; then
+    echo "${LOCK_FILE} already exists"
+    exit 1
+fi
+touch ${LOCK_FILE}
+
+## Binaries
+PROD_SCREEN_BIN="/usr/local/sbin/funkey_prod_screens"
+GET_PROC_UID="/usr/local/sbin/get_sid"
+
+## Global Vars
+test_failed=false
+stop_loop=false
+
+## Get proc unique id
+proc_uid=$($GET_PROC_UID)
+
+## Defines
+VERSION="0.01"
+LOG_FILE="/root/logs/assembly_tests/assy_tests_${proc_uid}.log"
+[ -d $(dirname $LOG_FILE) ] || mkdir -p $(dirname $LOG_FILE)
+MAGNET_DETECTED_FILE="/root/.assembly_tests_magnet_detected"
+QR_CODE_IMG="/root/logs/assembly_tests/qrcode.png"
+[ -d $(dirname $QR_CODE_IMG) ] || mkdir -p $(dirname $QR_CODE_IMG)
+
+## Function called when SIGURS1 is caught while waiting for it
+function function_magnet_detected_ok {
+	## Kill scheduled shutdown
+	pkill sched_shutdown
+
+	## Write magnet_detected file
+	if $test_failed; then
+		echo "1" > $MAGNET_DETECTED_FILE
+	else
+		echo "0" > $MAGNET_DETECTED_FILE
+	fi
+
+	## Clean shutdown
+	echo "	Caught SIGUSR1 signal: magnet detected"
+	echo "	Rebooting now..."
+	shutdown_funkey
+	exit 0
+}
+
+## Function called when SIGUSR1 is caught while NOT waiting for it
+function function_magnet_detected_ko {
+	echo "ERROR: Caught SIGUSR1 signal (magnet detected!)"
+	sync
+}
+
+## Function that launches all tests before magnet
+function launch_tests_up_until_magnet {
+
+	## Force not to process SIGUSR1 events
+	trap function_magnet_detected_ko SIGUSR1
+
+	## Clear graphical framebuffers
+	termfix_all > /dev/null
+
+	## Clear all notifs
+	notif_clear
+
+	## Test if log file aleady exists
+	if [[ -f $LOG_FILE ]]; then
+		echo -e "\n\n ----------------------- RESTART ---------------------- \n\n"
+	fi
+
+	echo "FunKey S prod tests - v${VERSION}"
+	echo "UID: $proc_uid"
+
+	## Set date from raspberry and test USB at the same time
+	# Here we can launch an ssh command such as :
+	# date -s '@$(ssh root@rapsberry date +%s)'
+	# This allows also to test the USB connection
+	echo "DATE: "$(date) - $(date +%s)
+	echo "USB:"
+	echo "	ifconfig usb0:"
+	ifconfig usb0  2>&1
+	echo "	OK"
+	sync
+
+	## Check if battery present
+	if [[ $(cat /sys/class/power_supply/axp20x-battery/present) == "0" ]]; then
+
+		## Launch screen to wait for battery
+		echo "TEST BATTERY:" 
+		sync
+		$PROD_SCREEN_BIN WAIT_BATTERY  2>&1
+		res="$?"
+		echo "	$res" 
+		if [[ "$res" == "0" ]]; then
+			echo "	OK" 
+		else
+			echo "	FAIL" 
+			test_failed=true
+		fi
+	else
+		echo "TEST BATTERY:" 
+		echo "	OK" 
+	fi
+	sync
+
+	## Launch prod screen test display
+	echo "TEST DISPLAY:" 
+	sync
+	$PROD_SCREEN_BIN DISPLAY  2>&1
+	res="$?"
+	echo "	$res" 
+	if [[ "$res" == "0" ]]; then
+		echo "	OK" 
+	else
+		echo "	FAILED" 
+		test_failed=true
+		return
+	fi
+	sync
+
+	## Launch prod screen test buttons
+	echo "TEST BUTTONS:" 
+	sync
+	$PROD_SCREEN_BIN BUTTONS  2>&1
+	res="$?"
+	echo "	$res" 
+	if [[ "$res" == "0" ]]; then
+		echo "	OK" 
+	else
+	echo "	FAILED" 
+		test_failed=true
+		return
+	fi
+	sync
+
+	## Speaker test: set volume to 80% 
+	echo "TEST SPEAKER:"
+	volume_level=90
+	echo "	Set volume to ${volume_level}%"
+	volume_set $volume_level 2>&1
+
+	## Play 1kHz sine wave
+	echo "	Play 2kHz sine wave"
+	notif_set 0 "^^^     PLAYING SINE WAVE...^^^    ......          ^  ...    ...^ ..        ..^..          .^.            .             .^              .           ..^              ..         ..^               ...     ...^                 .......^^"
+	speaker-test -t sine -s 1 -f 2000 >/dev/null 2>&1
+	if [ $? -ne 0 ]; then
+        echo "	ERROR: SPEAKER SINE"
+        test_failed=true
+		return
+    fi
+	sync
+	notif_clear
+
+	## Launch prod screen test speaker
+	$PROD_SCREEN_BIN SPEAKER  2>&1
+	res="$?"
+	echo "	$res" 
+	if [[ "$res" == "0" ]]; then
+		echo "	OK" 
+	else
+		echo "	FAILED" 
+		test_failed=true
+		return
+	fi
+	sync
+
+	## LED test: turn on LED
+	echo "TEST LED:"
+	echo "	Turning LED on"
+	test-led 1 2>&1
+	if [ $? -ne 0 ]; then
+	    echo "	ERROR LED I2C"
+	    test_failed=true
+		return
+	fi
+	sync
+
+	## Launch prod screen test LED
+	$PROD_SCREEN_BIN LED  2>&1
+	res="$?"
+	echo "	$res" 
+	echo "	Turning LED off"
+	test-led 0 2>&1
+	if [ $? -ne 0 ]; then
+	    echo "	ERROR LED I2C"
+	    test_failed=true
+		return
+	fi
+	if [[ "$res" == "0" ]]; then
+		echo "	OK" 
+	else
+		echo "	FAILED" 
+		test_failed=true
+		return
+	fi
+	sync
+
+	# Catch SIGUSR1 events
+	trap function_magnet_detected_ok SIGUSR1
+
+	## Launch prod screen test magnet
+	echo "TEST MAGNET:"
+	sync
+	$PROD_SCREEN_BIN MAGNET  2>&1
+	res="$?"
+	echo "	$res" 
+	if [[ "$res" == "0" ]]; then
+		echo "	OK" 
+	else
+		echo "	FAILED" 
+		test_failed=true
+		return
+	fi
+	sync
+}
+
+## Function that launches all tests after reboot from magnet
+function launch_tests_after_magnet {
+
+	## Force not to process SIGUSR1 events
+	trap function_magnet_detected_ko SIGUSR1
+
+	## Clear graphical framebuffers
+	#termfix_all > /dev/null
+
+	## Clear all notifs
+	#notif_clear
+
+	# Log from magnet file
+	echo "	Found file: " $MAGNET_DETECTED_FILE
+	magnet_file_data=$(cat $MAGNET_DETECTED_FILE)
+	echo "	$magnet_file_data"
+	sync
+	
+	# Read file and set test_failed accordingly
+	if [[ "$magnet_file_data" == "1" ]]; then
+		test_failed=true
+	fi
+
+	# Remove magnet detected file & Tell that magnet test was successful
+	rm $MAGNET_DETECTED_FILE
+	echo "	OK"
+	sync
+
+	## Print validation message
+	if $test_failed; then
+		echo "TESTS FINISHED BUT SOME FAILED"		
+		return
+	else
+		echo "ALL TESTS PASSED SUCCESSFULLY"
+	fi
+	sync
+
+	## Launch prod test validate screen
+	echo "MANUAL VALIDATION SCREEN:" 
+	sync
+	$PROD_SCREEN_BIN VALIDATE  2>&1
+	res="$?"
+	if [[ "$res" == "0" ]]; then
+		echo "	$res" 
+		echo "	OK" 
+	else
+		echo "	$res" 
+		echo "	FAIL" 
+		test_failed=true
+		return
+	fi
+	sync
+
+	## Show datamatrix
+	test -f $QR_CODE_IMG && rm $QR_CODE_IMG
+	echo "Writing QR code img to $QR_CODE_IMG" 
+	#echo -n $proc_uid  | dmtxwrite > $QR_CODE_IMG
+	qrencode -m 1 -o $QR_CODE_IMG "$proc_uid"
+	echo "QRCODE STEP:"
+	sync
+	$PROD_SCREEN_BIN SHOW_IMAGE $QR_CODE_IMG 2>&1
+	res="$?"
+	if [[ "$res" == "0" ]]; then
+		echo "	$res" 
+		echo "	OK" 
+		stop_loop=true
+	else
+		echo "	$res" 
+		echo "	FAIL" 
+		test_failed=true
+		return
+	fi
+	sync
+
+}
+
+## Function that displays the fail screen
+function launch_fail_screen {	
+	
+	## Launch prod test fail screen
+	echo "TEST FAILED:" 
+	$PROD_SCREEN_BIN FAIL  2>&1
+	res="$?"
+	if [[ "$res" == "0" ]]; then
+		echo "	$res" 
+		echo "	RESTARTING" 
+	else
+		echo "	$res" 
+		echo "	STOP" 
+		stop_loop=true
+	fi
+}
+
+## Main loop for tests
+while ! $stop_loop; do
+
+	# Reset test_failed
+	test_failed=false
+	
+	# Check if first start or instant action
+	if [[ -f $MAGNET_DETECTED_FILE ]]; then
+		launch_tests_after_magnet 2>&1 >> $LOG_FILE
+	else
+		launch_tests_up_until_magnet 2>&1 >> $LOG_FILE
+	fi
+
+	# Show fail screen if some tests failed
+	if $test_failed; then
+		launch_fail_screen >> $LOG_FILE
+	fi
+done
+
+## Remove lock file
+rm $LOCK_FILE
+
+## Exit processes
+if ! $test_failed; then
+	## Remove run file => no assembly tests on next run
+	rm ${RUN_FILE}
+	sync
+	exit 0
+else
+	## Shutdown
+	shutdown_funkey &
+	exit 1
+fi

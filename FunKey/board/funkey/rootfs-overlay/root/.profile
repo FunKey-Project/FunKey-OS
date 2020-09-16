@@ -18,7 +18,7 @@ alias l='ls $LS_OPTIONS -lA'
 # alias cp='cp -i'
 # alias mv='mv -i'
 
-# Resize the console to the terminal dimensions 
+# Resize the console to the terminal dimensions
 resize() {
     if [[ -t 0 && $# -eq 0 ]]; then
         local IFS='[;' escape geometry x y
@@ -39,7 +39,7 @@ resize() {
 # Start ampli if necessary
 echo "Start audio amplifier if necessary"
 if [[ "$(volume_get)" -ne "0" ]]; then
-	start_audio_amp 1 >/dev/null 2>&1
+        start_audio_amp 1 >/dev/null 2>&1
 fi
 
 # Force unmute sound card and reset volume
@@ -49,6 +49,9 @@ volume_set $(volume_get) >/dev/null 2>&1
 # Reset saved brightness
 echo "Reset saved brightness"
 brightness_set $(brightness_get) >/dev/null 2>&1
+
+# Start Assembly tests (blocking process)
+assembly_tests >/dev/null 2>&1
 
 # Start launcher
 echo "Start launcher"

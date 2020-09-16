@@ -10,17 +10,12 @@ case ${1} in
     *) echo "ERROR LED VALUE"; exit 1;;
 esac
 
-# Load I2C modules
-modprobe i2c-dev
-modprobe i2c-mv64xxx
-
 # Turn on/off the LED
-i2cset -y 0 0x34 0x32 ${value}
+i2cset -f -y 0 0x34 0x32 ${value}
 if [ $? -ne 0 ]; then
-    echo "ERROR LED I2C"
+    #echo "ERROR LED I2C"
+    exit 1
 else
-    echo "OK"
+    #echo "OK"
+    exit 0
 fi
-
-# Unload I2C modules
-modprobe -r i2c_mv64xxx i2c_dev >/dev/null 2>&1

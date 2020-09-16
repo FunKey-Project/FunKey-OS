@@ -2,5 +2,16 @@
 # This should replaced by storing the correct PID before 
 # launching an emulator and signaling only this one.
 
-killall -s USR1 mednafen gpsp psnes pcsx sdlgnuboy PicoDriveBin >/dev/null 2>&1
+
+if [[ -f /mnt/.assembly_tests ]]; then
+	# First this one
+	killall -s USR1 assembly_tests > /dev/null 2>&1
+
+	# Then this one
+	killall -s USR1 funkey_prod_screens > /dev/null 2>&1
+fi
+
+# Send signal to all emulators
+killall -s USR1 pcsx mednafen gpsp psnes sdlgnuboy PicoDriveBin > /dev/null 2>&1
+
 exit 0
