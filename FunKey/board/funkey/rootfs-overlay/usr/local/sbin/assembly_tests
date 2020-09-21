@@ -111,6 +111,13 @@ function launch_tests_up_until_magnet {
 	fi
 	sync
 
+	## Dump power info from AXP209
+	echo "AXP209 DUMP BATTERY:" 
+	cat /sys/class/power_supply/axp20x-battery/uevent
+	echo "AXP209 DUMP USB:"
+	cat /sys/class/power_supply/axp20x-usb//uevent
+	sync
+
 	## Launch prod screen test display
 	echo "TEST DISPLAY:" 
 	sync
@@ -275,26 +282,29 @@ function launch_tests_after_magnet {
 	fi
 	sync
 
-	## Show datamatrix
-	test -f $QR_CODE_IMG && rm $QR_CODE_IMG
-	echo "Writing QR code img to $QR_CODE_IMG" 
-	#echo -n $proc_uid  | dmtxwrite > $QR_CODE_IMG
-	qrencode -m 1 -o $QR_CODE_IMG "$proc_uid"
-	echo "QRCODE STEP:"
-	sync
-	$PROD_SCREEN_BIN SHOW_IMAGE $QR_CODE_IMG 2>&1
-	res="$?"
-	if [[ "$res" == "0" ]]; then
-		echo "	$res" 
-		echo "	OK" 
-		stop_loop=true
-	else
-		echo "	$res" 
-		echo "	FAIL" 
-		test_failed=true
-		return
+	## Bypassing QRcode screen
+	perform_QRcode_test=false
+	if $perform_QRcode_test; then
+		## Show datamatrix
+		test -f $QR_CODE_IMG && rm $QR_CODE_IMG
+		echo "Writing QR code img to $QR_CODE_IMG" 
+		#echo -n $proc_uid  | dmtxwrite > $QR_CODE_IMG
+		qrencode -m 1 -o $QR_CODE_IMG "$proc_uid"
+		echo "QRCODE STEP:"
+		sync
+		$PROD_SCREEN_BIN SHOW_IMAGE $QR_CODE_IMG 2>&1
+		res="$?"
+		if [[ "$res" == "0" ]]; then
+			echo "	$res" 
+			echo "	OK" 
+		else
+			echo "	$res" 
+			echo "	FAIL" 
+			test_failed=true
+			return
+		fi
+		sync
 	fi
-	sync
 
 }
 
@@ -322,10 +332,15 @@ while ! $stop_loop; do
 	test_failed=false
 	
 	# Check if first start or instant action
-	if [[ -f $MAGNET_DETECTED_FILE ]]; then
-		launch_tests_after_magnet 2>&1 >> $LOG_FILE
-	else
+	if [[ ! -f $MAGNET_DETECTED_FILE ]]; then
 		launch_tests_up_until_magnet 2>&1 >> $LOG_FILE
+	else
+		launch_tests_after_magnet 2>&1 >> $LOG_FILE
+
+		## Exit loop condition
+		if ! $test_failed; then 
+			stop_loop=true
+		fi
 	fi
 
 	# Show fail screen if some tests failed
