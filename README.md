@@ -12,7 +12,7 @@ How to get it
 Clone the FunKey OS repository and the required submodules from
 BitBucket:
 
-  $ git clone --recurse-submodules git@bitbucket.org:keymu2/funkey-os.git <Funkey directory>
+  $ git clone --recurse-submodules https://github.com/FunKey-Project/FunKey-OS.git <Funkey directory>
 
 Then enter into the created directory:
 
