@@ -1,0 +1,3 @@
+# Add a list of files to show on the menu (one filename per line, without the extension).
+# If no items are in this list then all files in the folder specified
+# by settings.conf will be used

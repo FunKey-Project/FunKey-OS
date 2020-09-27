@@ -11,7 +11,10 @@ if [[ -f /mnt/.assembly_tests ]]; then
 	killall -s USR1 funkey_prod_screens > /dev/null 2>&1
 fi
 
-# Send signal to all emulators
-killall -s USR1 pcsx mednafen gpsp psnes sdlgnuboy PicoDriveBin > /dev/null 2>&1
+# Send signal to all PCSX first (time critical)
+killall -s USR1 pcsx > /dev/null 2>&1
+
+# Send signal to all other emulators
+killall -s USR1 gpsp psnes sdlgnuboy PicoDriveBin mednafen > /dev/null 2>&1
 
 exit 0

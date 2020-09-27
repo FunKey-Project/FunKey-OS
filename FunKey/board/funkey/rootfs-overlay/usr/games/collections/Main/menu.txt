@@ -1,4 +1,5 @@
 Game Boy
+Game Boy Color
 Game Boy Advance
 NES
 SNES
