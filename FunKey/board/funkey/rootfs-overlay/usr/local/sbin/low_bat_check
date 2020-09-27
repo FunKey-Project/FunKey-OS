@@ -1,11 +1,11 @@
 #!/bin/sh
 
 # General constants declaration
-THRESHOLD_PERCENT_LOW_BAT=5
+THRESHOLD_PERCENT_LOW_BAT=105
 THRESHOLD_PERCENT_EXTREMELY_LOW_BAT=2
 MAX_EXTREMELY_LOW_BAT_BEFORE_SHUTDOWN=5
 SLEEP_SECS=2
-RESCALE_MAX_PERCENTAGE=110
+RESCALE_MAX_PERCENTAGE=112
 
 # Blink Low bat constants declaration
 BLINK_ICON=0
@@ -33,9 +33,9 @@ echo 0 > ${LOW_BAT_ICON}
 
 # Check low bat #
 while true; do
-    #echo "Bat present: "$(cat ${BAT_PRESENT_FILE})"
-    #echo "USB present: "$(cat ${USB_PRESENT_FILE})"
-    #echo "Bat percentage: "$(cat ${BAT_PERCENT_FILE})"
+    #echo "Bat present: $(cat ${BAT_PRESENT_FILE})"
+    #echo "USB present: $(cat ${USB_PRESENT_FILE})"
+    #echo "Bat percentage: $(cat ${BAT_PERCENT_FILE})"
 
     # Get current bat percentage here once
     cur_bat_percent=$(cat ${BAT_PERCENT_FILE})
@@ -55,64 +55,64 @@ while true; do
     # Low bat status detection
     if [ "$(cat ${USB_PRESENT_FILE})" -eq "0" ]; then
 			
-	# Value of 0 means wrong i2c reading
-	if [ "${cur_bat_percent}" -ne "0" ]; then
+		# Value of 0 means wrong i2c reading
+		if [ "${cur_bat_percent}" -ne "0" ]; then
 
-	    # Check if we must change state
-	    if [ {$cur_bat_percent} -le ${THRESHOLD_PERCENT_LOW_BAT} -a ${low_bat_status} -eq 0 ]; then
+		    # Check if we must change state
+		    if [ ${cur_bat_percent} -le ${THRESHOLD_PERCENT_LOW_BAT} -a ${low_bat_status} -eq 0 ]; then
 
-		# Set Low Bat status
-		low_bat_status=1
-		low_bat_displayed=1
-		cur_secs_disp=0
-		echo 1 > ${LOW_BAT_ICON}
+				# Set Low Bat status
+				low_bat_status=1
+				low_bat_displayed=1
+				cur_secs_disp=0
+				echo 1 > ${LOW_BAT_ICON}
 
-	    elif [ ${cur_bat_percent} -gt ${THRESHOLD_PERCENT_LOW_BAT} -a ${low_bat_status} -eq 1 ]; then
+		    elif [ ${cur_bat_percent} -gt ${THRESHOLD_PERCENT_LOW_BAT} -a ${low_bat_status} -eq 1 ]; then
 
-		# Reset status
-		low_bat_status=0
-		cur_nb_extremely_low_bat_before_shutdown=0
-		echo 0 > ${LOW_BAT_ICON}
-	    fi
-	fi
+				# Reset status
+				low_bat_status=0
+				cur_nb_extremely_low_bat_before_shutdown=0
+				echo 0 > ${LOW_BAT_ICON}
+		    fi
+		fi
     else
-	if [ ${low_bat_status} -eq 1 ]; then
+		if [ ${low_bat_status} -eq 1 ]; then
 
-	    # Reset status
-	    low_bat_status=0
-	    cur_nb_extremely_low_bat_before_shutdown=0
-	    echo 0 > ${LOW_BAT_ICON}
-	fi
+		    # Reset status
+		    low_bat_status=0
+		    cur_nb_extremely_low_bat_before_shutdown=0
+		    echo 0 > ${LOW_BAT_ICON}
+		fi
     fi
 
     # Low bat processing
     if [ ${low_bat_status} -eq 1 ]; then
 
-	# Check extremely low bat for clean shutdown
-	if [ ${cur_bat_percent} -le ${THRESHOLD_PERCENT_EXTREMELY_LOW_BAT} ]; then
-	    let cur_nb_extremely_low_bat_before_shutdown++
-	    echo "cur_nb_extremely_low_bat_before_shutdown = ${cur_nb_extremely_low_bat_before_shutdown}"
+		# Check extremely low bat for clean shutdown
+		if [ ${cur_bat_percent} -le ${THRESHOLD_PERCENT_EXTREMELY_LOW_BAT} ]; then
+		    let cur_nb_extremely_low_bat_before_shutdown++
+		    echo "cur_nb_extremely_low_bat_before_shutdown = ${cur_nb_extremely_low_bat_before_shutdown}"
 
-	    # Clean shutdown
-	    if [ ${cur_nb_extremely_low_bat_before_shutdown} -ge  ${MAX_EXTREMELY_LOW_BAT_BEFORE_SHUTDOWN} ]; then
-		echo "Battery extremely low, shutting down now..."
-		sched_shutdown 1 & signal_usr1_to_emulators
-		exit 0
-	    fi
-	fi
+		    # Clean shutdown
+		    if [ ${cur_nb_extremely_low_bat_before_shutdown} -ge  ${MAX_EXTREMELY_LOW_BAT_BEFORE_SHUTDOWN} ]; then
+				echo "Battery extremely low, shutting down now..."
+				sched_shutdown 1 & signal_usr1_to_emulators
+				exit 0
+		    fi
+		fi
 
-	# Blinking process
-	if [ ${BLINK_ICON} -eq 1 ]; then
-	    if [ ${low_bat_displayed} -eq 1 -a ${cur_secs_disp} -ge ${LOW_BAT_SECS_DISPLAYED} ]; then
-		low_bat_displayed=0
-		cur_secs_disp=0
-		echo 0 > ${LOW_BAT_ICON}
-	    elif [ ${low_bat_displayed} -eq 0 -a ${cur_secs_disp} -ge ${LOW_BAT_SECS_NOT_DISPLAYED} ]; then
-		low_bat_displayed=1
-		cur_secs_disp=0
-		echo 1 > ${LOW_BAT_ICON}
-	    fi
-	fi
+		# Blinking process
+		if [ ${BLINK_ICON} -eq 1 ]; then
+		    if [ ${low_bat_displayed} -eq 1 -a ${cur_secs_disp} -ge ${LOW_BAT_SECS_DISPLAYED} ]; then
+				low_bat_displayed=0
+				cur_secs_disp=0
+				echo 0 > ${LOW_BAT_ICON}
+		    elif [ ${low_bat_displayed} -eq 0 -a ${cur_secs_disp} -ge ${LOW_BAT_SECS_NOT_DISPLAYED} ]; then
+				low_bat_displayed=1
+				cur_secs_disp=0
+				echo 1 > ${LOW_BAT_ICON}
+		    fi
+		fi
     fi
 
     # Sleep before next check
