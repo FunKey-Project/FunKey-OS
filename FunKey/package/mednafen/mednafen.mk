@@ -7,7 +7,7 @@
 #MEDNAFEN_VERSION = 0.9.48
 #MEDNAFEN_SOURCE = mednafen-$(MEDNAFEN_VERSION).tar.xz
 #MEDNAFEN_SITE = http://downloads.sourceforge.net/sourceforge/mednafen
-MEDNAFEN_VERSION = f8407499b30099817a762d98499f1e885125c6a2
+MEDNAFEN_VERSION = 0dfc63c79bad6d9e8dca5020ce4aedfb7db0fb57
 MEDNAFEN_SITE_METHOD = git
 MEDNAFEN_SITE = ssh://git@fk/FunKey-Project/FunKey-Emulator-mednafen-0.9.48
 MEDNAFEN_LICENSE = GPL-2.0+
