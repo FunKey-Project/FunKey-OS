@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-PICODRIVE_VERSION = f6f5d46cd4973ca80b7e7984cd2e7909f117d2c6
+PICODRIVE_VERSION = 75f0469daf5a640811564441d36d83456cf9c9c6
 PICODRIVE_SITE_METHOD = git
 PICODRIVE_SITE = ssh://git@fk/FunKey-Project/FunKey-Emulator-picodrive
 PICODRIVE_LICENSE = MAME

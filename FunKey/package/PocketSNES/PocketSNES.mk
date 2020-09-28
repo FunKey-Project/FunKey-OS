@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-POCKETSNES_VERSION = 1b8009f2374463b79eece1fc93f990d7664a9770
+POCKETSNES_VERSION = 7e0753fd43d3ff7b80d756b4ad3de00b3b53e73a
 POCKETSNES_SITE_METHOD = git
 POCKETSNES_SITE = ssh://git@fk/FunKey-Project/FunKey-Emulator-PocketSNES
 POCKETSNES_LICENSE = GPL-2.0
