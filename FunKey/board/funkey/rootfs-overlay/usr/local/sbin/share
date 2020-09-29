@@ -102,7 +102,7 @@ start_share () {
         # Get connection state
 	local udc_state=$(cat /sys/class/udc/musb-hdrc.1.auto/state)
 	sleep 1
-	let trial=$trial+1
+	let trials=$trials+1
 
 	# Check if USB is mounted
         if [ x"$udc_state" == "xconfigured" ]; then
