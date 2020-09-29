@@ -57,7 +57,7 @@ endef
 
 define PICODRIVE_INSTALL_TARGET_CMDS
 	$(INSTALL) -d -m 0755 $(TARGET_DIR)/usr/games
-	$(INSTALL) -m 0755 $(@D)/PicoDrive $(TARGET_DIR)/usr/games/PicoDriveBin
+	$(INSTALL) -m 0755 $(@D)/PicoDrive $(TARGET_DIR)/usr/games/
 endef
 
 
