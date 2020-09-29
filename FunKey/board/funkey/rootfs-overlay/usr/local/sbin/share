@@ -48,7 +48,7 @@ mount_share () {
     fi
 
     # Create the directory structure if required
-    (cd /mnt; mkdir -p "Atari lynx" "Game Boy" "Game Boy Color" "Game Boy Advance" "Game Gear" "Neo Geo Pocket" "NES" "PS1" "PS1/bios" "Sega Genesis" "Sega Master System" "SNES" "WonderSwan")
+    (cd /mnt; mkdir -p "Atari lynx" "Game Boy" "Game Boy Color" "Game Boy Advance" "Game Gear" "Neo Geo Pocket" "NES" "PS1" "Sega Genesis" "Sega Master System" "SNES" "WonderSwan")
     return 0
 }
 
@@ -81,6 +81,20 @@ stop_share () {
     return 0
 }
 
+
+# Return if currently sharing
+is_share_started () {
+
+    cat $BACKING_STORE_FILE | egrep -q ^/dev/mmcblk0p3
+    local res=$?
+    if [ "$res" == "0" ]; then
+        echo "yes"
+    else
+        echo "no"
+    fi
+    return $res
+}
+
 # Start sharing the backing store partition
 start_share () {
 
@@ -103,8 +117,8 @@ start_share () {
 	local udc_state=$(cat /sys/class/udc/musb-hdrc.1.auto/state)
 	sleep 1
 	let trials=$trials+1
-
-	# Check if USB is mounted
+	
+	# Check if USB is connected
         if [ x"$udc_state" == "xconfigured" ]; then
 
             # Connected succesfully to a host
@@ -140,8 +154,13 @@ case "$1" in
 	stop_share
 	;;
 
+    is_sharing)
+        is_share_started
+        ;;
+
+
     *)
-	die 15 "Usage $0 {init|start|stop}"
+	die 15 "Usage $0 {init|start|stop|is_sharing}"
 	;;
 esac
 exit $?
