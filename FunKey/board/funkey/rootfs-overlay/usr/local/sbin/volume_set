@@ -16,15 +16,17 @@ fi
 
 # Scale new volume value between 0 and 63
 volume_percent=${1}
-volume_scaled=$(echo "a = ${1} * 63 / 100 + 0.5; scale = 0; a / 1" | bc -l)
+vol_mini=16;
+volume_scaled=$(echo "a = $volume_percent * (63 - $vol_mini) / 100 + $vol_mini + 0.5; scale = 0; a / 1" | bc -l)
+echo $volume_scaled
 
 # Get current value
 current_volume=$(volume_get)
 
 # Turn on/off audio amplifier if necessary
-if [ ${current_volume} -eq 0 -a ${volume_scaled} -ne 0 ]; then
+if [ ${current_volume} -eq 0 -a ${volume_percent} -ne 0 ]; then
     start_audio_amp 1
-elif [ ${current_volume} -ne 0 -a ${volume_scaled} -eq 0 ]; then
+elif [ ${current_volume} -ne 0 -a ${volume_percent} -eq 0 ]; then
     start_audio_amp 0
 fi
 
