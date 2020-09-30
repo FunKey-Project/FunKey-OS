@@ -81,6 +81,22 @@ stop_share () {
     return 0
 }
 
+# Start sharing the backing store partition
+start_share () {
+
+    # 1) Check if the backing store partition is already shared
+    cat $BACKING_STORE_FILE | egrep -q ^/dev/mmcblk0p3 && die 12 "the backing store partition is already shared"
+
+    # 2) Check if USB data is connected
+    is_usb_data_connected > /dev/null 2>&1 || die 13 "USB sharing impossible, not connected to a host"
+
+    # 3) Unmount the backing store partition if it is locally mounted
+    unmount_share
+
+    # 4) Everything is now clear to start sharing the backing store partition
+    info "start sharing the backing store partition"
+    echo /dev/mmcblk0p3 > $BACKING_STORE_FILE || die 14 "cannot share the backing store partition"
+}
 
 # Return if currently sharing
 is_share_started () {
@@ -93,51 +109,6 @@ is_share_started () {
         echo "no"
     fi
     return $res
-}
-
-# Start sharing the backing store partition
-start_share () {
-
-    # 1) Check if the backing store partition is already shared
-    cat $BACKING_STORE_FILE | egrep -q ^/dev/mmcblk0p3 && die 12 "the backing store partition is already shared"
-
-    # 2) Unmount the backing store partition if it is locally mounted
-    unmount_share
-
-    # Everything is now clear to start sharing the backing store partition
-    info "start sharing the backing store partition"
-    echo /dev/mmcblk0p3 > $BACKING_STORE_FILE || die 13 "cannot share the backing store partition"
-
-    # Check if we are connected to an USB host
-    local trials=0
-    local not_ready=1
-    while [ ${trials} -lt 5 -a ${not_ready} -eq 1 ]; do
-        
-        # Get connection state
-	local udc_state=$(cat /sys/class/udc/musb-hdrc.1.auto/state)
-	sleep 1
-	let trials=$trials+1
-	
-	# Check if USB is connected
-        if [ x"$udc_state" == "xconfigured" ]; then
-
-            # Connected succesfully to a host
-            info "backing store file shared"
-            return 0
-	elif [ x"$udc_state" == "xdefault" ]; then
-
-            # Connected succesfully to a host
-            info "USB sharing in progress"
-        else
-            # Connection failed
-            not_ready=0
-        fi
-    done
-
-    # No USB host connected
-    warn "no host, stop USB sharing"
-    stop_share
-    die 14 "not connected to a host"
 }
 
 case "$1" in
