@@ -36,6 +36,9 @@ resize() {
     fi
 }
 
+# Aliases
+alias mednafen_safe='cp /usr/games/mednafen-09x.cfg /root/.mednafen/; mednafen'
+
 # Start ampli if necessary
 echo "Start audio amplifier if necessary"
 if [[ "$(volume_get)" -ne "0" ]]; then
