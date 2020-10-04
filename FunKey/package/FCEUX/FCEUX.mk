@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-FCEUX_VERSION = 973144ab149938218d064d7d73519a34bbf89112
+FCEUX_VERSION = 47928bf2fd24902826e8b8ff57b9a9ec5cf886a1
 FCEUX_SITE_METHOD = git
 FCEUX_SITE = ssh://git@fk/FunKey-Project/FunKey-Emulator-FCEUX
 FCEUX_LICENSE = GPL-2.0
