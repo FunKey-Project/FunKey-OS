@@ -13,6 +13,3 @@ rm -f ${TARGET_DIR}/etc/init.d/S01syslogd ${TARGET_DIR}/etc/init.d/S02klogd
 
 # Change dropbear init sequence
 mv ${TARGET_DIR}/etc/init.d/S50dropbear ${TARGET_DIR}/etc/init.d/S42dropbear
-
-# Generate alternate U-Boot boot script
-${HOST_DIR}/bin/mkimage -C none -A arm -T script -d ${BR2_EXTERNAL_FUNKEY_PATH}/board/funkey/boot_alt.cmd ${BINARIES_DIR}/boot_alt.scr
