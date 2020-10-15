@@ -3,9 +3,14 @@
 # Uncomment the following line to get debug info
 #set -x
 
-SELF=$(basename $0)
-
 source /usr/local/lib/utils
+
+SELF=$(basename $0)
+root_part=$(cat /proc/cmdline | sed -n 's|^.*root=/dev/\([^ ]*\).*|\1|p')
+part_num=${root_part#mmcblk0p}
+if [ "${part_num}" -eq 1 ]; then
+    die 0 "recovery mode"
+fi
 
 notif () {
     info "$@"
@@ -27,8 +32,6 @@ check_root_id () {
 }
 
 resize_rootfs_partition () {
-    local root_part=$(cat /proc/cmdline | sed -n 's|^.*root=/dev/\([^ ]*\).*|\1|p')
-    local part_num=${root_part#mmcblk0p}
     if [ "${part_num}" = "{$root_part}" ]; then
 	die 2 "${root_part} is not an SD card. Don't know how to expand it, aborting"
     fi
@@ -50,7 +53,6 @@ resize_rootfs_partition () {
 d
 ${part_num}
 n
-p
 ${part_num}
 ${part_start}
 +1G
@@ -69,7 +71,6 @@ reload_partition_table () {
 }
 
 resize_rootfs_filesystem () {
-    local root_part=$(cat /proc/cmdline | sed -n 's|^.*root=/dev/\([^ ]*\).*|\1|p')
     resize2fs /dev/${root_part} >/dev/null 2>&1 || die 7 "cannot resize the root filesystem, aborting"
     return 0
 }
@@ -106,8 +107,6 @@ create_backing_store_partition () {
     if [ $? -ne 0 ]; then
 
 	# Find out the root partition number from kernel command line
-	local root_part=$(cat /proc/cmdline | sed -n 's|^.*root=/dev/\([^ ]*\).*|\1|p')
-	local part_num=${root_part#mmcblk0p}
 	if [ "$part_num" = "$root_part" ]; then
 	    die 5 "$root_part is not an SD card. Don't know how to create the backing store partition"
 	fi
@@ -130,13 +129,12 @@ create_backing_store_partition () {
 	# Create a third FAT32 partition that filsl the disk
 	fdisk /dev/mmcblk0 >/dev/null 2>&1 <<EOF
 n
-p
 3
 
 
 t
 3
-c
+11
 w
 EOF
 	sync
