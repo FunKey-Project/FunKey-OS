@@ -1,0 +1,8 @@
+#!/bin/sh
+sgdisk -A 1:toggle:2 -A 2:toggle:2 /dev/mmcblk0 >/dev/null 2>&1
+recovery=$(sgdisk -A 1:get:2 /dev/mmcblk0 | cut -d : -f3)
+if [ ${recovery} -eq 1 ]; then
+    echo "Next boot will be in recovery mode"
+else
+    echo "Next boot will be in normal mode"
+fi

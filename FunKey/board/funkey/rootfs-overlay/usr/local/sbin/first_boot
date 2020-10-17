@@ -6,10 +6,16 @@
 source /usr/local/lib/utils
 
 SELF=$(basename $0)
+
+# Find out the root partition number from the kernel command line
 root_part=$(cat /proc/cmdline | sed -n 's|^.*root=/dev/\([^ ]*\).*|\1|p')
-part_num=${root_part#mmcblk0p}
-if [ "${part_num}" -eq 1 ]; then
+root_part_num=${root_part#mmcblk0p}
+if [ "${root_part_num}" -eq 1 ]; then
     die 0 "recovery mode"
+elif [ "${root_part_num}" = "{$root_part}" ]; then
+    die 1 "${root_part} is not an SD card partition, aborting"
+elif [ "${root_part_num}" -ne 2 ]; then
+    die 2 "unknown partition layout, aborting"
 fi
 
 notif () {
@@ -27,56 +33,47 @@ check_swap () {
 }
 
 check_root_id () {
-    [ $(id -u) -ne 0 ] && die 1 "this script must be run as root, aborting"
+    [ $(id -u) -ne 0 ] && die 3 "this script must be run as root, aborting"
     return 0
 }
 
 resize_rootfs_partition () {
-    if [ "${part_num}" = "{$root_part}" ]; then
-	die 2 "${root_part} is not an SD card. Don't know how to expand it, aborting"
-    fi
-    if [ "${part_num}" -ne 2 ]; then
-	die 3 "your partition layout is not currently supported by this tool, aborting"
-    fi
-    local last_part_line=$(fdisk /dev/mmcblk0 -l | grep '^/' | tail -n 1)
+
+    # Check that the last partition is the rootfs partition
+    local last_part_line=$(sgdisk -p /dev/mmcblk0 | tail -n 1)
     set ${last_part_line}
-    local last_part=${1#/dev/}
-    local part_start=${2}
-    if [ "${last_part}" != "${root_part}" ]; then
-	die 4 "${root_part} is not the last partition. Don't know how to expand, aborting"
+    local last_part=${1}
+    if [ "${last_part}" != "${root_part_num}" ]; then
+	die 4 "rootfs is not the last partition. Don't know how to expand, aborting"
     fi
 
-    # Return value will likely be error for fdisk as it fails to reload the
-    # partition table because the root fs is mounted
-    # NOTE: This script only works the genuine fdisk, NOT with the busybox one!!!
-    fdisk /dev/mmcblk0 >/dev/null 2>&1 <<EOF
-d
-${part_num}
-n
-${part_num}
-${part_start}
-+1G
-w
-EOF
-    if [ $? -ne 0 ]; then
-	die 5 "cannot resize the rootfs partition, aborting"
-    fi
+    # Remove (temporarily) the rootfs partition
+    sgdisk -d ${root_part_num} /dev/mmcblk0 >/dev/null 2>&1 || die 5 "cannot remove the rootfs partition, aborting"
+
+    # Re-create the rootfs partition with a 1GB size
+    sgdisk -n ${root_part_num}:0:+1G -c ${root_part_num}:rootfs /dev/mmcblk0 >/dev/null 2>&1 || die 6 "cannot resize the rootfs partition, aborting"
+
+    # Mark the rootfs partition as bootable
+    sgdisk -A ${root_part_num}:set:2 /dev/mmcblk0 >/dev/null 2>&1 || die 7 "cannot make the rootfs partition bootable, aborting"
+
+    # Copy the primary GPT to the end of the disk
+    sgdisk -e /dev/mmcblk0 >/dev/null 2>&1 || die 8 "cannot move the GPT to the end of the disk"
     sync
     return 0
 }
 
 reload_partition_table () {
-    partprobe /dev/mmcblk0 >/dev/null 2>&1 || die 6 "cannot reload the partition table, aborting"
+    partprobe /dev/mmcblk0 >/dev/null 2>&1 || die 9 "cannot reload the partition table, aborting"
     return 0
 }
 
 resize_rootfs_filesystem () {
-    resize2fs /dev/${root_part} >/dev/null 2>&1 || die 7 "cannot resize the root filesystem, aborting"
+    resize2fs /dev/${root_part} >/dev/null 2>&1 || die 10 "cannot resize the root filesystem, aborting"
     return 0
 }
 
 write_bootloader_env () {
-    fw_saveenv /etc/u-boot.env || die 8 "cannot write bootloader inevrionment, aborting"
+    fw_saveenv /etc/u-boot.env || die 11 "cannot write bootloader inevrionment, aborting"
     return 0
 }
 
@@ -85,20 +82,22 @@ create_swap_file () {
     set ${root_part_line}
     local space_left=${4}
     if [ ${space_left} -lt 131072 ]; then
-	die 9 "not enough free space for swap file found, aborting"
+	die 12 "not enough free space for swap file found, aborting"
     fi
+
+    # Create an empty 128MB /swap file, change its permissions and format it as swap
     dd if=/dev/zero of=/swap bs=1M count=128 >/dev/null 2>&1 &&
 	chmod 0600 /swap >/dev/null 2>&1 &&
 	mkswap /swap >/dev/null 2>&1
     if [ $? -ne 0 ]; then
 	rm /swap
-	die 10 "cannot create swap file, aborting"
+	die 13 "cannot create swap file, aborting"
     fi
     return 0
 }
 
 enable_swap_file () {
-    swapon -a >/dev/null 2>&1 || die 11 "cannot enable swap file, aborting"
+    swapon -a >/dev/null 2>&1 || die 14 "cannot enable swap file, aborting"
     return 0
 }
 
@@ -106,37 +105,17 @@ create_backing_store_partition () {
     mount | grep -q /dev/mmcblk0p3
     if [ $? -ne 0 ]; then
 
-	# Find out the root partition number from kernel command line
-	if [ "$part_num" = "$root_part" ]; then
-	    die 5 "$root_part is not an SD card. Don't know how to create the backing store partition"
-	fi
-	if [ "$part_num" -ne 2 ]; then
-	    die 6 "your partition layout is not currently supported"
-	fi
-
-	# Check that the last partition is the root partition
-	local last_part_line=$(fdisk /dev/mmcblk0 -l 2>/dev/null | grep '^/' | tail -n 1)
-	set $last_part_line
-	local last_part=${1#/dev/}
-	if [ "$last_part" != "$root_part" ]; then
-	    	die 7 "$root_part is not the last partition. Don't know how to create the backing store partition"
+	# Check that the last partition is the rootfs partition
+	local last_part_line=$(sgdisk -p /dev/mmcblk0 2>/dev/null | tail -n 1)
+	set ${last_part_line}
+	local last_part=${1}
+	if [ "$last_part" != "$root_part_num" ]; then
+	    die 15 "rootfs is not the last partition. Don't know how to create the backing store partition"
 	fi
 
-	# The return value will likely be error for fdisk as it fails
-	# to reload the partition table because the root fs is mounted
-	# NOTE: This script only works the genuine fdisk, NOT with the
-	# busybox one!!!
-	# Create a third FAT32 partition that filsl the disk
-	fdisk /dev/mmcblk0 >/dev/null 2>&1 <<EOF
-n
-3
-
-
-t
-3
-11
-w
-EOF
+	# Create an additional Microsoft basic data partition share partition that fills the disk
+	let share_part=${last_part}+1
+	sgdisk -n ${share_part}:0:-0 -c ${share_part}:share -t ${share_part}:0700 /dev/mmcblk0 >/dev/null 2>&1 || die 16 "cannot create the backing store partition, aborting"
 	sync
     fi
     return 0
@@ -145,12 +124,12 @@ EOF
 format_backing_store_partition () {
 
     # Format the backing store as FAT32
-    mkfs.vfat /dev/mmcblk0p3 >/dev/null 2>&1 || die 9 "cannot format the backing store partition"
+    mkfs.vfat /dev/mmcblk0p3 >/dev/null 2>&1 || die 17 "cannot format the backing store partition"
     
     # Add file to force assembly tests 
-    mount /mnt/ || die 9 "Cannot mount /mnt"
-    touch /mnt/.assembly_tests  || die 9 "Cannot create assembly tests run file"
-    umount /mnt/ || die 9 "Cannot unmount /mnt"
+    mount /mnt/ || die 18 "Cannot mount /mnt"
+    #touch /mnt/.assembly_tests || die 19 "Cannot create assembly tests run file"
+    umount /mnt/ || die 20 "Cannot unmount /mnt"
     return 0
 }
 
