@@ -72,11 +72,6 @@ resize_rootfs_filesystem () {
     return 0
 }
 
-write_bootloader_env () {
-    fw_saveenv /etc/u-boot.env || die 11 "cannot write bootloader inevrionment, aborting"
-    return 0
-}
-
 create_swap_file () {
     local root_part_line=$(df | grep /dev/root)
     set ${root_part_line}
@@ -137,31 +132,28 @@ notif "First boot detected!"
 check_swap
 check_root_id
 
-notif "1/9 Resize root partition"
+notif "1/8 Resize root partition"
 resize_rootfs_partition
 
-notif "2/9 Reload partition table"
+notif "2/8 Reload partition table"
 reload_partition_table
 
-notif "3/9 Resize root filsystem"
+notif "3/8 Resize root filsystem"
 resize_rootfs_filesystem
 
-notif "4/9 Write boot environment"
-write_bootloader_env
-
-notif "5/9 Create swap"
+notif "4/8 Create swap"
 create_swap_file
 
-notif "6/9 Enable swap"
+notif "5/8 Enable swap"
 enable_swap_file
 
-notif "6/9 Create share partition"
+notif "6/8 Create share partition"
 create_backing_store_partition
 
-notif "8/9 Reload partition table"
+notif "7/8 Reload partition table"
 reload_partition_table
 
-notif "9/9 Format share partition"
+notif "8/8 Format share partition"
 format_backing_store_partition
 
 notif "First boot setup finished!"
