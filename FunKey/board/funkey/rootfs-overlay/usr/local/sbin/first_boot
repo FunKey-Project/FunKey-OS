@@ -123,7 +123,7 @@ format_backing_store_partition () {
     
     # Add file to force assembly tests 
     mount /mnt/ || die 18 "Cannot mount /mnt"
-    #touch /mnt/.assembly_tests || die 19 "Cannot create assembly tests run file"
+    touch /mnt/.assembly_tests || die 19 "Cannot create assembly tests run file"
     umount /mnt/ || die 20 "Cannot unmount /mnt"
     return 0
 }
