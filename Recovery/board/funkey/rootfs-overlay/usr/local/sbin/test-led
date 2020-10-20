@@ -1,0 +1,21 @@
+#!/bin/sh
+
+if [ $# -ne 1 ];then
+    echo "ERROR LED ARGS"
+    exit;
+fi
+case ${1} in
+    0) value=0x0a;;
+    1) value=0x3a;;
+    *) echo "ERROR LED VALUE"; exit 1;;
+esac
+
+# Turn on/off the LED
+i2cset -f -y 0 0x34 0x32 ${value}
+if [ $? -ne 0 ]; then
+    #echo "ERROR LED I2C"
+    exit 1
+else
+    #echo "OK"
+    exit 0
+fi

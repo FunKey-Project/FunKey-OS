@@ -1,0 +1,20 @@
+#!/bin/sh
+
+# Uncomment the following line to get debug info
+#set -x
+
+# Get USB state
+usb_present=$(cat /sys/class/power_supply/axp20x-usb/present)
+
+# Get udc state
+udc_state=$(cat /sys/class/udc/musb-hdrc.1.auto/state)
+
+if [[ x"$udc_state" == "xconfigured" -a "$usb_present" == "1" ]]; then
+
+    # Connected succesfully to a host
+    echo "yes"
+    exit 0
+else
+    echo "no"
+    exit 1
+fi

@@ -1,0 +1,28 @@
+#!/bin/sh
+
+THIS=$(basename $0)
+
+case "$1" in
+    start)
+	if share init; then
+	    echo "Starting share: OK"
+	    exit 0
+	else
+	    echo "Starting share: ERROR"
+	    exit 1
+	fi
+	;;
+    stop)
+	if share stop >/dev/null 2>&1; then
+	    echo "Stopping share: OK"
+	    exit 0
+	else
+	    echo "Stopping share: ERROR"
+	    exit 2
+	fi
+	;;
+    *)
+	echo "Usage: $0 {start|stop}" >&2
+	exit 3
+	;;
+esac

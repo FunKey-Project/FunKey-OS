@@ -1,0 +1,38 @@
+#!/bin/sh
+
+UPDATE_PERIOD=2 #seconds
+
+notif_dirty=0
+perform=0
+
+# USR1 callback
+function toggle_perform()
+{
+    let perform=1-${perform}
+    if [ ${perform} -eq 0 ]; then
+    	notif_clear
+        notif_dirty=1
+    fi
+}
+trap toggle_perform SIGUSR1
+
+while true; do
+    if [ ${perform} -eq 1 ]; then
+
+	# Compute stats
+	cpu=$(printf "%.1f\n" $(mpstat -P ALL $UPDATE_PERIOD 1 | tail -1 | awk '{print 100-$12}'))
+	ram_mem=$(printf "%.1f\n" $(free | grep Mem | awk '{print $3/$2 * 100.0}'))
+	ram_swap=$(printf "%.1f\n" $(free | grep Swap | awk '{print $3/$2 * 100.0}'))
+
+	# Notif
+	if [ ${notif_dirty} -eq 1 ]; then
+	    notif_clear
+	    notif_dirty=0
+	else
+	    notif_set 0 "CPU:${cpu}%% RAM:${ram_mem}%% SWAP:${ram_swap}%%"
+	fi
+    else
+	sleep ${UPDATE_PERIOD}
+    fi
+done
+exit 0

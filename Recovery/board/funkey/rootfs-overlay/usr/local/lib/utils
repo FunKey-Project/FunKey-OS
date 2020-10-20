@@ -1,0 +1,20 @@
+#!/bin/sh
+
+# Define log functions if they do not exist yet
+type -t info >/dev/null 2>&1
+if [ $? -ne 0 ]; then
+    info () {
+	echo "$SELF:" "$@" | tee /dev/kmsg
+    }
+
+    warn () {
+    	 echo "$SELF:" "$@" >&2 | tee /dev/kmsg
+    }
+
+    die () {
+    	local return_code=$1
+	shift
+	warn "$@"
+	exit $return_code
+    }
+fi

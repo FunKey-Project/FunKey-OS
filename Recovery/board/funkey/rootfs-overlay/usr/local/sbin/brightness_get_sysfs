@@ -1,0 +1,13 @@
+#!/bin/sh
+
+SYSTEM_BRIGHTNESS=/sys/class/backlight/backlight/brightness
+
+# Check args
+if [ ${#} -ne 0 ]; then
+    echo "Usage: $(basename ${0})"
+    exit 1
+fi
+
+let brightness=$(cat ${SYSTEM_BRIGHTNESS})*10-10
+echo ${brightness}
+exit 0

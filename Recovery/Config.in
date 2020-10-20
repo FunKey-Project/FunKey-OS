@@ -1,0 +1,1 @@
+source "$BR2_EXTERNAL_RECOVERY_PATH/package/FunKey-GPIO-Mapping/Config.in"

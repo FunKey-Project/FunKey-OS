@@ -1,0 +1,48 @@
+#!/bin/sh
+#
+# Start/stop dhcpcd
+#
+
+DAEMON=/sbin/dhcpcd
+CONFIG=/etc/dhcpcd.conf
+PIDFILE=/var/run/dhcpcd.pid
+[ -f /mnt/usbnet ] || exit 0
+[ -f $CONFIG ] || exit 0
+
+case "$1" in
+  start)
+	echo -n "Starting dhcpcd: "
+	start-stop-daemon -S -x "$DAEMON" -p "$PIDFILE" -- -f "$CONFIG" > /dev/null 2>&1
+	if [ $? -eq 0 ]; then
+	  echo "OK"
+	else
+	  echo "ERROR"
+	fi
+	;;
+  stop)
+	echo -n "Stopping dhcpcd: "
+	start-stop-daemon -K -x "$DAEMON" -p "$PIDFILE" -o > /dev/null 2>&1
+	if [ $? -eq 0 ]; then
+	  echo "OK"
+	else
+	  echo "ERROR"
+	fi
+	;;
+  reload|force-reload)
+	echo -n "Reloading dhcpcd configuration: "
+	"$DAEMON" -s reload >/dev/null 2>&1
+	if [ $? -eq 0 ]; then
+	  echo "OK"
+	else
+	  echo "ERROR"
+	fi
+	;;
+  restart)
+	"$0" stop
+	sleep 1 # Prevent race condition: ensure dhcpcd stops before start.
+	"$0" start
+	;;
+  *)
+	echo "Usage: $0 {start|stop|restart|reload|force-reload}"
+	exit 1
+esac

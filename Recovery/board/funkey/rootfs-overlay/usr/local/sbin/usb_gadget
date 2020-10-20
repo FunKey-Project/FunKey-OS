@@ -1,0 +1,169 @@
+#!/bin/sh
+
+#set -xv
+
+SELF=${SELF:-$(basename $0)}
+
+source /usr/local/lib/utils
+
+# The composite gadget directory
+GADGET=/sys/kernel/config/usb_gadget/FunKey
+
+# Check if Ethernet over USB network is requested
+[ ! -f /mnt/usbnet ]
+USBNET=${?}
+
+# USB VID for Linux Foundation
+ID_VENDOR="0x1d6b"
+
+# USB PID for Multifunction Composite Gadget
+ID_PRODUCT="0x0104"
+
+# Get the CPU serial number
+SERIAL="$(grep Serial /proc/cpuinfo | sed 's/Serial\s*: \(\w*\)/\1/')"
+
+# Build a MAC address from it
+MAC="$(echo ${SERIAL} | sed 's/\(\w\w\)/:\1/g' | cut -b 2-)"
+
+# Derive host and device MAC addresses
+MAC_HOST="12$(echo ${MAC} | cut -b 3-)"
+MAC_DEV="02$(echo ${MAC} | cut -b 3-)"
+
+# Initialize the USB gadget
+init_usb_gadget() {
+
+    # Don't proceed if existing gadget is present
+    if [ -e ${GADGET} ]; then
+	return 0
+    fi
+
+    # Get the legacy drivers out of the way
+    modprobe -r g_ether
+    modprobe -r g_mass_storage
+
+    # Load the libcomposite USB driver
+    modprobe libcomposite
+
+    # USB Device Controller Driver
+    local udc_driver=$(ls /sys/class/udc | cut -f1 | head -n 1)
+
+    # Create our gadget directory
+    mkdir ${GADGET}
+    mkdir ${GADGET}/strings/0x409
+    mkdir ${GADGET}/configs/FunKey.1
+    mkdir ${GADGET}/configs/FunKey.1/strings/0x409
+    test ${USBNET} -eq 1 && mkdir ${GADGET}/functions/rndis.usb0
+    mkdir ${GADGET}/functions/mass_storage.mmcblk0p3
+
+    # USB2
+    echo "0x0200" > ${GADGET}/bcdUSB
+
+    # Communication Device Class
+    if [ ${USBNET} -eq 1 ]; then
+	echo "0x02" > ${GADGET}/bDeviceClass
+	echo "0x00" > ${GADGET}/bDeviceSubClass
+    fi
+
+    # USB VID and PID
+    echo ${ID_VENDOR} > ${GADGET}/idVendor
+    echo ${ID_PRODUCT} > ${GADGET}/idProduct
+
+    # Device Release Number
+    echo "0x0100" > ${GADGET}/bcdDevice
+
+    # Device String Descriptiors
+    echo "FunKey" > ${GADGET}/strings/0x409/manufacturer
+    echo "FunKey S" > ${GADGET}/strings/0x409/product
+    echo ${SERIAL} > ${GADGET}/strings/0x409/serialnumber
+
+    # Turn on "OS Descriptors" support for RNDIS
+    if [ ${USBNET} -eq 1 ]; then
+	echo 1 > ${GADGET}/os_desc/use
+	echo "0xcd" > ${GADGET}/os_desc/b_vendor_code
+	echo "MSFT100" > ${GADGET}/os_desc/qw_sign
+    fi
+
+    # Configuration
+
+    # Maximum power is 500 mA
+    echo 500 > ${GADGET}/configs/FunKey.1/MaxPower
+
+    # Configuration String Descriptors
+    if [ ${USBNET} -eq 1 ]; then
+	echo "Mass Storage + RNDIS" > ${GADGET}/configs/FunKey.1/strings/0x409/configuration
+    else
+	echo "Mass Storage" > ${GADGET}/configs/FunKey.1/strings/0x409/configuration
+    fi
+
+    if [ ${USBNET} -eq 1 ]; then
+
+	# Make the FunKey.1 configuration the one associated with OS Descriptors
+	ln -s ${GADGET}/configs/FunKey.1 ${GADGET}/os_desc
+
+	# RNDIS Function
+
+	# Host & Device MAC Addresses
+	echo ${MAC_HOST} > ${GADGET}/functions/rndis.usb0/host_addr
+	echo ${MAC_DEV} > ${GADGET}/functions/rndis.usb0/dev_addr
+
+	# Compatible ID & Sub-Compatible ID
+	echo "RNDIS" > ${GADGET}/functions/rndis.usb0/os_desc/interface.rndis/compatible_id
+	echo "5162001" > ${GADGET}/functions/rndis.usb0/os_desc/interface.rndis/sub_compatible_id
+
+	# Add the "Icons" Extended Property
+	mkdir ${GADGET}/functions/rndis.usb0/os_desc/interface.rndis/Icons
+	echo 2 > ${GADGET}/functions/rndis.usb0/os_desc/interface.rndis/Icons/type
+	echo "%SystemRoot%\\system32\\shell32.dll,-233" > ${GADGET}/functions/rndis.usb0/os_desc/interface.rndis/Icons/data
+
+	# Add the "Label" Extended Property
+	mkdir ${GADGET}/functions/rndis.usb0/os_desc/interface.rndis/Label
+	echo 1 > ${GADGET}/functions/rndis.usb0/os_desc/interface.rndis/Label/type
+	echo "FunKey S Device" > ${GADGET}/functions/rndis.usb0/os_desc/interface.rndis/Label/data
+    fi
+
+    # Mass Storage Function
+
+    # Backing Store file
+    #echo "/dev/mmcblk0p3" > ${GADGET}/functions/mass_storage.mmcblk0p3/lun.0/file
+
+    # Gadget is not allowed to halt bulk endpoints
+    echo 0 > ${GADGET}/functions/mass_storage.mmcblk0p3/stall
+
+    # Do not simulate a CDROM
+    echo 0 > ${GADGET}/functions/mass_storage.mmcblk0p3/lun.0/cdrom
+
+    # No SCSI Force Unit Access (FUA) to work in synchronous mode ?!?
+    echo 0 > ${GADGET}/functions/mass_storage.mmcblk0p3/lun.0/nofua
+
+    # LUN is removable
+    echo 1 > ${GADGET}/functions/mass_storage.mmcblk0p3/lun.0/removable
+
+    # Inquiry String
+    echo "FunKey S Shared Disk" > ${GADGET}/functions/mass_storage.mmcblk0p3/lun.0/inquiry_string
+
+    if [ ${USBNET} -eq 1 ]; then
+
+	# Add the RNDIS function to the FunKey.1 configuration
+	ln -s ${GADGET}/functions/rndis.usb0 ${GADGET}/configs/FunKey.1
+
+	# Bind the USB Gadget as RNDIS device
+	echo ${udc_driver} > ${GADGET}/UDC
+	sleep 5
+
+	# Start network services
+	systemctl start networking ntp dropbear > /dev/null 2>&1
+
+	# Unbind the device
+	echo > ${GADGET}/UDC
+    fi
+
+    # Add the Mass Storage function to the FunKey.1 configuration
+    ln -s ${GADGET}/functions/mass_storage.mmcblk0p3 ${GADGET}/configs/FunKey.1
+
+    # Each interface specifies its own class code
+    echo "0x00" > ${GADGET}/bDeviceClass
+
+    # Bind the USB Gadget as a Mass Storage device
+    echo ${udc_driver} > ${GADGET}/UDC
+    return 0
+}

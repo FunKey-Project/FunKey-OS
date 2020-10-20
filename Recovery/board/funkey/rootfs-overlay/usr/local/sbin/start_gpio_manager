@@ -1,0 +1,12 @@
+#!/bin/sh
+
+LOCK_FILE=/var/lock/gpio_manager.lock
+
+if [ -f ${LOCK_FILE} ]; then
+    echo "${LOCK_FILE} already exists"
+    exit 1
+fi
+touch ${LOCK_FILE}
+funkey_gpio_management
+rm "${LOCK_FILE}"
+exit 0

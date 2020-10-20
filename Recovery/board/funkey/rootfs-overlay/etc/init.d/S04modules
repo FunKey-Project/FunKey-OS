@@ -1,0 +1,47 @@
+#!/bin/sh
+# Assure that the kernel has module support.
+[ -e /proc/ksyms -o -e /proc/modules ] || exit 0
+
+THIS=$(basename $0)
+
+case "${1}" in
+    start)
+
+        # Exit if there's no modules file or there are no
+        # valid entries
+        if [ -r /etc/sysconfig/modules ]; then
+            egrep -qv '^($|#)' /etc/sysconfig/modules
+	    if [ $? -ne 0 ]; then
+		exit 0
+	    fi
+	fi
+
+        # Only try to load modules if the user has actually given us
+        # some modules to load.
+        while read MODULE ARGS; do
+
+            # Ignore comments and blank lines.
+            case "$MODULE" in
+                ""|"#"*) continue ;;
+            esac
+
+            # Attempt to load the module, making
+            # sure to pass any arguments provided.
+            modprobe ${MODULE} ${ARGS} >/dev/null
+
+            # Print the module name if successful,
+            # otherwise take note.
+            if [ $? -eq 0 ]; then
+                echo "Loading module ${MODULE}: OK"
+            else
+                echo "Loading module ${MODULE}: ERROR"
+            fi
+        done < /etc/sysconfig/modules
+        ;;
+    stop)
+	;;
+    *)
+        echo "Usage: ${0} {start|stop}"
+        exit 1
+        ;;
+esac

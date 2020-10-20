@@ -1,0 +1,38 @@
+#!/bin/sh
+# Display notification for a certain amount of time
+# Special char: ^ to add a new line
+# Set seconds to 0 to display indefinitely (until the next notif)
+
+NOTIFICATION_DISPLAY=/sys/class/graphics/fb0/notification
+
+display_usage() { 
+    echo -e "Usage:\n$(basename ${0}) nb_seconds_display message_to_display\n" 
+} 
+ 
+# If less than two arguments supplied, display usage 
+if [  ${#} -le 1 ]; then 
+    echo "Display notification for a certain amount of time"
+    display_usage
+    exit 1
+fi 
+
+# Get number of seconds to display notif
+nb_secs=${1}
+if ! [ ! "${nb_secs}" -ne "${nb_secs}" ] 2> /dev/null; then
+    echo "error: ${nb_secs} is not a number" >&2
+    exit 1
+fi
+
+# Print notif
+printf "${*:2}" > ${NOTIFICATION_DISPLAY}
+
+# Clear notif if NB_SECS is not 0, otherwise never clear
+if [ ${nb_secs} -ne 0 ]; then
+
+    # Wait time before clearing notif
+    sleep ${nb_secs}
+
+    # Clear notif
+    printf "clear" > ${NOTIFICATION_DISPLAY}
+fi
+exit 0

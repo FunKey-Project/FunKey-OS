@@ -1,0 +1,8 @@
+#!/bin/sh
+# Clear all current notifications
+
+NOTIFICATION_DISPLAY=/sys/class/graphics/fb0/notification
+
+printf "clear" > ${NOTIFICATION_DISPLAY}
+
+exit 0
