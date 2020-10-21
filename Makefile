@@ -36,13 +36,13 @@ TERM_RESET := $(shell tput rmso 2>/dev/null)
 %/Makefile:
 	@:
 
-all: buildroot/Makefile fun image
+all: buildroot/README fun image
 	@:
 
 buildroot/README:
 	@$(call MESSAGE,"Getting buildroot")
-	git submodule init
-	git submodule update
+	@git submodule init
+	@git submodule update
 
 fun: Recovery/output/.config FunKey/output/.config
 	@$(call MESSAGE,"Making fun")
@@ -70,9 +70,9 @@ source:
 
 image:
 	@$(call MESSAGE,"Creating disk image")
-	mkdir -p root tmp
-	./Recovery/output/host/bin/genimage --inputpath .
-	rm -rf root tmp
+	@mkdir -p root tmp
+	@./Recovery/output/host/bin/genimage --loglevel 0 --inputpath .
+	@rm -rf root tmp
 
 defconfig:
 	@$(call MESSAGE,"Updating default configs")
@@ -88,14 +88,14 @@ clean:
 
 distclean: clean
 	@$(call MESSAGE,"Really clean everything")
-	rm -rf download images
+	@rm -rf download images
 
 FunKey/output/.config:
 	@$(call MESSAGE,"Configure FunKey")
-	mkdir -p FunKey/board/funkey/patches
+	@mkdir -p FunKey/board/funkey/patches
 	@$(BR) BR2_EXTERNAL=../FunKey O=../FunKey/output funkey_defconfig
 
 Recovery/output/.config:
 	@$(call MESSAGE,"Configure Recovery")
-	mkdir -p Recovery/board/funkey/patches
+	@mkdir -p Recovery/board/funkey/patches
 	@$(BR) BR2_EXTERNAL=../Recovery O=../Recovery/output recovery_defconfig
