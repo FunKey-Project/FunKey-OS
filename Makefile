@@ -20,56 +20,82 @@
 BRMAKE = buildroot/utils/brmake -C buildroot
 BR = make -C buildroot
 
-.PHONY: fun source image clean distclean
+# Strip quotes and then whitespaces
+qstrip = $(strip $(subst ",,$(1)))
+#"))
 
-.IGNORE: Makefile
+# MESSAGE Macro -- display a message in bold type
+MESSAGE = echo "$(shell date +%Y-%m-%dT%H:%M:%S) $(TERM_BOLD)\#\#\# $(call qstrip,$(1))$(TERM_RESET)"
+TERM_BOLD := $(shell tput smso 2>/dev/null)
+TERM_RESET := $(shell tput rmso 2>/dev/null)
 
-all: fun image
+.PHONY: fun source image defconfig clean distclean
 
-fun: download Recovery/output/.config FunKey/output/.config
-	@echo "*** Making fun"
-	$(BRMAKE) BR2_EXTERNAL=../Recovery O=../Recovery/output
-	$(BRMAKE) BR2_EXTERNAL=../FunKey O=../FunKey/output
+.IGNORE: _Makefile_
 
-FunKey/%: download FunKey/output/.config
-	@echo "*** Making $(notdir $@) in $(subst /,,$(dir $@))"
-	$(BR) BR2_EXTERNAL=../FunKey O=../FunKey/output $(notdir $@)
+%/Makefile:
+	@:
 
-Recovery/%: download Recovery/output/.config
-	@echo "*** Making $(notdir $@) in $(subst /,,$(dir $@))"
-	$(BR) BR2_EXTERNAL=../Recovery O=../Recovery/output $(notdir $@)
+all: buildroot/Makefile fun image
+	@:
 
-%: download FunKey/output/.config
-	@echo "*** Making $* in FunKey"
-	$(BR) BR2_EXTERNAL=../FunKey O=../FunKey/output $*
+buildroot/README:
+	@$(call MESSAGE,"Getting buildroot")
+	git submodule init
+	git submodule update
+
+fun: Recovery/output/.config FunKey/output/.config
+	@$(call MESSAGE,"Making fun")
+	@$(call MESSAGE,"Making fun in Recovery")
+	@$(BRMAKE) BR2_EXTERNAL=../Recovery O=../Recovery/output
+	@$(call MESSAGE,"Making fun in FunKey")
+	@$(BRMAKE) BR2_EXTERNAL=../FunKey O=../FunKey/output
+
+FunKey/%: FunKey/output/.config
+	@$(call MESSAGE,"Making $(notdir $@) in $(subst /,,$(dir $@))")
+	@$(BR) BR2_EXTERNAL=../FunKey O=../FunKey/output $(notdir $@)
+
+Recovery/%: Recovery/output/.config
+	@$(call MESSAGE,"Making $(notdir $@) in $(subst /,,$(dir $@))")
+	@$(BR) BR2_EXTERNAL=../Recovery O=../Recovery/output $(notdir $@)
+
+%: FunKey/output/.config
+	@$(call MESSAGE,"Making $@ in FunKey")
+	@$(BR) BR2_EXTERNAL=../FunKey O=../FunKey/output $@
 
 source:
-	@echo "*** Getting sources"
-	$(BR) BR2_EXTERNAL=../Recovery O=../Recovery/output source
-	$(BR) BR2_EXTERNAL=../FunKey O=../FunKey/output source
+	@$(call MESSAGE,"Getting sources")
+	@$(BR) BR2_EXTERNAL=../Recovery O=../Recovery/output source
+	@$(BR) BR2_EXTERNAL=../FunKey O=../FunKey/output source
 
 image:
+	@$(call MESSAGE,"Creating disk image")
 	mkdir -p root tmp
 	./Recovery/output/host/bin/genimage --inputpath .
 	rm -rf root tmp
 
+defconfig:
+	@$(call MESSAGE,"Updating default configs")
+	@$(call MESSAGE,"Updating default configs in Recovery")
+	@$(BR) BR2_EXTERNAL=../Recovery O=../Recovery/output savedefconfig linux-update-defconfig uboot-update-defconfig busybox-update-config
+	@$(call MESSAGE,"Updating default configs in FunKey")
+	@$(BR) BR2_EXTERNAL=../FunKey O=../FunKey/output savedefconfig linux-update-defconfig uboot-update-defconfig busybox-update-config
+
 clean:
-	@echo "*** Clean everything"
-	$(BR) BR2_EXTERNAL=../Recovery O=../Recovery/output distclean
-	$(BR) BR2_EXTERNAL=../FunKey O=../FunKey/output distclean
+	@$(call MESSAGE,"Clean everything")
+	@$(BR) BR2_EXTERNAL=../Recovery O=../Recovery/output distclean
+	@$(BR) BR2_EXTERNAL=../FunKey O=../FunKey/output distclean
 
 distclean: clean
-	@echo "*** Really clean everything"
+	@$(call MESSAGE,"Really clean everything")
 	rm -rf download images
 
-download:
-	@echo "*** Making download directory"
-	mkdir -rf download
-
 FunKey/output/.config:
-	@echo "*** Configure FunKey"
-	$(BR) BR2_EXTERNAL=../FunKey O=../FunKey/output funkey_defconfig
+	@$(call MESSAGE,"Configure FunKey")
+	mkdir -p FunKey/board/funkey/patches
+	@$(BR) BR2_EXTERNAL=../FunKey O=../FunKey/output funkey_defconfig
 
 Recovery/output/.config:
-	@echo "*** Configure Recovery"
-	$(BR) BR2_EXTERNAL=../Recovery O=../Recovery/output recovery_defconfig
+	@$(call MESSAGE,"Configure Recovery")
+	mkdir -p Recovery/board/funkey/patches
+	@$(BR) BR2_EXTERNAL=../Recovery O=../Recovery/output recovery_defconfig
