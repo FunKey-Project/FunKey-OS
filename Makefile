@@ -33,10 +33,13 @@ TERM_RESET := $(shell tput rmso 2>/dev/null)
 
 .IGNORE: _Makefile_
 
-%/Makefile:
+all: buildroot/README fun image
 	@:
 
-all: buildroot/README fun image
+_Makefile_:
+	@:
+
+%/Makefile:
 	@:
 
 buildroot/README:
@@ -59,9 +62,9 @@ Recovery/%: Recovery/output/.config
 	@$(call MESSAGE,"Making $(notdir $@) in $(subst /,,$(dir $@))")
 	@$(BR) BR2_EXTERNAL=../Recovery O=../Recovery/output $(notdir $@)
 
-%: FunKey/output/.config
-	@$(call MESSAGE,"Making $@ in FunKey")
-	@$(BR) BR2_EXTERNAL=../FunKey O=../FunKey/output $@
+#%: FunKey/output/.config
+#	@$(call MESSAGE,"Making $@ in FunKey")
+#	@$(BR) BR2_EXTERNAL=../FunKey O=../FunKey/output $@
 
 source:
 	@$(call MESSAGE,"Getting sources")
