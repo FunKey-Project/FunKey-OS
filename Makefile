@@ -29,11 +29,11 @@ MESSAGE = echo "$(shell date +%Y-%m-%dT%H:%M:%S) $(TERM_BOLD)\#\#\# $(call qstri
 TERM_BOLD := $(shell tput smso 2>/dev/null)
 TERM_RESET := $(shell tput rmso 2>/dev/null)
 
-.PHONY: fun source image defconfig clean distclean
+.PHONY: fun source image update defconfig clean distclean
 
 .IGNORE: _Makefile_
 
-all: buildroot/README fun image
+all: update
 	@:
 
 _Makefile_:
@@ -42,12 +42,15 @@ _Makefile_:
 %/Makefile:
 	@:
 
+buildroot: buildroot/README
+	@:
+
 buildroot/README:
 	@$(call MESSAGE,"Getting buildroot")
 	@git submodule init
 	@git submodule update
 
-fun: Recovery/output/.config FunKey/output/.config
+fun: buildroot Recovery/output/.config FunKey/output/.config
 	@$(call MESSAGE,"Making fun")
 	@$(call MESSAGE,"Making fun in Recovery")
 	@$(BRMAKE) BR2_EXTERNAL=../Recovery O=../Recovery/output
@@ -71,8 +74,9 @@ source:
 	@$(BR) BR2_EXTERNAL=../Recovery O=../Recovery/output source
 	@$(BR) BR2_EXTERNAL=../FunKey O=../FunKey/output source
 
-image:
+image: fun
 	@$(call MESSAGE,"Creating disk image")
+	@rm -rf root tmp
 	@mkdir -p root tmp
 	@./Recovery/output/host/bin/genimage --loglevel 0 --inputpath .
 	@rm -rf root tmp
