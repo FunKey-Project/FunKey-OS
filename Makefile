@@ -77,6 +77,18 @@ image:
 	@./Recovery/output/host/bin/genimage --loglevel 0 --inputpath .
 	@rm -rf root tmp
 
+update: fun
+	@$(call MESSAGE,"Creating update file")
+	@rm -rf tmp
+	@mkdir -p tmp
+	@cp FunKey/board/funkey/sw-description tmp/
+	@tar -C FunKey/output/images -zcf tmp/rootfs.ext2.tar.gz rootfs.ext2
+	@cd tmp && \
+	echo sw-description rootfs.ext2.tar.gz | \
+	tr " " "\n" | \
+	cpio -o -H crc --quiet > ../images/FunKey-$(shell cat FunKey/board/funkey/rootfs-overlay/etc/sw-versions | cut -f 2).swu
+	@rm -rf tmp
+
 defconfig:
 	@$(call MESSAGE,"Updating default configs")
 	@$(call MESSAGE,"Updating default configs in Recovery")

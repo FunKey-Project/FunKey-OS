@@ -1,0 +1,14 @@
+software =
+{
+        version = "0.6";
+
+        hardware-compatibility = [ "#RE:^Rev\.[A-E]$" ];
+
+        images: (
+        {
+                filename = "rootfs.ext2.tar.gz";
+                device = "/dev/mmcblk0p2";
+		compression = "zlib";
+        }
+        );
+}
