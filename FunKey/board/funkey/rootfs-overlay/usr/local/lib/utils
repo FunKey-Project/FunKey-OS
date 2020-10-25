@@ -18,3 +18,12 @@ if [ $? -ne 0 ]; then
 	exit $return_code
     }
 fi
+
+notif () {
+    info "$@"
+    printf "$@" > /sys/class/graphics/fb0/notification
+}
+
+clear_notif () {
+    printf "clear" > /sys/class/graphics/fb0/notification
+}

@@ -18,15 +18,6 @@ elif [ "${root_part_num}" -ne 2 ]; then
     die 2 "unknown partition layout, aborting"
 fi
 
-notif () {
-    info "$@"
-    printf "$@" > /sys/class/graphics/fb0/notification
-}
-
-clear_notif () {
-    printf "clear" > /sys/class/graphics/fb0/notification
-}
-
 check_swap () {
     [ -f /swap ] && die 0 "nothing to do"
     return 0
