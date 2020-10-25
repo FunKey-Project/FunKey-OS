@@ -33,7 +33,7 @@ TERM_RESET := $(shell tput rmso 2>/dev/null)
 
 .IGNORE: _Makefile_
 
-all: update
+all: image update
 	@:
 
 _Makefile_:
@@ -42,10 +42,10 @@ _Makefile_:
 %/Makefile:
 	@:
 
-buildroot: buildroot/README
+buildroot: buildroot/.git
 	@:
 
-buildroot/README:
+buildroot/.git:
 	@$(call MESSAGE,"Getting buildroot")
 	@git submodule init
 	@git submodule update
@@ -86,9 +86,13 @@ update: fun
 	@rm -rf tmp
 	@mkdir -p tmp
 	@cp FunKey/board/funkey/sw-description tmp/
-	@tar -C FunKey/output/images -zcf tmp/rootfs.ext2.tar.gz rootfs.ext2
+	@cp FunKey/board/funkey/update_partition tmp/
+	@cd FunKey/output/images && \
+	rm -f rootfs.ext2.gz && \
+	gzip -k rootfs.ext2 &&\
+	mv rootfs.ext2.gz ../../../tmp/
 	@cd tmp && \
-	echo sw-description rootfs.ext2.tar.gz | \
+	echo sw-description rootfs.ext2.gz update_partition | \
 	tr " " "\n" | \
 	cpio -o -H crc --quiet > ../images/FunKey-$(shell cat FunKey/board/funkey/rootfs-overlay/etc/sw-versions | cut -f 2).swu
 	@rm -rf tmp

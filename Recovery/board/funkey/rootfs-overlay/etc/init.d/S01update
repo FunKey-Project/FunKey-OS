@@ -1,0 +1,24 @@
+#!/bin/sh
+
+THIS=$(basename $0)
+
+case "$1" in
+    start)
+	for file in /mnt/FunKey-*.swu; do
+	    swupdate -v -i "${file}"
+	    if [ $? -ne 0 ]; then
+	        share start
+	       	mkdir -p /run/network
+	       	/sbin/ifup -a
+	       	exit 1
+	    fi
+	done
+	normal_mode
+	;;
+    stop)
+	;;
+    *)
+	echo "Usage: $0 {start|stop}" >&2
+	exit 1
+	;;
+esac

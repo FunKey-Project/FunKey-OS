@@ -2,13 +2,21 @@ software =
 {
         version = "0.6";
 
-        hardware-compatibility = [ "#RE:^Rev\.[A-E]$" ];
+        hardware-compatibility = [ "#RE:^Rev\.[D-E]$" ];
 
         images: (
         {
-                filename = "rootfs.ext2.tar.gz";
+                filename = "rootfs.ext2.gz";
                 device = "/dev/mmcblk0p2";
-		compression = "zlib";
+		type = "raw";
+		installed-directly = true;
+		compressed = "zlib";
         }
         );
+	scripts: (
+	{
+		filename = "update_partition";
+		type = "shellscript";
+	}
+	);
 }

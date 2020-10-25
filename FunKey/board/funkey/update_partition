@@ -1,0 +1,77 @@
+#!/bin/sh
+# Update partition script
+
+source /usr/local/lib/utils
+
+root_part_num=2
+root_part=/dev/mmcblk0p${root_part_num}
+root_mount=/tmp/rootfs
+
+do_preinst()
+{
+    notif "1/7 Extract update"
+    exit 0
+}
+
+do_postinst()
+{
+    local version
+
+    notif "2/7 Resize root filesystem"
+    resize2fs ${root_part} >/dev/null 2>&1
+    if [ $? -ne 0 ]; then
+	notif "Cannot resize root filesystem"
+	exit 1
+    fi
+    notif "3/7 Mount root filesystem"
+    mkdir -p ${root_mount}
+    mount -t ext4 ${root_part} ${root_mount} >/dev/null 2>&1
+    if [ $? -ne 0 ]; then
+	notif "Cannot mount root filesystem"
+	exit 1
+    fi
+    notif "4/7 Create swap"
+
+    # Create an empty 128MB /swap file, change its permissions and format it as swap
+    dd if=/dev/zero of=${root_mount}/swap bs=1M count=128 >/dev/null 2>&1 &&
+	chmod 0600 ${root_mount}/swap >/dev/null 2>&1 &&
+	mkswap ${root_mount}/swap >/dev/null 2>&1
+    if [ $? -ne 0 ]; then
+	rm ${root_mount}/swap
+	umount ${root_mount} >/dev/null 2>&1
+	notif "Cannot create swap file"
+	exit 1
+    fi
+    notif "5/7 Unmount root filesystem"
+    umount ${root_mount} >/dev/null 2>&1
+    if [ $? -ne 0 ]; then
+	notif "Cannot unmount root filesystem"
+	exit 1
+    fi
+    for file in /mnt/FunKey-*.swu; do
+	version=$(basename "${file}" .swu | cut -d '-' -f 2)
+	notif "6/7 Setting rootfs version to ${version}"
+	sed -i '/^rootfs/d' /etc/sw-versions
+	notif "7/7 Erase update file"
+	echo -e "rootfs\t${version}" >> /etc/sw-versions
+	rm -f "${file}"
+    done
+    exit 0
+}
+
+echo $0 $1
+
+case "$1" in
+preinst)
+    notif "call do_preinst"
+    do_preinst
+    ;;
+postinst)
+    notif "call do_postinst"
+    do_postinst
+    ;;
+*)
+    notif "default"
+    exit 1
+    ;;
+esac

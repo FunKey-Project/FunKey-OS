@@ -49,6 +49,12 @@ mount_share () {
 
     # Create the directory structure if required
     (cd /mnt; mkdir -p "Atari lynx" "Game Boy" "Game Boy Color" "Game Boy Advance" "Game Gear" "Neo Geo Pocket" "NES" "PS1" "Sega Genesis" "Sega Master System" "SNES" "WonderSwan")
+
+    # Check if there is an updte file
+    if [ -f /mnt/FunKey-*.swu ]; then
+	warn "found an update file, going into recovery mode"
+	recovery_mode
+    fi
     return 0
 }
 
@@ -73,7 +79,7 @@ stop_share () {
     # Stop sharing the backing store partition
     echo > $BACKING_STORE_FILE || die 11 "the backing store partition is still mounted on host"
 
-    # 3) Mount the backing store partition locally
+    # Mount the backing store partition locally
     mount_share
 
     info "stopped sharing the backing store partition"
