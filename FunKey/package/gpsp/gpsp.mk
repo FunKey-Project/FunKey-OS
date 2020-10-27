@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-GPSP_VERSION = b769f202bed9b312298f5943b8d8790efc9e099d
+GPSP_VERSION = 98ea8da8b13ff84c6262be7701b69a3646b4f83f
 GPSP_SITE_METHOD = git
 GPSP_SITE = ssh://git@fk/FunKey-Project/FunKey-Emulator-GPSP
 GPSP_LICENSE = GPL-2.0

@@ -13,7 +13,7 @@ notif_set 0 "^^^^^^^^      SHUTTING DOWN...^^^^^^^^"
 sync
 
 # Unmount Roms partition
-umount /mnt
+#umount /mnt
 
 # Shutdown amp
 start_audio_amp 0 >/dev/null 2>&1
