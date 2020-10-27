@@ -6,6 +6,7 @@ SNES
 Game Gear
 Sega Master System
 Sega Genesis
+PCE-TurboGrafx
 Atari lynx
 Neo Geo Pocket
 WonderSwan
