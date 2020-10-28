@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-RETROFE_VERSION = 10fcd1bcc7d0a9faa5278b004fd21be89513b564
+RETROFE_VERSION = 8be69e74fdb623e3d900010e4d26500b4f28658e
 RETROFE_SITE_METHOD = git
 #RETROFE_SITE = ssh://git@github.com/FunKey-Project/FunKey-Launcher-retrofe.git
 RETROFE_SITE = ssh://git@fk/FunKey-Project/FunKey-Launcher-retrofe.git
