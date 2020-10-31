@@ -94,7 +94,7 @@ update: fun
 	@cd tmp && \
 	echo sw-description rootfs.ext2.gz update_partition | \
 	tr " " "\n" | \
-	cpio -o -H crc --quiet > ../images/FunKey-$(shell cat FunKey/board/funkey/rootfs-overlay/etc/sw-versions | cut -f 2).swu
+	cpio -o -H crc --quiet > ../images/FunKey-rootfs-$(shell cat FunKey/board/funkey/rootfs-overlay/etc/sw-versions | cut -f 2).swu
 	@rm -rf tmp
 
 defconfig:
