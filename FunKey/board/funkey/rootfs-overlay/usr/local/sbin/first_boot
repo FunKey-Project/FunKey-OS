@@ -72,7 +72,7 @@ create_swap_file () {
     fi
 
     # Create an empty 128MB /swap file, change its permissions and format it as swap
-    dd if=/dev/zero of=/swap bs=1M count=128 >/dev/null 2>&1 &&
+    dd if=/dev/zero of=/swap bs=32M count=4 >/dev/null 2>&1 &&
 	chmod 0600 /swap >/dev/null 2>&1 &&
 	mkswap /swap >/dev/null 2>&1
     if [ $? -ne 0 ]; then

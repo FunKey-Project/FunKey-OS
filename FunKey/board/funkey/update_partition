@@ -33,9 +33,9 @@ do_postinst()
     notif "4/7 Create swap"
 
     # Create an empty 128MB /swap file, change its permissions and format it as swap
-    dd if=/dev/zero of=${root_mount}/swap bs=1M count=128 >/dev/null 2>&1 &&
-	chmod 0600 ${root_mount}/swap >/dev/null 2>&1 &&
-	mkswap ${root_mount}/swap >/dev/null 2>&1
+    dd if=/dev/zero of=${root_mount}/swap bs=32M count=4 &&
+	chmod 0600 ${root_mount}/swap &&
+	mkswap ${root_mount}/swap
     if [ $? -ne 0 ]; then
 	rm ${root_mount}/swap
 	umount ${root_mount} >/dev/null 2>&1
