@@ -3,7 +3,7 @@
 # Starts dropbear sshd.
 #
 
-[ -f /mnt/usbnet ] || exit 0
+#[ -f /mnt/usbnet ] || exit 0
 # Allow a few customizations from a config file
 test -r /etc/default/dropbear && . /etc/default/dropbear
 

@@ -5,7 +5,7 @@
 
 # Debian ifupdown needs the /run/network lock directory
 mkdir -p /run/network
-[ -f /mnt/usbnet ] || exit 0
+#[ -f /mnt/usbnet ] || exit 0
 case "$1" in
   start)
 	printf "Starting network: "

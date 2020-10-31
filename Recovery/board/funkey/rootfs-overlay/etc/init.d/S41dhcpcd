@@ -6,7 +6,7 @@
 DAEMON=/sbin/dhcpcd
 CONFIG=/etc/dhcpcd.conf
 PIDFILE=/var/run/dhcpcd.pid
-[ -f /mnt/usbnet ] || exit 0
+#[ -f /mnt/usbnet ] || exit 0
 [ -f $CONFIG ] || exit 0
 
 case "$1" in

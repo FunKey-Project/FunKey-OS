@@ -9,9 +9,8 @@ source /usr/local/lib/utils
 # The composite gadget directory
 GADGET=/sys/kernel/config/usb_gadget/FunKey
 
-# Check if Ethernet over USB network is requested
-[ ! -f /mnt/usbnet ]
-USBNET=${?}
+# Force Ethernet over USB network for Recovery
+USBNET=1
 
 # USB VID for Linux Foundation
 ID_VENDOR="0x1d6b"
