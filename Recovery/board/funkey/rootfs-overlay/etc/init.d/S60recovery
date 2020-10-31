@@ -1,0 +1,39 @@
+#!/bin/sh
+
+THIS=$(basename $0)
+
+source /usr/local/lib/utils
+
+case "$1" in
+    start)
+	keys=$(devmem 0x01c20500 16)
+	if [ "${keys}" != "0xF83F" ]; then
+
+	    # Automatic update requested
+	    updates=$(ls /mnt/FunKey-*.swu)
+	    if [ "x${updates}" = "x" ]; then
+		menu &
+		exit 1
+	    fi
+	    for file in ${updates} ; do
+		swupdate -i "${file}"
+		if [ $? -ne 0 ]; then
+	            menu &
+		    exit 1
+		fi
+	    done
+	    notif "^^^^^^^^      RESTARTING...^^^^^^^^"
+	    normal_mode
+	else
+
+	    # Manual Recovery mode following Fn + Start keypress during boot
+	    menu &
+	fi
+	;;
+    stop)
+	;;
+    *)
+	echo "Usage: $0 {start|stop}" >&2
+	exit 1
+	;;
+esac
