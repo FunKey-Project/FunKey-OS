@@ -1,0 +1,222 @@
+#!/bin/sh
+
+source /usr/local/lib/utils
+
+# Display meny item
+menu_display () {
+    local entry=${1}
+
+    clear_notif
+    case ${entry} in
+	0)
+
+	    # USB mount/unmount
+	    mount | grep -q /dev/mmcblk0p3
+	    if [ $? -eq 0 ]; then
+		message="USB mount"
+	    else
+		message="USB unmount"
+	    fi
+	    ;;
+
+	1)
+
+	    # USB check
+	    message="USB check"
+	    ;;
+
+	2)
+
+	    # USB format
+	    message="USB format"
+	    ;;
+
+	3)
+
+	    # Network enable/disable
+	    if [ -e /mnt/usbnet ]; then
+		message="Network disable"
+	    else
+		message="Network enable"
+	    fi
+	    ;;
+
+	4)
+
+	    # QR code
+	    message="QR code"
+	    ;;
+
+	5)
+
+	    # Factory tests enable/disable
+	    if [ -e /mnt/.assembly_tests ]; then
+		message="Factory tests disable"
+	    else
+		message="Factory tests enable"
+	    fi
+	    ;;
+
+	6)
+
+	    # Exit Recovery
+	    message="Exit Recovery"
+	    ;;
+    esac
+    notif "${message}"
+}
+
+# Run menu item
+menu_run () {
+    local entry=${1}
+
+    case ${entry} in
+	0)
+
+	    # USB mount/unmount
+	    mount | grep -q /dev/mmcblk0p3
+	    if [ $? -eq 0 ]; then
+		notif "${message}..."
+		share start
+		if [ $? -ne 0 ]; then
+		    notif "${message}...^Cannot mount USB!"
+		else
+		    message="USB unmount"
+		    notif "${message}"
+		fi
+	    else
+		notif "${message}..."
+		share stop
+		if [ $? -ne 0 ]; then
+		    notif "${message}...^Cannot unmount USB!"
+		else
+		    for file in $(ls /mnt/FunKey-*.swu); do
+			swupdate -i "${file}"
+			if [ $? -ne 0 ]; then
+			    notif "${message}...^Cannot update!"
+			    break
+			fi
+		    done
+		    message="USB mount"
+		    notif "${message}"
+		fi
+	    fi
+	    ;;
+
+	1)
+
+	    # USB check
+	    mount | grep -q /dev/mmcblk0p3
+	    if [ $? -eq 0 ]; then
+		notif "${message}..."
+		umount /mnt >/dev/null 2>&1
+		if [ $? -ne 0 ]; then
+		    notif "${message}...^Cannot check USB!"
+		fi
+		fsck.fat -a -v -w /dev/mmcblk0p3
+		if [ $? -ne 0 ]; then
+		    notif "${message}...^Cannot check USB!"
+		fi
+		mount /mnt
+		if [ $? -ne 0 ]; then
+		    notif "${message}...^Cannot check USB!"
+		else
+		    notif "${message} done"
+		fi
+	    else
+		notif "${message}...^Cannot check USB when mounted!"
+	    fi
+	    ;;
+
+	2)
+
+	    # USB format
+	    mount | grep -q /dev/mmcblk0p3
+	    if [ $? -eq 0 ]; then
+		notif "${message}..."
+		umount /mnt &&
+		mkfs.vfat /dev/mmcblk0p3 &&
+		mount /mnt
+		if [ $? -ne 0 ]; then
+		    notif "${message}...^Cannot format USB!"
+		else
+		    notif "${message} done"
+		fi
+	    else
+		notif "${message}...^Cannot format USB when mounted!"
+	    fi
+	    ;;
+
+	3)
+
+	    # Network enable/disable
+	    if [ -e /mnt/usbnet ]; then
+		rm -f /mnt/usbnet
+		message="Network enable"
+	    else
+		touch /mnt/usbnet
+		message="Network disable"
+	    fi
+	    notif "${message}"
+	    ;;
+
+	4)
+
+	    # QR code
+	    qrencode -o /tmp/qrcode.png "https://tinyurl.com/y63qlwzu/$(get_sid)"
+	    fbv -e /tmp/qrcode.png -d 1
+	    ;;
+
+	5)
+
+	    # Factory tests enable/disable
+	    if [ -e /mnt/.assembly_tests ]; then
+		rm -f /mnt/.assembly_tests
+		message="Factory tests enable"
+	    else
+		touch /mnt/.assembly_tests
+		message="Factory tests disable"
+	    fi
+	    notif "${message}"
+	    ;;
+
+	6)
+	    notif "^^^^^^^^      RESTARTING...^^^^^^^^"
+	    normal_mode
+	    ;;
+    esac
+}
+
+# Display first menu entry
+entry=0
+menu_display ${entry}
+
+# Recovery menu loop
+while true; do
+
+    # Get key events
+    key=$(dd if=/dev/input/event0 bs=32 count=1 status=none | xxd -p -c 32 | cut -b 21-26)
+    case ${key} in
+	160001|160002)
+
+	    # Key UP pressed or repeat
+	    let entry=${entry}-1
+	    let entry=${entry}%7
+	    menu_display ${entry}
+	    ;;
+
+	200001|200002)
+
+	    # Key DOWN pressed or repeat
+	    let entry=${entry}+1
+	    let entry=${entry}%7
+	    menu_display ${entry}
+	    ;;
+
+	1e0001|1e0002)
+
+	    # Key A pressed or repeat
+	    menu_run ${entry}
+	    ;;
+    esac
+done
