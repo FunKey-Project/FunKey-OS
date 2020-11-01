@@ -189,7 +189,7 @@ menu_run () {
 	4)
 
 	    # QR code
-	    qrencode -o /tmp/qrcode.png "https://tinyurl.com/y63qlwzu/$(get_sid)"
+	    qrencode -o /tmp/qrcode.png "https://www.funkey-project.com/_functions/qrcode/$(get_sid)"
 	    fbv -e /tmp/qrcode.png -d 1
 	    ;;
 
