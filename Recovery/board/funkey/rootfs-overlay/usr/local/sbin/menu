@@ -2,6 +2,12 @@
 
 source /usr/local/lib/utils
 
+# Get a key
+getkey() {
+    local key=$(dd if=/dev/input/event0 bs=32 count=1 status=none | xxd -p -c 32 | cut -b 21-26)
+    echo ${key}
+}
+
 # Display meny item
 menu_display () {
     local entry=${1}
@@ -13,54 +19,54 @@ menu_display () {
 	    # USB mount/unmount
 	    mount | grep -q /dev/mmcblk0p3
 	    if [ $? -eq 0 ]; then
-		message="USB mount"
+		message=" USB mount"
 	    else
-		message="USB unmount"
+		message=" USB unmount"
 	    fi
 	    ;;
 
 	1)
 
 	    # USB check
-	    message="USB check"
+	    message=" USB check"
 	    ;;
 
 	2)
 
 	    # USB format
-	    message="USB format"
+	    message=" USB format"
 	    ;;
 
 	3)
 
 	    # Network enable/disable
 	    if [ -e /mnt/usbnet ]; then
-		message="Network disable"
+		message=" Network disable"
 	    else
-		message="Network enable"
+		message=" Network enable"
 	    fi
 	    ;;
 
 	4)
 
 	    # QR code
-	    message="QR code"
+	    message=" QR code"
 	    ;;
 
 	5)
 
 	    # Factory tests enable/disable
 	    if [ -e /mnt/.assembly_tests ]; then
-		message="Factory tests disable"
+		message=" Factory tests disable"
 	    else
-		message="Factory tests enable"
+		message=" Factory tests enable"
 	    fi
 	    ;;
 
 	6)
 
 	    # Exit Recovery
-	    message="Exit Recovery"
+	    message=" Exit Recovery"
 	    ;;
     esac
     notif "${message}"
@@ -81,7 +87,7 @@ menu_run () {
 		if [ $? -ne 0 ]; then
 		    notif "${message}...^Cannot mount USB!"
 		else
-		    message="USB unmount"
+		    message=" USB unmount"
 		    notif "${message}"
 		fi
 	    else
@@ -97,7 +103,7 @@ menu_run () {
 			    break
 			fi
 		    done
-		    message="USB mount"
+		    message=" USB mount"
 		    notif "${message}"
 		fi
 	    fi
@@ -133,15 +139,30 @@ menu_run () {
 	    # USB format
 	    mount | grep -q /dev/mmcblk0p3
 	    if [ $? -eq 0 ]; then
-		notif "${message}..."
-		umount /mnt &&
-		mkfs.vfat /dev/mmcblk0p3 &&
-		mount /mnt
-		if [ $? -ne 0 ]; then
-		    notif "${message}...^Cannot format USB!"
-		else
-		    notif "${message} done"
-		fi
+		notif "${message}...^Press A to confirm"
+		while true; do
+		    case $(getkey) in
+			1e0001|1e0002)
+			    umount /mnt &&
+				mkfs.vfat /dev/mmcblk0p3 &&
+				mount /mnt
+			    if [ $? -ne 0 ]; then
+				notif "${message}...^Cannot format USB!"
+			    else
+				notif "${message} done"
+			    fi
+			    break
+			    ;;
+
+			1e0000)
+			    ;;
+
+			*)
+			    notif "${message}...^Aborted!"
+			    break
+			    ;;
+		    esac
+		done
 	    else
 		notif "${message}...^Cannot format USB when mounted!"
 	    fi
@@ -150,38 +171,48 @@ menu_run () {
 	3)
 
 	    # Network enable/disable
-	    if [ -e /mnt/usbnet ]; then
-		rm -f /mnt/usbnet
-		message="Network enable"
+	    mount | grep -q /dev/mmcblk0p3
+	    if [ $? -eq 0 ]; then
+		if [ -e /mnt/usbnet ]; then
+		    rm -f /mnt/usbnet
+		    message=" Network enable"
+		else
+		    touch /mnt/usbnet
+		    message=" Network disable"
+		fi
+		notif "${message}"
 	    else
-		touch /mnt/usbnet
-		message="Network disable"
+		notif "${message}...^Cannot change net if mounted!"
 	    fi
-	    notif "${message}"
 	    ;;
 
 	4)
 
 	    # QR code
-	    qrencode -o /tmp/qrcode.png "https://tinyurl.com/y63qlwzu/$(get_sid)"
+	    qrencode -o /tmp/qrcode.png "https://www.funkey-project.com/_functions/qrcode/$(get_sid)"
 	    fbv -e /tmp/qrcode.png -d 1
 	    ;;
 
 	5)
 
 	    # Factory tests enable/disable
-	    if [ -e /mnt/.assembly_tests ]; then
-		rm -f /mnt/.assembly_tests
-		message="Factory tests enable"
+	    mount | grep -q /dev/mmcblk0p3
+	    if [ $? -eq 0 ]; then
+		if [ -e /mnt/.assembly_tests ]; then
+		    rm -f /mnt/.assembly_tests
+		    message=" Factory tests enable"
+		else
+		    touch /mnt/.assembly_tests
+		    message=" Factory tests disable"
+		fi
+		notif "${message}"
 	    else
-		touch /mnt/.assembly_tests
-		message="Factory tests disable"
+		notif "${message}...^Cannot test if mounted!"
 	    fi
-	    notif "${message}"
 	    ;;
 
 	6)
-	    notif "^^^^^^^^      RESTARTING...^^^^^^^^"
+	    notif "^^^^^^^^         RESTARTING...^^^^^^^^"
 	    normal_mode
 	    ;;
     esac
@@ -195,13 +226,15 @@ menu_display ${entry}
 while true; do
 
     # Get key events
-    key=$(dd if=/dev/input/event0 bs=32 count=1 status=none | xxd -p -c 32 | cut -b 21-26)
-    case ${key} in
+    case $(getkey) in
 	160001|160002)
 
 	    # Key UP pressed or repeat
 	    let entry=${entry}-1
 	    let entry=${entry}%7
+	    if [ ${entry} -eq -1 ]; then
+		entry=6
+	    fi
 	    menu_display ${entry}
 	    ;;
 
