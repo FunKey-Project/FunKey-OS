@@ -15,7 +15,7 @@ fi
 killall -s USR1 pcsx > /dev/null 2>&1
 
 # Send signal to all other emulators
-killall -s USR1 gpsp psnes sdlgnuboy PicoDriveBin mednafen fceux > /dev/null 2>&1
+killall -s USR1 gpsp psnes sdlgnuboy PicoDrive mednafen fceux > /dev/null 2>&1
 
 # Send signal to launcher
 killall -s USR1 retrofe > /dev/null 2>&1
