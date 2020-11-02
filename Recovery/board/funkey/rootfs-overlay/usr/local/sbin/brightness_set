@@ -23,6 +23,8 @@ echo ${value} > ${SYSTEM_BRIGHTNESS}
 
 # Set new brightness value in brightness file
 if [ ${?} -eq 0 ]; then
+    rw
     echo ${brightness_percentage} > ${BRIGHTNESS_FILE}
+    ro
 fi
 exit 0

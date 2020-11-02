@@ -11,13 +11,17 @@ fi
 
 # Sanity check: File does not exist
 if [ ! -f ${BRIGHTNESS_FILE} ]; then
+    rw
     echo ${BRIGHTNESS_DEFAULT_VALUE} > ${BRIGHTNESS_FILE}
+    ro
 fi
 
 # Sanity check: Check if integer
 brightness=$(cat ${BRIGHTNESS_FILE})
 if ! [ ! "${brightness}" -ne "${brightness}" ] 2> /dev/null; then
+    rw
     echo ${BRIGHTNESS_DEFAULT_VALUE} > ${BRIGHTNESS_FILE}
+    ro
     brightness=${BRIGHTNESS_DEFAULT_VALUE}
 fi
 echo ${brightness}

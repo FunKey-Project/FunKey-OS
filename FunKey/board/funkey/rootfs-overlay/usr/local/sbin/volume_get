@@ -11,14 +11,18 @@ fi
 
 # Sanity check: File does not exist
 if [ ! -f ${VOLUME_FILE} ]; then
-	echo ${VOLUME_DEFAULT_VALUE} > ${VOLUME_FILE}
+    rw
+    echo ${VOLUME_DEFAULT_VALUE} > ${VOLUME_FILE}
+    ro
 fi
 
 # Sanity check: Check if integer
 volume=$(cat "${VOLUME_FILE}")
 if ! [ ! "${volume}" -ne "${volume}" ] 2> /dev/null; then
-	echo ${VOLUME_DEFAULT_VALUE} > ${VOLUME_FILE}
-	volume=${VOLUME_DEFAULT_VALUE}
+    rw
+    echo ${VOLUME_DEFAULT_VALUE} > ${VOLUME_FILE}
+    ro
+    volume=${VOLUME_DEFAULT_VALUE}
 fi
 echo ${volume}
 exit 0

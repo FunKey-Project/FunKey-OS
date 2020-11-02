@@ -11,8 +11,4 @@
 #
 # By default this script does nothing.
 
-# Incremental upgrades, blocking process #
-#notif_set 0 "upgrade"
-#upgrade_fk_incremental 
-
 exit 0
