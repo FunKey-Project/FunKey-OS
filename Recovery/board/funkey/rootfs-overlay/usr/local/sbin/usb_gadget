@@ -52,7 +52,7 @@ init_usb_gadget() {
     mkdir ${GADGET}/configs/FunKey.1
     mkdir ${GADGET}/configs/FunKey.1/strings/0x409
     test ${USBNET} -eq 1 && mkdir ${GADGET}/functions/rndis.usb0
-    mkdir ${GADGET}/functions/mass_storage.mmcblk0p3
+    mkdir ${GADGET}/functions/mass_storage.mmcblk0p4
 
     # USB2
     echo "0x0200" > ${GADGET}/bcdUSB
@@ -123,22 +123,22 @@ init_usb_gadget() {
     # Mass Storage Function
 
     # Backing Store file
-    #echo "/dev/mmcblk0p3" > ${GADGET}/functions/mass_storage.mmcblk0p3/lun.0/file
+    #echo "/dev/mmcblk0p4" > ${GADGET}/functions/mass_storage.mmcblk0p4/lun.0/file
 
     # Gadget is not allowed to halt bulk endpoints
-    echo 0 > ${GADGET}/functions/mass_storage.mmcblk0p3/stall
+    echo 0 > ${GADGET}/functions/mass_storage.mmcblk0p4/stall
 
     # Do not simulate a CDROM
-    echo 0 > ${GADGET}/functions/mass_storage.mmcblk0p3/lun.0/cdrom
+    echo 0 > ${GADGET}/functions/mass_storage.mmcblk0p4/lun.0/cdrom
 
     # No SCSI Force Unit Access (FUA) to work in synchronous mode ?!?
-    echo 0 > ${GADGET}/functions/mass_storage.mmcblk0p3/lun.0/nofua
+    echo 0 > ${GADGET}/functions/mass_storage.mmcblk0p4/lun.0/nofua
 
     # LUN is removable
-    echo 1 > ${GADGET}/functions/mass_storage.mmcblk0p3/lun.0/removable
+    echo 1 > ${GADGET}/functions/mass_storage.mmcblk0p4/lun.0/removable
 
     # Inquiry String
-    echo "FunKey S Shared Disk" > ${GADGET}/functions/mass_storage.mmcblk0p3/lun.0/inquiry_string
+    echo "FunKey S Shared Disk" > ${GADGET}/functions/mass_storage.mmcblk0p4/lun.0/inquiry_string
 
     if [ ${USBNET} -eq 1 ]; then
 
@@ -157,7 +157,7 @@ init_usb_gadget() {
     fi
 
     # Add the Mass Storage function to the FunKey.1 configuration
-    ln -s ${GADGET}/functions/mass_storage.mmcblk0p3 ${GADGET}/configs/FunKey.1
+    ln -s ${GADGET}/functions/mass_storage.mmcblk0p4 ${GADGET}/configs/FunKey.1
 
     # Each interface specifies its own class code
     echo "0x00" > ${GADGET}/bDeviceClass

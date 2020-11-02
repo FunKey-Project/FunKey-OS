@@ -13,7 +13,7 @@ source usb_gadget
 USB_IF=/etc/network/interfaces.d/usb0
 
 # The USB mass storage backing store file or partition
-BACKING_STORE_FILE=/sys/kernel/config/usb_gadget/FunKey/functions/mass_storage.mmcblk0p3/lun.0/file
+BACKING_STORE_FILE=/sys/kernel/config/usb_gadget/FunKey/functions/mass_storage.mmcblk0p4/lun.0/file
 
 # Unmount a local share
 unmount_share () {
@@ -25,11 +25,11 @@ unmount_share () {
 # Mount a share locally
 mount_share () {
 
-    mount | grep -q /dev/mmcblk0p3
+    mount | grep -q /dev/mmcblk0p4
     if [ $? -ne 0 ]; then
 
 	# Check if the FAT32 partition has been unmounted cleanly
-	fsck.fat -n /dev/mmcblk0p3 2>/dev/null | egrep -q "Dirty bit"
+	fsck.fat -n /dev/mmcblk0p4 2>/dev/null | egrep -q "Dirty bit"
 	if [ $? -eq 0 ]; then
 
 	    # The FAT32 partition was not cleanly unmounted, try to
@@ -86,7 +86,7 @@ start_share () {
 
     # 1) Check if the backing store partition is already shared
     if [ -e $BACKING_STORE_FILE ]; then
-	cat $BACKING_STORE_FILE | egrep -q ^/dev/mmcblk0p3 && die 12 "the backing store partition is already shared"
+	cat $BACKING_STORE_FILE | egrep -q ^/dev/mmcblk0p4 && die 12 "the backing store partition is already shared"
     fi
 
     # 2) Check if USB data is connected
@@ -97,7 +97,7 @@ start_share () {
 
     # 4) Everything is now clear to start sharing the backing store partition
     info "start sharing the backing store partition"
-    echo /dev/mmcblk0p3 > $BACKING_STORE_FILE || die 14 "cannot share the backing store partition"
+    echo /dev/mmcblk0p4 > $BACKING_STORE_FILE || die 14 "cannot share the backing store partition"
 }
 
 # Return if currently sharing
@@ -107,7 +107,7 @@ is_share_started () {
 	echo "no"
 	return 1
     fi
-    cat $BACKING_STORE_FILE | egrep -q ^/dev/mmcblk0p3
+    cat $BACKING_STORE_FILE | egrep -q ^/dev/mmcblk0p4
     local res=$?
     if [ "$res" == "0" ]; then
         echo "yes"

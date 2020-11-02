@@ -8,8 +8,8 @@ source /usr/local/lib/utils
 SELF=$(basename $0)
 
 # Find out the root partition number from the kernel command line
-root_part=$(cat /proc/cmdline | sed -n 's|^.*root=/dev/\([^ ]*\).*|\1|p')
-root_part_num=${root_part#mmcblk0p}
+root_part=$(cat /proc/cmdline | sed -n 's|^.*root=\([^ ]*\).*|\1|p')
+root_part_num=${root_part#/dev/mmcblk0p}
 if [ "${root_part_num}" -eq 1 ]; then
     die 0 "recovery mode"
 elif [ "${root_part_num}" = "{$root_part}" ]; then
@@ -17,9 +17,13 @@ elif [ "${root_part_num}" = "{$root_part}" ]; then
 elif [ "${root_part_num}" -ne 2 ]; then
     die 2 "unknown partition layout, aborting"
 fi
+let swap_part_num=${root_part_num}+1
+swap_part=/dev/mmcblk0p${swap_part_num}
+let share_part_num=${swap_part_num}+1
+share_part=/dev/mmcblk0p${share_part_num}
 
-check_swap () {
-    [ -f /swap ] && die 0 "nothing to do"
+check_first_boot () {
+    [ -f /.first_boot ] && die 0 "nothing to do"
     return 0
 }
 
@@ -59,49 +63,57 @@ reload_partition_table () {
 }
 
 resize_rootfs_filesystem () {
-    resize2fs /dev/${root_part} >/dev/null 2>&1 || die 10 "cannot resize the root filesystem, aborting"
+    resize2fs ${root_part} >/dev/null 2>&1 || die 10 "cannot resize the root filesystem, aborting"
     return 0
 }
 
-create_swap_file () {
-    local root_part_line=$(df | grep /dev/root)
-    set ${root_part_line}
-    local space_left=${4}
-    if [ ${space_left} -lt 131072 ]; then
-	die 12 "not enough free space for swap file found, aborting"
-    fi
-
-    # Create an empty 128MB /swap file, change its permissions and format it as swap
-    dd if=/dev/zero of=/swap bs=32M count=4 >/dev/null 2>&1 &&
-	chmod 0600 /swap >/dev/null 2>&1 &&
-	mkswap /swap >/dev/null 2>&1
-    if [ $? -ne 0 ]; then
-	rm /swap
-	die 13 "cannot create swap file, aborting"
-    fi
-    return 0
-}
-
-enable_swap_file () {
-    swapon -a >/dev/null 2>&1 || die 14 "cannot enable swap file, aborting"
-    return 0
-}
-
-create_backing_store_partition () {
-    mount | grep -q /dev/mmcblk0p3
+create_swap () {
+    mount | grep -q ${share_part}
     if [ $? -ne 0 ]; then
 
 	# Check that the last partition is the rootfs partition
 	local last_part_line=$(sgdisk -p /dev/mmcblk0 2>/dev/null | tail -n 1)
 	set ${last_part_line}
-	local last_part=${1}
-	if [ "$last_part" != "$root_part_num" ]; then
+	local last_part_num=${1}
+	if [ "$last_part_num" != "$root_part_num" ]; then
+	    die 11 "rootfs is not the last partition. Don't know how to create the backing store partition"
+	fi
+
+	# Create an additional linux swap partition
+	let swap_part_num=${last_part_num}+1
+	swap_part=/dev/mmcblk0p${swap_part_num}
+	sgdisk -n ${swap_part_num}:0:+128M -c ${swap_part_num}:swap -t ${swap_part_num}:8200 /dev/mmcblk0 >/dev/null 2>&1 || die 12 "cannot create the swap partition, aborting"
+	sync
+	partprobe /dev/mmcblk0 >/dev/null 2>&1 || die 13 "cannot reload the partition table, aborting"
+	mkswap ${swap_part} >/dev/null 2>&1
+	if [ $? -ne 0 ]; then
+	    die 14 "cannot create swap file, aborting"
+	fi
+    fi
+    return 0
+}
+
+enable_swap () {
+    swapon -a >/dev/null 2>&1 || die 15 "cannot enable swap file, aborting"
+    return 0
+}
+
+create_backing_store_partition () {
+    mount | grep -q ${share_part}
+    if [ $? -ne 0 ]; then
+
+	# Check that the last partition is the swap partition
+	local last_part_line=$(sgdisk -p /dev/mmcblk0 2>/dev/null | tail -n 1)
+	set ${last_part_line}
+	local last_part_num=${1}
+	if [ "${last_part_num}" != "${swap_part_num}" ]; then
 	    die 15 "rootfs is not the last partition. Don't know how to create the backing store partition"
 	fi
 
 	# Create an additional Microsoft basic data partition share partition that fills the disk
-	let share_part=${last_part}+1
-	sgdisk -n ${share_part}:0:-0 -c ${share_part}:share -t ${share_part}:0700 /dev/mmcblk0 >/dev/null 2>&1 || die 16 "cannot create the backing store partition, aborting"
+	let share_part_num=${last_part_num}+1
+	share_part=/dev/mmcblk0p${share_part_num}
+	sgdisk -n ${share_part_num}:0:-0 -c ${share_part_num}:share -t ${share_part_num}:0700 /dev/mmcblk0 >/dev/null 2>&1 || die 16 "cannot create the backing store partition, aborting"
 	sync
     fi
     return 0
@@ -110,7 +122,7 @@ create_backing_store_partition () {
 format_backing_store_partition () {
 
     # Format the backing store as FAT32
-    mkfs.vfat /dev/mmcblk0p3 >/dev/null 2>&1 || die 17 "cannot format the backing store partition"
+    mkfs.vfat ${share_part} >/dev/null 2>&1 || die 17 "cannot format the backing store partition"
     
     # Add file to force assembly tests 
     mount /mnt/ || die 18 "Cannot mount /mnt"
@@ -119,9 +131,9 @@ format_backing_store_partition () {
     return 0
 }
 
-notif "First boot detected!"
-check_swap
 check_root_id
+check_first_boot
+notif "First boot detected!"
 
 notif "1/8 Resize root partition"
 resize_rootfs_partition
@@ -133,10 +145,10 @@ notif "3/8 Resize root filsystem"
 resize_rootfs_filesystem
 
 notif "4/8 Create swap"
-create_swap_file
+create_swap
 
 notif "5/8 Enable swap"
-enable_swap_file
+enable_swap
 
 notif "6/8 Create share partition"
 create_backing_store_partition
@@ -148,5 +160,6 @@ notif "8/8 Format share partition"
 format_backing_store_partition
 
 notif "First boot setup finished!"
+touch /.first_boot
 sleep 1
 clear_notif

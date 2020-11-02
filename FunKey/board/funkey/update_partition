@@ -9,7 +9,7 @@ root_mount=/tmp/rootfs
 
 do_preinst()
 {
-    notif "1/6 Extract update"
+    notif "1/5 Extract update"
     exit 0
 }
 
@@ -17,41 +17,30 @@ do_postinst()
 {
     local version
 
-    notif "2/6 Resize root filesystem"
+    notif "2/5 Resize root filesystem"
     resize2fs ${root_part}
     if [ $? -ne 0 ]; then
 	notif "Cannot resize root filesystem"
 	exit 1
     fi
-    notif "3/6 Mount root filesystem"
+    notif "3/5 Mount root filesystem"
     mkdir -p ${root_mount}
     mount -t ext4 ${root_part} ${root_mount}
     if [ $? -ne 0 ]; then
 	notif "Cannot mount root filesystem"
 	exit 1
     fi
-    notif "4/6 Create swap"
-
-    # Create an empty 128MB /swap file, change its permissions and format it as swap
-    dd if=/dev/zero of=${root_mount}/swap bs=32M count=4 &&
-	chmod 0600 ${root_mount}/swap &&
-	mkswap ${root_mount}/swap
-    if [ $? -ne 0 ]; then
-	rm ${root_mount}/swap
-	umount ${root_mount}
-	notif "Cannot create swap file"
-	exit 1
-    fi
-    for file in $(ls /mnt/FunKey-rootfs-*.swu); do
-	notif "5/6 Erase update file"
-	rm -f "${file}"
-    done
-    notif "6/6 Unmount root filesystem"
+    notif "4/5 Unmount root filesystem"
+    touch "${root_mount}/.first_boot"
     umount ${root_mount}
     if [ $? -ne 0 ]; then
 	notif "Cannot unmount root filesystem"
 	exit 1
     fi
+    for file in $(ls /mnt/FunKey-rootfs-*.swu); do
+	notif "5/5 Erase update file"
+	rm -f "${file}"
+    done
     exit 0
 }
 
