@@ -3,7 +3,7 @@
 LOCK_FILE=/var/lock/launcher.lock
 PREVENT_LAUNCHER_FILE=/mnt/prevent_launcher
 PREVENT_LAUNCHER_FILE2=/boot/prevent_launcher
-QUICK_LOAD_FILE=/root/quick_load_cmd
+QUICK_LOAD_FILE=/mnt/quick_load_cmd
 
 if [ -f ${LOCK_FILE} ]; then
     echo "${LOCK_FILE} already exists"
@@ -16,9 +16,7 @@ if [ -f ${QUICK_LOAD_FILE} ]; then
     command=$(cat ${QUICK_LOAD_FILE})
     echo "Found quick load file, restarting previous game with command:"
     echo ${command}
-    rw
     rm ${QUICK_LOAD_FILE}
-    ro
     eval ${command}
     termfix_all
 fi

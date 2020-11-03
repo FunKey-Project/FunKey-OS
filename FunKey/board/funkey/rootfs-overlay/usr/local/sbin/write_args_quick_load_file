@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Write quick load file args
-QUICK_LOAD_FILE=/root/quick_load_cmd
+QUICK_LOAD_FILE=/mnt/quick_load_cmd
 
 rw
 echo -n "" > $QUICK_LOAD_FILE
