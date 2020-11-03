@@ -7,6 +7,8 @@ if [ ! -f ${RUN_FILE} ]; then
     exit 0
 fi
 
+rw
+
 ## Lock file
 LOCK_FILE=/var/lock/assembly_tests.lock
 if [ -f ${LOCK_FILE} ]; then
@@ -45,6 +47,7 @@ function function_magnet_detected_ok {
 	else
 		echo "0" > $MAGNET_DETECTED_FILE
 	fi
+	ro
 
 	## Clean shutdown
 	echo "	Caught SIGUSR1 signal: magnet detected"
@@ -351,6 +354,7 @@ done
 
 ## Remove lock file
 rm $LOCK_FILE
+ro
 
 ## Exit processes
 if ! $test_failed; then

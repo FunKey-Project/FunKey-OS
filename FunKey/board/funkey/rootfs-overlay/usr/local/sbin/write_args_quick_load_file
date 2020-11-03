@@ -3,6 +3,7 @@
 # Write quick load file args
 QUICK_LOAD_FILE=/root/quick_load_cmd
 
+rw
 echo -n "" > $QUICK_LOAD_FILE
 for i in "$@"; do
     if $(echo "$i" | egrep -q '[[:space:]]'); then
@@ -14,4 +15,5 @@ for i in "$@"; do
     fi
 done
 echo "" >> ${QUICK_LOAD_FILE}
+ro
 exit 0

@@ -63,7 +63,9 @@ reload_partition_table () {
 }
 
 resize_rootfs_filesystem () {
+    rw
     resize2fs ${root_part} >/dev/null 2>&1 || die 10 "cannot resize the root filesystem, aborting"
+    ro
     return 0
 }
 
@@ -160,6 +162,8 @@ notif "8/8 Format share partition"
 format_backing_store_partition
 
 notif "First boot setup finished!"
+rw
 touch /.first_boot
+ro
 sleep 1
 clear_notif

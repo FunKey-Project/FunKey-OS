@@ -16,7 +16,9 @@ if [ -f ${QUICK_LOAD_FILE} ]; then
     command=$(cat ${QUICK_LOAD_FILE})
     echo "Found quick load file, restarting previous game with command:"
     echo ${command}
+    rw
     rm ${QUICK_LOAD_FILE}
+    ro
     eval ${command}
     termfix_all
 fi
