@@ -79,7 +79,7 @@ store_levels()
 	CARD="$1"
 	[ "$1" = all ] && CARD=""
 	if MSG="$(alsactl -E HOME="$ALSACTLHOME" store $CARD 2>&1)" ; then
-		sleep 1
+		#sleep 1
 		return 0
 	else
 		log_action_cont_msg "warning: 'alsactl store${CARD:+ $CARD}' failed with error message '$MSG'"
@@ -180,7 +180,9 @@ case "$1" in
 	  *) log_action_begin_msg "Stopping ALSA card ${TARGET_CARD}" ;;
 	esac
 	card_OK "$TARGET_CARD" || log_action_end_msg_and_exit "$( [ ! "$2" ] ; echo $? ; )" "none loaded"
+	rw
 	store_levels "$TARGET_CARD" || EXITSTATUS=1
+	ro
 	#mute_and_zero_levels "$TARGET_CARD" || EXITSTATUS=1
 	log_action_end_msg_and_exit "$EXITSTATUS"
 	;;
