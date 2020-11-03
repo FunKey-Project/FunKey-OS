@@ -7,5 +7,13 @@ sed -i '3iexport PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/sbin:/usr/local/b
 # Remove log daemon init scripts since they are loaded from inittab
 rm -f ${TARGET_DIR}/etc/init.d/S01syslogd ${TARGET_DIR}/etc/init.d/S02klogd
 
+# Remove dhcp lib dir and link to /tmp
+rm -rf ${TARGET_DIR}/var/lib/dhcp/
+ln -s /tmp ${TARGET_DIR}/var/lib/dhcp
+
+# Redirect drobear keys to /tmp
+rm -rf ${TARGET_DIR}/etc/dropbear
+ln -s /tmp ${TARGET_DIR}/etc/dropbear
+
 # Change dropbear init sequence
 mv ${TARGET_DIR}/etc/init.d/S50dropbear ${TARGET_DIR}/etc/init.d/S42dropbear
