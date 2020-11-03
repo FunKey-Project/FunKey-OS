@@ -3,20 +3,11 @@
 # Notif fullscreen "Shutting down"
 notif_set 0 "^^^^^^^^      SHUTTING DOWN...^^^^^^^^"
 
-# Kill Emulators
-#kill_emulators >/dev/null 2>&1
-
-# Kill Retrofe
-#pkill retrofe
-
-# Sync filesystems (useful in case poweroff could not finish)
-sync
-
-# Unmount Roms partition
-#umount /mnt
-
 # Shutdown amp
 start_audio_amp 0 >/dev/null 2>&1
+
+# Force Read Only 
+ro
 
 # Poweroff
 poweroff
