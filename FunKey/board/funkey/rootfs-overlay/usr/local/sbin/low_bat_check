@@ -52,9 +52,7 @@ while true; do
     #echo "bat_percent_rescaled_maxed = ${bat_percent_rescaled_maxed}"
 
     # Save in file
-    rw
     echo ${bat_percent_rescaled_maxed} > ${BAT_PERCENT_RESCALED_FILE}
-    ro
 
     # Low bat status detection
     if [ "$(cat ${USB_PRESENT_FILE})" -eq "0" ]; then
