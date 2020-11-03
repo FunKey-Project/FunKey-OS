@@ -1,4 +1,4 @@
 #!/bin/sh
-#echo $1
 
+cd /tmp/funkey
 psnes "$1"

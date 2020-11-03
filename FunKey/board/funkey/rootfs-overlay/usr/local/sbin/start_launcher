@@ -11,6 +11,9 @@ if [ -f ${LOCK_FILE} ]; then
 fi
 touch ${LOCK_FILE}
 
+mkdir -p ${MEDNAFEN_HOME}
+cp /usr/games/lynxboot.img /usr/games/mednafen-09x.cfg ${MEDNAFEN_HOME}/
+
 # Launch Previous Game
 if [ -f ${QUICK_LOAD_FILE} ]; then
     command=$(cat ${QUICK_LOAD_FILE})
