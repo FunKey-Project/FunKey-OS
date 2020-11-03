@@ -1,4 +1,4 @@
 #!/bin/sh
-#echo $1
 
+cd /tmp/funkey
 pcsx -frameskip -cdfile "$1"

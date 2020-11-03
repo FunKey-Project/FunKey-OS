@@ -11,6 +11,7 @@ fi
 export PAGER='/bin/more'
 export EDITOR='/usr/bin/nano'
 export SDL_NOMOUSE=1
+export MEDNAFEN_HOME=/tmp/funkey/.mednafen
 
 # Source configuration files from /etc/profile.d
 for i in /etc/profile.d/*.sh ; do
