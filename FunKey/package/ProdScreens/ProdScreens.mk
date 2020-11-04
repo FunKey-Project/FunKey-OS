@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-PRODSCREENS_VERSION = 040c31924ad9d44b7761f8d4679fda37ea88559a
+PRODSCREENS_VERSION = bf2b0f4dc56f026bd504616892aebb28a58ccc52
 PRODSCREENS_SITE_METHOD = git
 #PRODSCREENS_SITE = ssh://git@github.com/FunKey-Project/FunKey-ProdScreens.git
 PRODSCREENS_SITE = ssh://git@fk/FunKey-Project/FunKey-ProdScreens.git
