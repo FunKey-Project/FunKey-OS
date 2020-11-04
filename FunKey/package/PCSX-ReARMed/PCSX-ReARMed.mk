@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-PCSX_REARMED_VERSION = 454ecc684bff1bdd989652696ee2f45a0dc45da1
+PCSX_REARMED_VERSION = fd3618969ed30c923f8a3cb71d66bc87c2f72c7a
 PCSX_REARMED_SITE_METHOD = git
 PCSX_REARMED_SITE = ssh://git@fk/FunKey-Project/FunKey-Emulator-PCSX-ReARMed
 PCSX_REARMED_LICENSE = GPL-2.0
