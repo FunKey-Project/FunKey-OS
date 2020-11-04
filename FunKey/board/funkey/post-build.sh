@@ -11,6 +11,10 @@ rm -f ${TARGET_DIR}/etc/init.d/S01syslogd ${TARGET_DIR}/etc/init.d/S02klogd
 rm -rf ${TARGET_DIR}/var/lib/dhcp/
 ln -s /tmp ${TARGET_DIR}/var/lib/dhcp
 
+# Remove dhcpcd dir and link to /tmp
+rm -rf ${TARGET_DIR}/var/db/dhcpcd/
+ln -s /tmp ${TARGET_DIR}/var/db/dhcpcd
+
 # Redirect drobear keys to /tmp
 rm -rf ${TARGET_DIR}/etc/dropbear
 ln -s /tmp ${TARGET_DIR}/etc/dropbear
