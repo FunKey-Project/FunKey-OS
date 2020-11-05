@@ -9,8 +9,7 @@ building the FunKey.
 How to get it
 ===============
 
-Clone the FunKey OS repository and the required submodules from
-Github:
+Clone the FunKey OS repository from Github:
 
   $ git clone https://github.com/FunKey-Project/FunKey-OS.git <Funkey directory>
 
