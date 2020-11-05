@@ -9,8 +9,8 @@ case "$1" in
 	keys=$(devmem 0x01c20500 16)
 	if [ "${keys}" != "0xF83F" ]; then
 
-	    # Automatic update requested
-	    updates=$(ls /mnt/FunKey-*.swu)
+	    # Automatic firmware update requested
+	    updates=$(ls /mnt/FunKey-*.fwu)
 	    if [ "x${updates}" = "x" ]; then
 		menu &
 		exit 1

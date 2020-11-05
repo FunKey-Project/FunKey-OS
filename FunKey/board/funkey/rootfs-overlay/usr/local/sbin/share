@@ -50,12 +50,20 @@ mount_share () {
     # Create the directory structure if required
     (cd /mnt; mkdir -p "Atari lynx" "Game Boy" "Game Boy Color" "Game Boy Advance" "Game Gear" "Neo Geo Pocket" "NES" "PS1" "Sega Genesis" "Sega Master System" "SNES" "WonderSwan" "PCE-TurboGrafx")
 
-    # Check if there is an update file
-    if [ -f /mnt/FunKey-*.swu ]; then
-	warn "found an update file, going into recovery mode"
+    # Check if there is a firmware update file
+    if [ -f /mnt/FunKey-*.fwu ]; then
+	warn "found a firmware update file, going into recovery mode"
 	notif "^^^^^^^^        UPDATING...^^^^^^^^"
 	recovery_mode
     fi
+
+    # Check if there is a software update file
+    for file in $(ls /mnt/FunKey-*.swu); do
+	swupdate -i "${file}"
+	if [ $? -ne 0 ]; then
+	    break
+	fi
+    done
     return 0
 }
 

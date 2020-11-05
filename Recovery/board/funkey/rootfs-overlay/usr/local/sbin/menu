@@ -96,7 +96,7 @@ menu_run () {
 		if [ $? -ne 0 ]; then
 		    notif "${message}...^Cannot unmount USB!"
 		else
-		    for file in $(ls /mnt/FunKey-*.swu); do
+		    for file in $(ls /mnt/FunKey-*.fwu); do
 			swupdate -i "${file}"
 			if [ $? -ne 0 ]; then
 			    notif "${message}...^Cannot update!"

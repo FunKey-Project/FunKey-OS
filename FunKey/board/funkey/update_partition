@@ -9,7 +9,7 @@ root_mount=/tmp/rootfs
 
 do_preinst()
 {
-    notif "1/5 Extract update"
+    notif "1/5 Extract firmware update..."
     exit 0
 }
 
@@ -37,7 +37,7 @@ do_postinst()
 	notif "Cannot unmount root filesystem"
 	exit 1
     fi
-    for file in $(ls /mnt/FunKey-rootfs-*.swu); do
+    for file in $(ls /mnt/FunKey-rootfs-*.fwu); do
 	notif "5/5 Erase update file"
 	rm -f "${file}"
     done
