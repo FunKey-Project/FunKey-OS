@@ -10,9 +10,9 @@ How to get it
 ===============
 
 Clone the FunKey OS repository and the required submodules from
-BitBucket:
+Github:
 
-  $ git clone --recurse-submodules https://github.com/FunKey-Project/FunKey-OS.git <Funkey directory>
+  $ git clone https://github.com/FunKey-Project/FunKey-OS.git <Funkey directory>
 
 Then enter into the created directory:
 
@@ -21,22 +21,15 @@ Then enter into the created directory:
 How to build it
 ===============
 
-Configure Buildroot
--------------------
+Build the disk image & firmware update files
+--------------------------------------------
 
-There is only one Funkey defconfig files in Buildroot:
-
-  $ ./fun funkey_defconfig
-
-Build the rootfs
-----------------
-
-Note: you will need to have access to the network, since Buildroot
+Note: you will need to have access to the network, since buildroot
 will download the packages' sources.
 
 You may now build your FunKey with:
 
-  $ ./have fun
+  $ make
 
 (This may take a while, consider getting yourself a coffee ;-) )
 
@@ -45,26 +38,19 @@ Result of the build
 
 After building, you should obtain this tree:
 
-    FunKey/output/images/
-    +-- boot.scr
-    +-- boot.vfat
-    +-- rootfs.ext2
-    +-- rootfs.ext4 -> rootfs.ext2
-    +-- sdcard.img
-    +-- sun8i-v3s-funkey.dtb
-    +-- u-boot.bin
-    +-- u-boot-sunxi-with-spl.bin
-    `-- zImage
+    images/
+    +-- FunKey-rootfs-X.Y.fwu
+    `-- sdcard.img
 
 How to write the SD card
 ========================
 
 Once the build process is finished you will have an image called
-"sdcard.img" in the FunKey/output/images/ directory.
+"sdcard.img" in the images/ directory.
 
 Copy the bootable "sdcard.img" onto an SD card with "dd":
 
-  $ sudo dd if=<Funkey directory>/FunKey/output/images/sdcard.img of=/dev/sdX
+  $ sudo dd if=<Funkey directory>/images/sdcard.img of=/dev/sdX
 
 Alternatively, you can use the Etcher graphical tool to burn the image
 to the SD card safely and on any platform:
