@@ -58,7 +58,7 @@ mount_share () {
     fi
 
     # Check if there is a software update file
-    for file in $(ls /mnt/FunKey-*.swu); do
+    for file in $(ls /mnt/FunKey-*.swu >/dev/null 2>&1); do
 	swupdate -i "${file}"
 	if [ $? -ne 0 ]; then
 	    break
