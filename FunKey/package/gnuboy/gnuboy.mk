@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-GNUBOY_VERSION = 366391048ee63104f1fa6f6ebd7f61674671d639
+GNUBOY_VERSION = e01db4f319c7e58f5b07757a91cc5ca1ba12ba79
 GNUBOY_SITE_METHOD = git
 GNUBOY_SITE = ssh://git@fk/FunKey-Project/FunKey-Emulator-GNUBoy
 GNUBOY_LICENSE = GPL-2.0
