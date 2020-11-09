@@ -108,6 +108,7 @@ clean:
 	@$(call MESSAGE,"Clean everything")
 	@$(BR) BR2_EXTERNAL=../Recovery O=../Recovery/output distclean
 	@$(BR) BR2_EXTERNAL=../FunKey O=../FunKey/output distclean
+	@rm -f br.log
 
 distclean: clean
 	@$(call MESSAGE,"Really clean everything")

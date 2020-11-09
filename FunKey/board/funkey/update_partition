@@ -17,28 +17,28 @@ do_postinst()
 {
     local version
 
-    notif "2/5 Resize root filesystem"
+    notif "2/5 RESIZE ROOT FILESYSTEM"
     resize2fs ${root_part}
     if [ $? -ne 0 ]; then
-	notif "Cannot resize root filesystem"
+	notif "CANNOT RESIZE ROOT FILESYSTEM"
 	exit 1
     fi
-    notif "3/5 Mount root filesystem"
+    notif "3/5 MOUNT ROOT FILESYSTEM"
     mkdir -p ${root_mount}
     mount -t ext4 ${root_part} ${root_mount}
     if [ $? -ne 0 ]; then
-	notif "Cannot mount root filesystem"
+	notif "CANNOT MOUNT ROOT FILESYSTEM"
 	exit 1
     fi
-    notif "4/5 Unmount root filesystem"
+    notif "4/5 UNMOUNT ROOT FILESYSTEM"
     touch "${root_mount}/.first_boot"
     umount ${root_mount}
     if [ $? -ne 0 ]; then
-	notif "Cannot unmount root filesystem"
+	notif "CANNOT UNMOUNT ROOT FILESYSTEM"
 	exit 1
     fi
     for file in $(ls /mnt/FunKey-rootfs-*.fwu); do
-	notif "5/5 Erase update file"
+	notif "5/5 ERASE UPDATE FILE"
 	rm -f "${file}"
     done
     exit 0
@@ -48,15 +48,12 @@ echo $0 $1
 
 case "$1" in
 preinst)
-    notif "call do_preinst"
     do_preinst
     ;;
 postinst)
-    notif "call do_postinst"
     do_postinst
     ;;
 *)
-    notif "default"
     exit 1
     ;;
 esac
