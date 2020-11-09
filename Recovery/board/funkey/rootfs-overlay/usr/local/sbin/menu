@@ -19,54 +19,54 @@ menu_display () {
 	    # USB mount/unmount
 	    mount | grep -q /dev/mmcblk0p4
 	    if [ $? -eq 0 ]; then
-		message=" USB mount"
+		message=" USB MOUNT"
 	    else
-		message=" USB unmount"
+		message=" USB UNMOUNT"
 	    fi
 	    ;;
 
 	1)
 
 	    # USB check
-	    message=" USB check"
+	    message=" USB CHECK"
 	    ;;
 
 	2)
 
 	    # USB format
-	    message=" USB format"
+	    message=" USB FORMAT"
 	    ;;
 
 	3)
 
 	    # Network enable/disable
 	    if [ -e /mnt/usbnet ]; then
-		message=" Network disable"
+		message=" NETWORK DISABLE"
 	    else
-		message=" Network enable"
+		message=" NETWORK ENABLE"
 	    fi
 	    ;;
 
 	4)
 
 	    # QR code
-	    message=" QR code"
+	    message=" QR CODE"
 	    ;;
 
 	5)
 
 	    # Factory tests enable/disable
 	    if [ -e /mnt/.assembly_tests ]; then
-		message=" Factory tests disable"
+		message=" FACTORY TESTS DISABLE"
 	    else
-		message=" Factory tests enable"
+		message=" FACTORY TESTS ENABLE"
 	    fi
 	    ;;
 
 	6)
 
 	    # Exit Recovery
-	    message=" Exit Recovery"
+	    message=" EXIT RECOVERY"
 	    ;;
     esac
     notif "${message}"
@@ -85,25 +85,25 @@ menu_run () {
 		notif "${message}..."
 		share start
 		if [ $? -ne 0 ]; then
-		    notif "${message}...^Cannot mount USB!"
+		    notif "${message}...^CANNOT MOUNT USB!"
 		else
-		    message=" USB unmount"
+		    message=" USB UNMOUNT"
 		    notif "${message}"
 		fi
 	    else
 		notif "${message}..."
 		share stop
 		if [ $? -ne 0 ]; then
-		    notif "${message}...^Cannot unmount USB!"
+		    notif "${message}...^CANNOT UNMOUNT USB!"
 		else
 		    for file in $(ls /mnt/FunKey-*.fwu); do
 			swupdate -i "${file}"
 			if [ $? -ne 0 ]; then
-			    notif "${message}...^Cannot update!"
+			    notif "${message}...^CANNOT UPDATE!"
 			    break
 			fi
 		    done
-		    message=" USB mount"
+		    message=" USB MOUNT"
 		    notif "${message}"
 		fi
 	    fi
@@ -117,20 +117,20 @@ menu_run () {
 		notif "${message}..."
 		umount /mnt >/dev/null 2>&1
 		if [ $? -ne 0 ]; then
-		    notif "${message}...^Cannot check USB!"
+		    notif "${message}...^CANNOT CHECK USB!"
 		fi
 		fsck.fat -a -v -w /dev/mmcblk0p4
 		if [ $? -ne 0 ]; then
-		    notif "${message}...^Cannot check USB!"
+		    notif "${message}...^CANNOT CHECK USB!"
 		fi
 		mount /mnt
 		if [ $? -ne 0 ]; then
-		    notif "${message}...^Cannot check USB!"
+		    notif "${message}...^CANNOT CHECK USB!"
 		else
-		    notif "${message} done"
+		    notif "${message} DONE"
 		fi
 	    else
-		notif "${message}...^Cannot check USB when mounted!"
+		notif "${message}...^CANNOT CHECK USB WHEN MOUNTED!"
 	    fi
 	    ;;
 
@@ -139,7 +139,7 @@ menu_run () {
 	    # USB format
 	    mount | grep -q /dev/mmcblk0p4
 	    if [ $? -eq 0 ]; then
-		notif "${message}...^Press A to confirm"
+		notif "${message}...^PRESS A TO CONFIRM"
 		while true; do
 		    case $(getkey) in
 			1e0001|1e0002)
@@ -147,9 +147,9 @@ menu_run () {
 				mkfs.vfat /dev/mmcblk0p4 &&
 				mount /mnt
 			    if [ $? -ne 0 ]; then
-				notif "${message}...^Cannot format USB!"
+				notif "${message}...^CANNOT FORMAT USB!"
 			    else
-				notif "${message} done"
+				notif "${message} DONE"
 			    fi
 			    break
 			    ;;
@@ -158,13 +158,13 @@ menu_run () {
 			    ;;
 
 			*)
-			    notif "${message}...^Aborted!"
+			    notif "${message}...^ABORTED!"
 			    break
 			    ;;
 		    esac
 		done
 	    else
-		notif "${message}...^Cannot format USB when mounted!"
+		notif "${message}...^CANNOT FORMAT USB WHEN MOUNTED!"
 	    fi
 	    ;;
 
@@ -175,14 +175,14 @@ menu_run () {
 	    if [ $? -eq 0 ]; then
 		if [ -e /mnt/usbnet ]; then
 		    rm -f /mnt/usbnet
-		    message=" Network enable"
+		    message=" NETWORK ENABLE"
 		else
 		    touch /mnt/usbnet
-		    message=" Network disable"
+		    message=" NETWORK DISABLE"
 		fi
 		notif "${message}"
 	    else
-		notif "${message}...^Cannot change net if mounted!"
+		notif "${message}...^CANNOT CHANGE NET IF MOUNTED!"
 	    fi
 	    ;;
 
@@ -200,14 +200,14 @@ menu_run () {
 	    if [ $? -eq 0 ]; then
 		if [ -e /mnt/.assembly_tests ]; then
 		    rm -f /mnt/.assembly_tests
-		    message=" Factory tests enable"
+		    message=" FACTORY TESTS ENABLE"
 		else
 		    touch /mnt/.assembly_tests
-		    message=" Factory tests disable"
+		    message=" FACTORY TESTS DISABLE"
 		fi
 		notif "${message}"
 	    else
-		notif "${message}...^Cannot test if mounted!"
+		notif "${message}...^CANNOT TEST IF MOUNTED!"
 	    fi
 	    ;;
 
