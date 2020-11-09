@@ -40,4 +40,6 @@ null::sysinit:/bin/ln -sf /proc/self/fd/2 /dev/stderr
 # Stuff to do before rebooting
 ::shutdown:/etc/init.d/rcK
 ::shutdown:/sbin/swapoff -a
-::shutdown:/bin/umount -a -r
+#::shutdown:/bin/umount -a -r
+::shutdown:/bin/umount -r /
+::shutdown:/bin/umount -r /mount
