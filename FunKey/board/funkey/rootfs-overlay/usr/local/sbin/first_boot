@@ -125,43 +125,50 @@ format_backing_store_partition () {
 
     # Format the backing store as FAT32
     mkfs.vfat ${share_part} >/dev/null 2>&1 || die 17 "cannot format the backing store partition"
-    
+    return 0
+}
+
+copy_files_to_store_partition () {
     # Add file to force assembly tests 
     mount /mnt/ || die 18 "Cannot mount /mnt"
     touch /mnt/.assembly_tests || die 19 "Cannot create assembly tests run file"
+    unzip -q -o /usr/local/share/mnt_freware_games.zip -d /mnt/
     umount /mnt/ || die 20 "Cannot unmount /mnt"
     return 0
 }
 
 check_root_id
 check_first_boot
-notif "First boot detected!"
+notif " FIRST BOOT DETECTED"
 
-notif "1/8 Resize root partition"
+notif " 1/9 RESIZE ROOT PARTITION"
 resize_rootfs_partition
 
-notif "2/8 Reload partition table"
+notif " 2/9 RELOAD ROOT PARTITION"
 reload_partition_table
 
-notif "3/8 Resize root filsystem"
+notif " 3/9 RESIZE ROOT FILESYSTEM"
 resize_rootfs_filesystem
 
-notif "4/8 Create swap"
+notif " 4/9 CREATE SWAP"
 create_swap
 
-notif "5/8 Enable swap"
+notif " 5/9 ENABLE SWAP"
 enable_swap
 
-notif "6/8 Create USB partition"
+notif " 6/9 CREATE USB PARTITION"
 create_backing_store_partition
 
-notif "7/8 Reload partition table"
+notif " 7/9 RELOAD PARTITION TABLE"
 reload_partition_table
 
-notif "8/8 Format USB partition"
+notif " 8/9 FORMAT USB PARTITION"
 format_backing_store_partition
 
-notif "First boot setup finished!"
+notif " 9/9 COPY FILES TO ^    USB PARTITION"
+copy_files_to_store_partition
+
+notif " FIRST BOOT SETUP FINISHED!"
 rw
 touch /.first_boot
 ro

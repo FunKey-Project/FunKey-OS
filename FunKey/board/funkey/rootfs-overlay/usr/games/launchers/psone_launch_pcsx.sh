@@ -3,4 +3,5 @@
 export HOME=/tmp/funkey
 mkdir -p ${HOME}
 cd ${HOME}
-pcsx -frameskip -cdfile "$1"
+#pcsx -frameskip -cdfile "$1"
+pcsx -cdfile "$1"
