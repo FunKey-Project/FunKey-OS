@@ -42,4 +42,4 @@ null::sysinit:/bin/ln -sf /proc/self/fd/2 /dev/stderr
 ::shutdown:/sbin/swapoff -a
 #::shutdown:/bin/umount -a -r
 ::shutdown:/bin/umount -r /
-::shutdown:/bin/umount -r /mount
+::shutdown:/bin/umount -r /mnt
