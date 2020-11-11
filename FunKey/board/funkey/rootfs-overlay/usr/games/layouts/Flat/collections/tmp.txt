@@ -1,0 +1,13 @@
+./Game Gear/system_artwork/system.svg
+./Sega Master System/system_artwork/system.svg
+./Game Boy Advance/system_artwork/system.svg
+./PS1/system_artwork/system2.svg
+./PS1/system_artwork/system.svg
+./Game Boy/system_artwork/system.svg
+./NES/system_artwork/system2.svg
+./NES/system_artwork/system.svg
+./Atari lynx/system_artwork/system.svg
+./Sega Genesis/system_artwork/system.svg
+./SNES/system_artwork/system.svg
+./WonderSwan/system_artwork/system.svg
+./Neo Geo Pocket/system_artwork/system.svg
