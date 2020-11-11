@@ -16,6 +16,11 @@ menu_display () {
     case ${entry} in
 	0)
 
+	    # Version
+	    message=" VERSION"
+	    ;;
+
+	1)
 	    # USB mount/unmount
 	    mount | grep -q /dev/mmcblk0p4
 	    if [ $? -eq 0 ]; then
@@ -25,19 +30,19 @@ menu_display () {
 	    fi
 	    ;;
 
-	1)
+	2)
 
 	    # USB check
 	    message=" USB CHECK"
 	    ;;
 
-	2)
+	3)
 
 	    # USB format
 	    message=" USB FORMAT"
 	    ;;
 
-	3)
+	4)
 
 	    # Network enable/disable
 	    if [ -e /mnt/usbnet ]; then
@@ -47,13 +52,13 @@ menu_display () {
 	    fi
 	    ;;
 
-	4)
+	5)
 
 	    # QR code
 	    message=" QR CODE"
 	    ;;
 
-	5)
+	6)
 
 	    # Factory tests enable/disable
 	    if [ -e /mnt/.assembly_tests ]; then
@@ -63,7 +68,7 @@ menu_display () {
 	    fi
 	    ;;
 
-	6)
+	7)
 
 	    # Exit Recovery
 	    message=" EXIT RECOVERY"
@@ -78,6 +83,22 @@ menu_run () {
 
     case ${entry} in
 	0)
+
+	    # Version
+	    rootfs_mount=/tmp/rootfs
+	    mkdir -p ${rootfs_mount}
+	    mount -t ext4 -o ro /dev/mmcblk0p2 ${rootfs_mount}
+	    if [ $? -ne 0 ]; then
+		version_rootfs="???"
+	    else
+		version_rootfs=$(grep rootfs ${rootfs_mount}/etc/sw-versions | cut -f 2)
+	    fi
+	    umount ${mount_rootfs}
+	    version_recovery=$(grep Recovery /etc/sw-versions | cut -f 2)
+	    notif "${message}^^     Recovery: ${version_recovery}^     rootfs  : ${version_rootfs}"
+	    ;;
+
+	1)
 
 	    # USB mount/unmount
 	    mount | grep -q /dev/mmcblk0p4
@@ -109,7 +130,7 @@ menu_run () {
 	    fi
 	    ;;
 
-	1)
+	2)
 
 	    # USB check
 	    mount | grep -q /dev/mmcblk0p4
@@ -134,7 +155,7 @@ menu_run () {
 	    fi
 	    ;;
 
-	2)
+	3)
 
 	    # USB format
 	    mount | grep -q /dev/mmcblk0p4
@@ -168,7 +189,7 @@ menu_run () {
 	    fi
 	    ;;
 
-	3)
+	4)
 
 	    # Network enable/disable
 	    mount | grep -q /dev/mmcblk0p4
@@ -186,14 +207,14 @@ menu_run () {
 	    fi
 	    ;;
 
-	4)
+	5)
 
 	    # QR code
 	    qrencode -o /tmp/qrcode.png "https://www.funkey-project.com/_functions/qrcode/$(get_sid)"
 	    fbv -e /tmp/qrcode.png -d 1
 	    ;;
 
-	5)
+	6)
 
 	    # Factory tests enable/disable
 	    mount | grep -q /dev/mmcblk0p4
@@ -211,7 +232,7 @@ menu_run () {
 	    fi
 	    ;;
 
-	6)
+	7)
 	    notif "^^^^^^^^         RESTARTING...^^^^^^^^"
 	    normal_mode
 	    ;;
@@ -231,9 +252,9 @@ while true; do
 
 	    # Key UP pressed or repeat
 	    let entry=${entry}-1
-	    let entry=${entry}%7
+	    let entry=${entry}%8
 	    if [ ${entry} -eq -1 ]; then
-		entry=6
+		entry=7
 	    fi
 	    menu_display ${entry}
 	    ;;
@@ -242,7 +263,7 @@ while true; do
 
 	    # Key DOWN pressed or repeat
 	    let entry=${entry}+1
-	    let entry=${entry}%7
+	    let entry=${entry}%8
 	    menu_display ${entry}
 	    ;;
 
