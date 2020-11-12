@@ -93,7 +93,7 @@ menu_run () {
 	    else
 		version_rootfs=$(grep rootfs ${rootfs_mount}/etc/sw-versions | cut -f 2)
 	    fi
-	    umount ${mount_rootfs}
+	    umount ${rootfs_mount}
 	    version_recovery=$(grep Recovery /etc/sw-versions | cut -f 2)
 	    notif "${message}^^     Recovery: ${version_recovery}^     rootfs  : ${version_rootfs}"
 	    ;;
