@@ -181,7 +181,7 @@ case "$1" in
 	esac
 	card_OK "$TARGET_CARD" || log_action_end_msg_and_exit "$( [ ! "$2" ] ; echo $? ; )" "none loaded"
 	#rw
-	store_levels "$TARGET_CARD" || EXITSTATUS=1
+	#store_levels "$TARGET_CARD" || EXITSTATUS=1
 	#ro
 	#mute_and_zero_levels "$TARGET_CARD" || EXITSTATUS=1
 	log_action_end_msg_and_exit "$EXITSTATUS"
