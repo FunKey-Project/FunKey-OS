@@ -8,8 +8,6 @@
 
 
     <!--Background Image-->
-
-    <!-- <image src="images/bkgnd.png" x="0" y="0" height="stretch" width="stretch" layer="0"/> -->
     <image src="images/background.png" x="0" y="0" height="stretch" width="stretch" layer="0"/>
 
     <!--Battery-->
@@ -65,6 +63,10 @@
     <!--This image is the main menu bar background  Notice that it has its animations set to menuIndex="0". as it is only shown for the top most menu -->
 
     <image src="images/barbkgrnd.png"  alpha="0.8" x="center" y="center" yOffset="0" xOrigin="center" yOrigin="center" layer="5">
+        <onEnter> <set duration=".3"><animate type="alpha" to="1"/></set></onEnter>
+        <onExit> <set duration=".3"><animate type="alpha" to="0"/></set></onExit>
+        <onGameEnter menuIndex="1"><set duration=".3"><animate type="alpha" to="0"/></set></oneGameEnter>
+        <onGameExit  menuIndex="1"><set duration=".3"><animate type="alpha" to="1"/></set></oneGameExit>
         <onMenuExit menuIndex="0">
             <set duration=".2">
                 <animate type="yOffset" from="0" to="-104" algorithm="easeinquadratic"/>
@@ -95,6 +97,8 @@
         <item xOffset="-300" alpha="0"/>
 
         <item xOrigin="right" xOffset="-80">
+            <onEnter> <set duration=".3"><animate type="alpha" to="1"/></set></onEnter>
+            <onExit> <set duration=".3"><animate type="alpha" to="0"/></set></onExit>
             <onMenuEnter menuIndex="0">
                 <set duration=".4">
                     <animate type="alpha" from="0" to="0.5" algorithm="easeincircular"/>
@@ -109,8 +113,11 @@
 
         <!-- This is the Selected item of the menu we override the width and alpha here to make it more clear that it is indeed selected  -->
         <!-- we also have animations inplace so that this logo stays visable and moves to another location when entering the sub menu -->
-
         <item selected="true" layer="7" alpha="1">
+            <onEnter> <set duration=".3"><animate type="alpha" to="1"/></set></onEnter>
+            <onExit> <set duration=".3"><animate type="alpha" to="0"/></set></onExit>
+            <onGameEnter menuIndex="1"><set duration=".3"><animate type="alpha" to="0"/></set></oneGameEnter>
+            <onGameExit  menuIndex="1"><set duration=".3"><animate type="alpha" to="1"/></set></oneGameExit>
             <onMenuExit menuIndex="0">
                 <set duration=".2">
                     <animate type="yOffset" from="0" to="-104" algorithm="easeinquadratic"/>
@@ -124,6 +131,8 @@
         </item>
 
         <item xOrigin="left" xOffset="80">
+            <onEnter> <set duration=".3"><animate type="alpha" to="1"/></set></onEnter>
+            <onExit> <set duration=".3"><animate type="alpha" to="0"/></set></onExit>
             <onMenuEnter menuIndex="0">
                 <set duration=".4">
                     <animate type="alpha" from="0" to="0.5" algorithm="easeincircular"/>
@@ -138,6 +147,20 @@
 
         <item xOffset="300" alpha="0"/>
     </menu>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -159,8 +182,10 @@
             <onExit>                   <set duration=".3"><animate type="alpha" to="0"/></set></onExit>
             <onMenuEnter menuIndex="1"><set duration=".3"><animate type="alpha" to="1"/></set></onMenuEnter>
             <onMenuExit  menuIndex="1"><set duration=".3"><animate type="alpha" to="0"/></set></onMenuExit>
+            
             <onGameEnter menuIndex="1"><set duration=".3"><animate type="alpha" to="0"/></set></oneGameEnter>
             <onGameExit  menuIndex="1"><set duration=".3"><animate type="alpha" to="1"/></set></oneGameExit>
+
             <!-- <onIdle  menuIndex="1">
                 <set duration=".4">
                     <animate type="alpha" from="1" to=".6"/>
@@ -187,6 +212,9 @@
     <!--Sub Menu Bar Background-->
     <!--This image is the sub menu bar background  Notice that it has its animations set to menuIndex="0". as it is only shown for the top most menu -->
     <image src="images/barbkgrnd.png" x="0" xOrigin="left" xOffset="0" y="center" yOrigin="top" yOffset="120" alpha="0.5" layer="4">
+        <onExit> <set duration=".3"><animate type="alpha" to="0"/></set></onExit>
+        <onGameEnter menuIndex="1"><set duration=".3"><animate type="alpha" to="0"/></set></oneGameEnter>
+        <onGameExit  menuIndex="1"><set duration=".3"><animate type="alpha" to="1"/></set></oneGameExit>
         <onMenuExit menuIndex="0">
             <set duration=".1">
                 <animate type="yOffset" from="120" to="87" algorithm="easeinquadratic"/>

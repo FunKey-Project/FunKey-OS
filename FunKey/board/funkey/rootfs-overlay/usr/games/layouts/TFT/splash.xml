@@ -1,14 +1,13 @@
 <layout width="240" height="240" font="Roboto-Bold.ttf" loadFontSize="18" fontColor="FFFFFFF">
+<!-- <layout width="240" height="240" font="Roboto-Bold.ttf" loadFontSize="18" fontColor="FFFFFFF" minShowTime="2"> -->
    
 
     <!--backgroundImage-->
-
-    <image src="images/background.png" x="0" y="0" height="stretch" width="stretch" layer="0"/>
+    <image src="images/Funkey_S_gray.png" x="0" y="0" height="stretch" width="stretch" layer="0"/>
 
 
     <!-- logo -->
-
-    <image src="images/logo.png" x="center" y="center" xOrigin="center" yOrigin="center" layer="1" alpha="1"/>
+    <!-- <image src="images/logo.png" x="center" y="center" xOrigin="center" yOrigin="center" layer="1" alpha="1"/> -->
    
 
     <text value="Loading..." x="center" y="bottom" xOrigin="center" xOffset="0" yOrigin="center" yOffset="-20" height="33" width="stretch" fontSize="32" layer="3">

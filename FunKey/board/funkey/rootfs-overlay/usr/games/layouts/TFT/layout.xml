@@ -44,15 +44,15 @@
     
 
     <reloadableImage mode="layout" type="controller_h120" alpha="0" x="center" y="104" yOrigin="center" xOrigin="center" layer="2" alpha="1" >
-      <onEnter><set duration=".2"><animate type="alpha" to="1" algorithm="easeinquadratic"/></set></onEnter>
-      <onExit><set duration=".4"><animate type="alpha" to="0" algorithm="easeinquadratic"/></set></onExit>
-      <onMenuEnter menuIndex="0"><set duration=".4"><animate type="alpha" to="1" algorithm="easeinquadratic"/></set></onMenuEnter>
-      <onMenuExit menuIndex="0"><set duration=".1"><animate type="alpha" to="0" algorithm="easeinquadratic"/></set></onMenuExit>
-      
+        <onEnter><set duration=".2"><animate type="alpha" to="1" algorithm="easeinquadratic"/></set></onEnter>
+        <onExit><set duration=".3"><animate type="alpha" to="0" algorithm="easeinquadratic"/></set></onExit>
+        <onMenuEnter menuIndex="0"><set duration=".4"><animate type="alpha" to="1" algorithm="easeinquadratic"/></set></onMenuEnter>
+        <onMenuExit menuIndex="0"><set duration=".1"><animate type="alpha" to="0" algorithm="easeinquadratic"/></set></onMenuExit>
+
         <onHighlightEnter menuIndex="0"><set duration=".1"><animate type="alpha" to="1" algorithm="easeinquadratic"/></set></onHighlightEnter>
 
-      <!-- <onHighlightExit menuIndex="0"><set duration=".1"><animate type="alpha" to="0" algorithm="easeinquadratic"/></set></onHighlightExit> -->
-      
+        <!-- <onHighlightExit menuIndex="0"><set duration=".1"><animate type="alpha" to="0" algorithm="easeinquadratic"/></set></onHighlightExit> -->
+
         <onMenuScroll menuIndex="0">
             <set duration=".1">
                 <animate type="alpha" to="0.0" algorithm="easeinquadratic"/>
@@ -81,7 +81,9 @@
         <!-- This is the Selected item of the menu we override the width and alpha here to make it more clear that it is indeed selected  -->
         <!-- we also have animations inplace so that this logo stays visable and moves to another location when entering the sub menu -->
         <item selected="true" layer="7" alpha="1">
-            <onExit><set duration=".2"><animate type="alpha" to="0" algorithm="easeinquadratic"/></set></onExit>
+            <onExit><set duration=".3"><animate type="alpha" to="0" algorithm="easeinquadratic"/></set></onExit>
+            <onGameEnter menuIndex="1"><set duration=".3"><animate type="alpha" to="0"/></set></onGameEnter>
+            <onGameExit  menuIndex="1"><set duration=".3"><animate type="alpha" to="1"/></set></onGameEnter>
             <onMenuExit menuIndex="0">
                 <set duration=".1">
                     <!-- <animate type="yOffset" from="0" to="-150" algorithm="easeinquadratic"/>
@@ -138,7 +140,7 @@
         <item yOffset="-240" alpha="0"/>
 
         <item yOffset="0" selected="true">
-            <onExit>                   <set duration=".3"><animate type="alpha" to="0" algorithm="easeincubic"/></set></onExit>
+            <onExit> <set duration=".3"><animate type="alpha" to="0" algorithm="easeincubic"/></set></onExit>
             <onMenuEnter menuIndex="1"><set duration=".3"><animate type="alpha" to="1"/></set></onMenuEnter>
             <onMenuExit  menuIndex="1"><set duration=".3"><animate type="alpha" to="0"/></set></onMenuExit>
             <onGameEnter menuIndex="1"><set duration=".3"><animate type="alpha" to="0"/></set></onGameEnter>
@@ -152,7 +154,9 @@
 
     <!-- Repeat tft bg with transparency -->
     <image src="images/background_tft.png" x="-51" y="0" height="stretch" width="stretch" alpha="0" layer="5">
-        <onExit><set duration=".4"><animate type="alpha" to="0" algorithm="easeinquadratic"/></set></onExit>
+        <onExit><set duration=".3"><animate type="alpha" to="0" algorithm="easeinquadratic"/></set></onExit>
+        <onGameEnter menuIndex="1"><set duration=".3"><animate type="alpha" to="0"/></set></onGameEnter>
+        <onGameExit  menuIndex="1"><set duration=".3"><animate type="alpha" to="1"/></set></onGameEnter>
         <onMenuExit menuIndex="0"><set duration=".2"><animate type="alpha" to="0.9" algorithm="easeinquadratic"/></set></onMenuExit>
         <onMenuEnter menuIndex="0"><set duration=".01"><animate type="alpha" to="0" algorithm="easeinquadratic"/></set></onMenuExit>
     </image>
@@ -160,7 +164,9 @@
 
     <!-- System name -->
     <reloadableImage mode="systemlayout" type="logo_h20" alpha="0" x="15" xOrigin="left" y="32" yOrigin="center" layer="6">
-        <onExit><set duration=".4"><animate type="alpha" to="0" algorithm="easeinquadratic"/></set></onExit>
+        <onExit> <set duration=".3"><animate type="alpha" to="0" algorithm="easeincubic"/></set></onExit>
+        <onGameEnter menuIndex="1"><set duration=".3"><animate type="alpha" to="0"/></set></onGameEnter>
+        <onGameExit  menuIndex="1"><set duration=".3"><animate type="alpha" to="1"/></set></onGameEnter>
         <onMenuExit menuIndex="0"><set duration=".001"><animate type="alpha" to="1" algorithm="easeinquadratic"/></set></onMenuExit>
         <onMenuExit  menuIndex="1"><set duration=".3"><animate type="alpha" to="0"/></set></onMenuExit>
         <!-- <onMenuEnter menuIndex="0"><set duration=".001"><animate type="alpha" to="0" algorithm="easeinquadratic"/></set></onMenuExit> -->
@@ -180,7 +186,7 @@
 
     <!--Game cover idx -1 -->
     <reloadableText type="title" selectedOffset="-1" alpha="0" x="20" xOrigin="left" xOffset="0" y="65" yOrigin="center" yOffset="-16" width="155" menuScrollReload="true" fontSize="16" loadFontSize="16" fontColor="AE9A53" layer="14" textFormat="uppercase" >
-        <onExit>                   <set duration=".3"><animate type="alpha" to="0"/></set></onExit>
+        <onExit> <set duration=".3"><animate type="alpha" to="0"/></set></onExit>
         <onMenuEnter menuIndex="1"><set duration=".3"><animate type="alpha" to="0"/></set></onMenuEnter>
         <onMenuExit  menuIndex="1"><set duration=".3"><animate type="alpha" to="0"/></set></onMenuExit>
         <onGameEnter menuIndex="1"><set duration=".3"><animate type="alpha" to="0"/></set></oneGameEnter>
@@ -216,7 +222,7 @@
 
     <!--Game cover idx 0 -->
     <reloadableText type="title" selectedOffset="0" alpha="0" x="20" xOrigin="left" xOffset="0" y="65" yOrigin="center" yOffset="0" width="155" menuScrollReload="true" fontSize="16" loadFontSize="16" fontColor="C9C9C9" layer="14" textFormat="uppercase" >
-        <onExit>                   <set duration=".3"><animate type="alpha" to="0"/></set></onExit>
+        <onExit><set duration=".3"><animate type="alpha" to="0"/></set></onExit>
         <onMenuEnter menuIndex="1"><set duration=".3"><animate type="alpha" to="0"/></set></onMenuEnter>
         <onMenuExit  menuIndex="1"><set duration=".3"><animate type="alpha" to="0"/></set></onMenuExit>
         <onGameEnter menuIndex="1"><set duration=".3"><animate type="alpha" to="0"/></set></oneGameEnter>
