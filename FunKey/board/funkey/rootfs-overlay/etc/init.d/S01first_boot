@@ -4,7 +4,7 @@ THIS=$(basename $0)
 
 case "$1" in
     start)
-	if [ ! -f /swap ]; then
+	if [ ! -f /.first_boot ]; then
 	    first_boot
 	fi
 	;;
