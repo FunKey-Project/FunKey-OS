@@ -73,6 +73,12 @@ menu_display () {
 	    # Exit Recovery
 	    message=" EXIT RECOVERY"
 	    ;;
+
+	8)
+
+	    # Shutdown
+	    message=" SHUTDOWN"
+	    ;;
     esac
     notif "${message}"
 }
@@ -236,6 +242,11 @@ menu_run () {
 	    notif "^^^^^^^^         RESTARTING...^^^^^^^^"
 	    normal_mode
 	    ;;
+
+	8)
+	    notif "^^^^^^^^          SHUTDOWN...^^^^^^^^"
+	    poweroff
+	    ;;
     esac
 }
 
@@ -252,9 +263,9 @@ while true; do
 
 	    # Key UP pressed or repeat
 	    let entry=${entry}-1
-	    let entry=${entry}%8
+	    let entry=${entry}%9
 	    if [ ${entry} -eq -1 ]; then
-		entry=7
+		entry=8
 	    fi
 	    menu_display ${entry}
 	    ;;
@@ -263,7 +274,7 @@ while true; do
 
 	    # Key DOWN pressed or repeat
 	    let entry=${entry}+1
-	    let entry=${entry}%8
+	    let entry=${entry}%9
 	    menu_display ${entry}
 	    ;;
 
