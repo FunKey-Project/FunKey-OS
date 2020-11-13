@@ -22,7 +22,7 @@ let value/=10
 echo ${value} > ${SYSTEM_BRIGHTNESS}
 
 # Set new brightness value in brightness file
-if [ ${?} -eq 0 ]; then
+if [ ${?} -eq 0 -a $(brightness_get) -ne ${brightness_percentage} ]; then
     rw
     echo ${brightness_percentage} > ${BRIGHTNESS_FILE}
     ro

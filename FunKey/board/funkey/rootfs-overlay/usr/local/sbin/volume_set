@@ -34,7 +34,7 @@ fi
 amixer -q sset 'Headphone' ${volume_scaled} unmute
 
 # Change new volume value in volume file
-if [ ${?} -eq 0 ]; then
+if [ ${?} -eq 0 -a ${current_volume} -ne ${volume_percent} ]; then
     rw
     echo ${volume_percent} > ${VOLUME_FILE}
     ro
