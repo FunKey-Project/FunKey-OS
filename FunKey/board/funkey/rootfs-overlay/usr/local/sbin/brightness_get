@@ -1,6 +1,5 @@
 #!/bin/sh
 
-BRIGHTNESS_FILE=/etc/current_brightness
 BRIGHTNESS_DEFAULT_VALUE=100
 
 # Check args
@@ -9,20 +8,11 @@ if [ ${#} -ne 0 ]; then
     exit 1
 fi
 
-# Sanity check: File does not exist
-if [ ! -f ${BRIGHTNESS_FILE} ]; then
-    rw
-    echo ${BRIGHTNESS_DEFAULT_VALUE} > ${BRIGHTNESS_FILE}
-    ro
-fi
-
 # Sanity check: Check if integer
-brightness=$(cat ${BRIGHTNESS_FILE})
+brightness=$(fw_printenv | grep brightness= | cut -d'=' -f 2-)
 if ! [ ! "${brightness}" -ne "${brightness}" ] 2> /dev/null; then
-    rw
-    echo ${BRIGHTNESS_DEFAULT_VALUE} > ${BRIGHTNESS_FILE}
-    ro
     brightness=${BRIGHTNESS_DEFAULT_VALUE}
+	fw_setenv brightness ${brightness}
 fi
 echo ${brightness}
 exit 0

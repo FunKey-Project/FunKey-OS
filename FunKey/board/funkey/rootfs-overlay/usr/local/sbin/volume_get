@@ -1,6 +1,5 @@
 #!/bin/sh
 
-VOLUME_FILE=/etc/current_volume
 VOLUME_DEFAULT_VALUE=50
 
 # Check args
@@ -9,20 +8,11 @@ if [ ${#} -ne 0 ]; then
     exit 1
 fi
 
-# Sanity check: File does not exist
-if [ ! -f ${VOLUME_FILE} ]; then
-    rw
-    echo ${VOLUME_DEFAULT_VALUE} > ${VOLUME_FILE}
-    ro
-fi
-
 # Sanity check: Check if integer
-volume=$(cat "${VOLUME_FILE}")
+volume=$(fw_printenv | grep volume= | cut -d'=' -f 2-)
 if ! [ ! "${volume}" -ne "${volume}" ] 2> /dev/null; then
-    rw
-    echo ${VOLUME_DEFAULT_VALUE} > ${VOLUME_FILE}
-    ro
     volume=${VOLUME_DEFAULT_VALUE}
+	fw_setenv volume ${volume}
 fi
 echo ${volume}
 exit 0

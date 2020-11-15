@@ -1,7 +1,5 @@
 #!/bin/sh
 
-VOLUME_FILE=/etc/current_volume
-
 # Check args
 if [ ${#} -ne 1 ]; then
     echo "Usage: $(basename ${0}) new_volume_percentage"
@@ -18,7 +16,7 @@ fi
 volume_percent=${1}
 vol_mini=16;
 volume_scaled=$(echo "a = $volume_percent * (63 - $vol_mini) / 100 + $vol_mini + 0.5; scale = 0; a / 1" | bc -l)
-echo $volume_scaled
+#echo $volume_scaled
 
 # Get current value
 current_volume=$(volume_get)
@@ -35,8 +33,6 @@ amixer -q sset 'Headphone' ${volume_scaled} unmute
 
 # Change new volume value in volume file
 if [ ${?} -eq 0 -a ${current_volume} -ne ${volume_percent} ]; then
-    rw
-    echo ${volume_percent} > ${VOLUME_FILE}
-    ro
+    fw_setenv volume ${volume_percent}
 fi
 exit 0
