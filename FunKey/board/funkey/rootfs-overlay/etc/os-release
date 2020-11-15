@@ -1,9 +1,9 @@
 NAME="FunKey-OS"
-VERSION="0.6 (Khaki Kitten)"
+VERSION="0.97 (Khaki Kitten)"
 ID=funkey
 ID_LIKE=buildroot
-PRETTY_NAME="FunKey-OS 0.6"
-VERSION_ID="0.6"
+PRETTY_NAME="FunKey-OS 0.97"
+VERSION_ID="0.97"
 HOME_URL="https://www.funkey-project.com/"
 SUPPORT_URL="https://www.funkey-project.com/"
 BUG_REPORT_URL="https://www.funkey-project.com/"
