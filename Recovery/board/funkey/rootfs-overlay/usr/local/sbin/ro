@@ -1,3 +1,9 @@
 #!/bin/sh
 
+# Check that we are in RW
+mount | grep -q "ext4 (rw" || exit 1
+
+# Flush and mount in read only
 mount / -o remount,ro
+
+exit 0

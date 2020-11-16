@@ -12,7 +12,7 @@ getkey() {
 menu_display () {
     local entry=${1}
 
-    clear_notif
+    #clear_notif
     case ${entry} in
 	0)
 

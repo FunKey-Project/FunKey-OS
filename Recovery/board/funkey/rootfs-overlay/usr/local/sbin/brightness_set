@@ -1,6 +1,5 @@
 #!/bin/sh
 
-BRIGHTNESS_FILE=/etc/current_brightness
 SYSTEM_BRIGHTNESS=/sys/class/backlight/backlight/brightness
 
 # Check args
@@ -22,9 +21,7 @@ let value/=10
 echo ${value} > ${SYSTEM_BRIGHTNESS}
 
 # Set new brightness value in brightness file
-if [ ${?} -eq 0 ]; then
-    rw
-    echo ${brightness_percentage} > ${BRIGHTNESS_FILE}
-    ro
+if [ ${?} -eq 0 -a $(brightness_get) -ne ${brightness_percentage} ]; then
+    fw_setenv brightness ${brightness_percentage}
 fi
 exit 0
