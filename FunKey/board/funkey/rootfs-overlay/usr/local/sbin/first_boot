@@ -169,8 +169,6 @@ notif " 9/9 COPY FILES TO ^    USB PARTITION"
 copy_files_to_store_partition
 
 notif " FIRST BOOT SETUP FINISHED!"
-rw
-touch /.first_boot
-ro
+
 sleep 1
 clear_notif

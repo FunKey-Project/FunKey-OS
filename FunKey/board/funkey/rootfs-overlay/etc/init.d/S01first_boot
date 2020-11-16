@@ -4,8 +4,19 @@ THIS=$(basename $0)
 
 case "$1" in
     start)
-	if [ ! -f /.first_boot ]; then
+
+	# Check is SWAP partition already created
+	sgdisk /dev/mmcblk0 | grep swap
+    if [ $? -ne 0 ]; then
+		first_boot
+		exit $?
+	fi
+
+	# Check is share partition already created
+	sgdisk /dev/mmcblk0 | grep share
+	if [ $? -eq 0 ]; then
 	    first_boot
+	    exit $?
 	fi
 	;;
     stop)

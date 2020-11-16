@@ -9,44 +9,21 @@ root_mount=/tmp/rootfs
 
 do_preinst()
 {
-    notif " 1/5 EXTRACT FIRMWARE UPDATE.."
+    notif " 1/3 EXTRACT FIRMWARE UPDATE..^DO NOT TURN OFF THE CONSOLE"
     exit 0
 }
 
 do_postinst()
 {
-    local version
-
-    notif "2/5 RESIZE ROOT FILESYSTEM"
+    notif " 2/3 RESIZE ROOT FILESYSTEM^DO NOT TURN OFF THE CONSOLE"
     resize2fs ${root_part}
     if [ $? -ne 0 ]; then
-	notif "CANNOT RESIZE ROOT FILESYSTEM"
-	exit 1
+    	notif " CANNOT RESIZE ROOT ^FILESYSTEM"
+    	exit 1
     fi
-    notif "3/5 MOUNT ROOT FILESYSTEM"
-    mkdir -p ${root_mount}
-    mount -t ext4 ${root_part} ${root_mount}
-    if [ $? -ne 0 ]; then
-	notif "CANNOT MOUNT ROOT FILESYSTEM"
-	exit 1
-    fi
-    sgdisk /dev/mmcblk0 | grep swap
-    if [ $? -eq 0 ]; then
-	sgdisk /dev/mmcblk0 | grep share
-	if [ $? -eq 0 ]; then
-	    touch $[root_mount]/.first_boot
-	fi
-    fi
-    notif "4/5 UNMOUNT ROOT FILESYSTEM"
-    touch "${root_mount}/.first_boot"
-    umount ${root_mount}
-    if [ $? -ne 0 ]; then
-	notif "CANNOT UNMOUNT ROOT FILESYSTEM"
-	exit 1
-    fi
-    for file in $(ls /mnt/FunKey-rootfs-*.fwu); do
-	notif "5/5 ERASE UPDATE FILE"
-	rm -f "${file}"
+    for file in $(ls /mnt/FunKey-*.fwu); do
+    	notif " 3/3 ERASE UPDATE FILE^DO NOT TURN OFF THE CONSOLE"
+    	rm -f "${file}"
     done
     exit 0
 }
