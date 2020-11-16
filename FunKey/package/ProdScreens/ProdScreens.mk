@@ -6,9 +6,7 @@
 
 PRODSCREENS_VERSION = 6040b6aee8b5e277ca5ac37c7693376296710bbc
 PRODSCREENS_SITE_METHOD = git
-#PRODSCREENS_SITE = ssh://git@github.com/FunKey-Project/FunKey-ProdScreens.git
-PRODSCREENS_SITE = ssh://git@fk/FunKey-Project/FunKey-ProdScreens.git
-#PRODSCREENS_SITE = https://github.com/FunKey-Project/FunKey-ProdScreens.git
+PRODSCREENS_SITE = https://github.com/FunKey-Project/FunKey-ProdScreens.git
 PRODSCREENS_SITE_LICENSE = GPL-2.1+
 PRODSCREENS_SITE_LICENSE_FILES = COPYING
 

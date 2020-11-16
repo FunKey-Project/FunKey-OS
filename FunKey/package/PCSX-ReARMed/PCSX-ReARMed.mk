@@ -4,9 +4,9 @@
 #
 ################################################################################
 
-PCSX_REARMED_VERSION = abb2b261f1dbe6a54d94cf42c089bd9f6ecdc6b6
+PCSX_REARMED_VERSION = bbaf67447bbcc8b169a0f092492f97c27923c3b7
 PCSX_REARMED_SITE_METHOD = git
-PCSX_REARMED_SITE = ssh://git@fk/FunKey-Project/FunKey-Emulator-PCSX-ReARMed
+PCSX_REARMED_SITE = https://github.com/FunKey-Project/pcsx_rearmed.git
 PCSX_REARMED_LICENSE = GPL-2.0
 PCSX_REARMED_LICENSE_FILES = COPYING
 
@@ -54,6 +54,8 @@ define PCSX_REARMED_BUILD_CMDS
 	make \
 	)
 endef
+
+PCSX_REARMED_GIT_SUBMODULES = YES
 
 define PCSX_REARMED_INSTALL_TARGET_CMDS
 	$(INSTALL) -d -m 0755 $(TARGET_DIR)/usr/games

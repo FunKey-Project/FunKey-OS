@@ -4,9 +4,9 @@
 #
 ################################################################################
 
-PICODRIVE_VERSION = ed1e17a4c1b2e7e105327ecd4c025126d3b0f980
+PICODRIVE_VERSION = 6bc02d3ba011b718d5dcf6b9215ce2b671ab4f7d
 PICODRIVE_SITE_METHOD = git
-PICODRIVE_SITE = ssh://git@fk/FunKey-Project/FunKey-Emulator-picodrive
+PICODRIVE_SITE = https://github.com/FunKey-Project/picodrive.git
 PICODRIVE_LICENSE = MAME
 PICODRIVE_LICENSE_FILES = COPYING
 
@@ -54,6 +54,8 @@ define PICODRIVE_BUILD_CMDS
 	make \
 	)
 endef
+
+PICODRIVE_GIT_SUBMODULES = YES
 
 define PICODRIVE_INSTALL_TARGET_CMDS
 	$(INSTALL) -d -m 0755 $(TARGET_DIR)/usr/games

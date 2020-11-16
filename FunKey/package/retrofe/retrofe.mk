@@ -4,10 +4,9 @@
 #
 ################################################################################
 
-RETROFE_VERSION = bc8bdafec007f850135bde9cde1b8d313ee665a4
+RETROFE_VERSION = bda5f1bda8931659fe5f6d0a95b9858312b89da7
 RETROFE_SITE_METHOD = git
-#RETROFE_SITE = ssh://git@github.com/FunKey-Project/FunKey-Launcher-retrofe.git
-RETROFE_SITE = ssh://git@fk/FunKey-Project/FunKey-Launcher-retrofe.git
+RETROFE_SITE = https://github.com/FunKey-Project/RetroFE.git
 RETROFE_DEPENDENCIES = gstreamer1 gst1-plugins-base sdl sdl_image sdl_mixer sdl_sound sdl_ttf libglib2 sqlite zlib
 RETROFE_LICENSE = GPL-3.0
 RETROFE_LICENSE_FILES = LICENSE.txt
