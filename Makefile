@@ -102,7 +102,7 @@ defconfig:
 	@$(call MESSAGE,"Updating default configs in Recovery")
 	@$(BR) BR2_EXTERNAL=../Recovery O=../Recovery/output savedefconfig linux-update-defconfig uboot-update-defconfig busybox-update-config
 	@$(call MESSAGE,"Updating default configs in FunKey")
-	@$(BR) BR2_EXTERNAL=../FunKey O=../FunKey/output savedefconfig linux-update-defconfig uboot-update-defconfig busybox-update-config
+	@$(BR) BR2_EXTERNAL=../FunKey O=../FunKey/output savedefconfig linux-update-defconfig busybox-update-config
 
 clean:
 	@$(call MESSAGE,"Clean everything")
