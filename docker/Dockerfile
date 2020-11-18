@@ -39,6 +39,8 @@ RUN \
 	wget \
 	# OPTIONAL recommended dependencies
 	python \
+	python-dev \
+	xxd \
 	# OPTIONAL configuration interface dependencies
 	libncurses5-dev \
 	#libqt5-dev \
@@ -58,7 +60,10 @@ RUN \
 	# OPTIONAL documentation generation tools
 	#asciidoc \
 	#w3m \
-	#python3 \
+	python3 \
+	python3-dev \
+	python3-distutils \
+	python3-setuptools \
 	#dblatex \
 	# OPTIONAL graph generation tools
 	#graphviz \
