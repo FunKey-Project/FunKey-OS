@@ -93,7 +93,7 @@ RUN \
 	#
 	# Clone the FunKey-OS repository
 	git config --global url."https://91133a45ba476b7fc73c7b190dc597fa8f9c909d:@github.com/".insteadOf "https://github.com/" && \
-	git clone https://github.com/Michel-FK/FunKey-OS.git /home/funkey/FunKey-OS && \
+	git clone https://github.com/FunKey-Project/FunKey-OS.git /home/funkey/FunKey-OS && \
 	#
 	# Set file ownership
 	chown -R funkey:funkey /home/funkey

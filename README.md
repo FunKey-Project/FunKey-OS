@@ -107,7 +107,7 @@ After building, you should obtain the SD Card image `sdcard.img` and the firmwar
 When using a Docker container, all the prerequisites are automatically installed.
 
 ### How to get the sources
-When using a Docker container, you must first get the FunKey-OS [Dockerfile](https://raw.githubusercontent.com/Michel-FK/FunKey-Project/master/docker/Dockerfile) and put it into a separate directory:
+When using a Docker container, you must first get the FunKey-OS [Dockerfile](https://raw.githubusercontent.com/FunKey-Project/master/docker/Dockerfile) and put it into a separate directory:
 
 ```bash
 $ mkdir <FunKey directory>
@@ -123,7 +123,7 @@ $ docker build -t funkey-project/funkey-os .
 You may now build your FunKey with:
 
 ```bash
-$ docker run -d -name funkey-os funkey-project/funkey-os
+$ docker run -d --name funkey-os funkey-project/funkey-os
 ```
 This may take a while, consider getting yourself a cup or glass of your favorite beverage ;-)
 
