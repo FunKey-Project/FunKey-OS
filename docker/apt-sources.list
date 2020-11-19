@@ -1,4 +1,0 @@
-# Latest just before 20200514T000000Z:
-deb [check-valid-until=no] http://snapshot.debian.org/archive/debian/20200513T204247Z/ buster main
-deb [check-valid-until=no] http://snapshot.debian.org/archive/debian/20200513T204247Z/ buster-updates main
-deb [check-valid-until=no] http://snapshot.debian.org/archive/debian-security/20200513T204247Z/ buster/updates main

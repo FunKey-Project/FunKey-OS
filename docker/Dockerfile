@@ -8,9 +8,6 @@ LABEL \
 # Setup environment
 ENV DEBIAN_FRONTEND noninteractive
 
-# This repository can be a bit slow at times. Don't panic...
-COPY apt-sources.list /etc/apt/sources.list
-
 RUN \
 	# Install dependencies
 	# See https://buildroot.org/downloads/manual/manual.html#requirement
@@ -94,13 +91,9 @@ RUN \
 	usermod -a -G sudo funkey && \
 	echo "funkey:funkey" | chpasswd && \
 	#
-	# Create skeleton directories
-	# mkdir -p /home/funkey/.buildroot-ccache \
-	# 	/home/funkey/FunKey-OS/buildroot \
-	# 	/home/funkey/FunKey-OS/FunKey/dl \
-	# 	/home/funkey/FunKey-OS/FunKey/output/build \
-	# 	/home/funkey/FunKey-OS/FunKey/output/host \
-	# 	/home/funkey/FunKey-OS/FunKey/output/target && \
+	# Clone the FunKey-OS repository
+	git config --global url."https://91133a45ba476b7fc73c7b190dc597fa8f9c909d:@github.com/".insteadOf "https://github.com/" && \
+	git clone https://github.com/Michel-FK/FunKey-OS.git /home/funkey/FunKey-OS && \
 	#
 	# Set file ownership
 	chown -R funkey:funkey /home/funkey
@@ -108,22 +101,23 @@ RUN \
 # Set user
 USER funkey
 
+# Set working directory
+WORKDIR /home/funkey/FunKey-OS
+
 # Set environment
 ENV \
 	HOME=/home/funkey \
-	LC_ALL=en_US.UTF-8 \
-	BR2_EXTERNAL=../FunKey \
-	O=../FunKey/output
-
-# Set working directory
-WORKDIR /home/funkey/
-#WORKDIR /home/funkey/FunKey-OS
+	LC_ALL=en_US.UTF-8
 
 # VOLUME ["/home/funkey/.buildroot-ccache", \
 # 	"/home/funkey/FunKey-OS/buildroot", \
-# 	"/home/funkey/FunKey-OS/FunKey/dl", \
-# 	"/home/funkey/FunKey-OS/FunKey/output/build", \
+# 	"/home/funkey/FunKey-OS/dowload", \
+# 	"/home/funkey/FunKey-OS/images", \
+# 	"/home/funkey/FunKey-OS/Recovery/output/build", \
+# 	"/home/funkey/FunKey-OS/Recovery/output/host", \
+# 	"/home/funkey/FunKey-OS/Recovery/output/target", \
 # 	"/home/funkey/FunKey-OS/FunKey/output/host", \
+# 	"/home/funkey/FunKey-OS/FunKey/output/build", \
 # 	"/home/funkey/FunKey-OS/FunKey/output/target"]
 
-#CMD ["/bin/bash"]
+CMD ["/usr/bin/make", "-C", "/home/funkey/FunKey-OS"]

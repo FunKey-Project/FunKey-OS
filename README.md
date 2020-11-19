@@ -107,58 +107,41 @@ After building, you should obtain the SD Card image `sdcard.img` and the firmwar
 When using a Docker container, all the prerequisites are automatically installed.
 
 ### How to get the sources
-When using a Docker container, you must first get the FunKey-OS [Dockerfile](https://raw.githubusercontent.com/Michel-FK/FunKey-Project/master/docker/Dockerfile) and Debian [apt-sources.list](https://raw.githubusercontent.com/Michel-FK/FunKey-Project/master/docker/apt-sources.list) and put them into a separate directory:
+When using a Docker container, you must first get the FunKey-OS [Dockerfile](https://raw.githubusercontent.com/Michel-FK/FunKey-Project/master/docker/Dockerfile) and put it into a separate directory:
 
 ```bash
 $ mkdir <FunKey directory>
 $ cd <FunKey directory>
 $ wget https://raw.githubusercontent.com/FunKey-Project/FunKey-OS/master/docker/Dockerfile
-$ wget https://raw.githubusercontent.com/FunKey-Project/FunKey-OS/master/docker/apt-sources.list
 ```
 You must then build the docker image (don't forget the final dot!):
 ```bash
 $ docker build -t funkey-project/funkey-os .
 ```
 
-You are now ready to run interactively a new container based on this docker image:
-```bash
-$ docker run -d -it --name funkey-os funkey-project/funkey-os
-```
-You can then clone the FunKey OS repository from Github in this brand new container:
-
-```bash
-$ git clone https://github.com/FunKey-Project/FunKey-OS.git <FunKey directory>
-```
-Then enter into the created directory:
-
-```bash
-$ cd <FunKey directory>
-```
-
 ### Build the disk image & firmware update files
 You may now build your FunKey with:
 
 ```bash
-$ make
+$ docker run -d -name funkey-os funkey-project/funkey-os
 ```
 This may take a while, consider getting yourself a cup or glass of your favorite beverage ;-)
 
 <ins>Note</ins>: you will need to have access to the network, since buildroot will download the package sources.
 
 ### Result of the build
-After building, you can exit the container by typing Ctrl+D.
-
-You can copy the SD Card image `sdcard.img` and the firmware update file `FunKey-rootfs-X.Y.fwu` from the container into the host current directory:
+After building, you can copy the SD Card image `sdcard.img` and the firmware update file `FunKey-rootfs-X.Y.fwu` from the container into the host current directory:
 ```bash
-$ docker cp funkey-os:/home/funkey/<FunKey directory>/images/sdcard.img ./
-$ docker cp funkey-os:/home/funkey/<FunKey directory>/images/FunKey-rootfs-X.Y.fwu ./
+$ mkdir images
+$ docker cp funkey-os:/home/funkey/<FunKey directory>/images/sdcard.img images/
+$ docker cp funkey-os:/home/funkey/<FunKey directory>/images/FunKey-rootfs-X.Y.fwu images/
 ```
 
 ## How to write to the SD card
-You can copy the bootable "sdcard.img" onto an SD card using "dd":
+You can copy the bootable `images/sdcard.img` onto an SD card using "dd":
 
 ```bash
-$ sudo dd if=sdcard.img of=/dev/sdX
+$ sudo dd if=images/sdcard.img of=/dev/sdX
 ```
 <ins>Warning</ins>: Please make sure that */dev/sdX* device corresponds to your SD Card, otherwise you may wipe out one of your hard drive partitions!
 
@@ -170,3 +153,13 @@ https://www.balena.io/etcher/
 Once the SD card is burnt, insert it into your FunKey S console slot, and
 power it up. Your new system should come up now and start a console on
 the UART0 serial port and display the retro game launcher on the graphical screen.
+
+## How to update the FunKey S firmware
+It is possible to update a FunKey-S over USB:
+ - Connect the FunKey S console to your host machine using the USB cable
+ - From the retro-game launcher, press the **ON/OFF** button to access the menu
+ - Using the **Up/Down** keys, select the "**MOUNT USB**" screen ad press the "**A**" key twice to mount the FunKey S on your machine as an USB mass storage drive
+ - Drag and drop the images/FunKey-rootfs-X.Y.fwu file into it
+ - When finished, eject the USB mass storage from your host machine
+ - Back on the FunKey S console, press the "**A**" key twice to eject the USB mass storage drive
+ - The FunKey S console will automatically detect the firmware update file and proceed with the update before returning to the retro game launcher screen once finished

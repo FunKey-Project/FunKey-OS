@@ -1,9 +1,9 @@
 NAME="FunKey-OS Recovery"
-VERSION="0.991 (Khaki Kitten)"
+VERSION="1.00 (Khaki Kitten)"
 ID=funkey-recovery
 ID_LIKE=buildroot
-PRETTY_NAME="FunKey-OS Recovery 0.991"
-VERSION_ID="0.991"
+PRETTY_NAME="FunKey-OS Recovery 1.00"
+VERSION_ID="1.00"
 HOME_URL="https://www.funkey-project.com/"
 SUPPORT_URL="https://www.funkey-project.com/"
 BUG_REPORT_URL="https://www.funkey-project.com/"
