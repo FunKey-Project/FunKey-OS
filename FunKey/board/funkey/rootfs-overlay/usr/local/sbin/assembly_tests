@@ -2,8 +2,9 @@
 
 ## Check if tests must be run
 RUN_FILE=/mnt/.assembly_tests
-if [ ! -f ${RUN_FILE} ]; then
-    echo "${RUN_FILE} not present, not performing assembly tests."
+RUN_ENV_VAR=$(fw_printenv -n assembly_tests 2>/dev/null)
+if [ ! -f ${RUN_FILE} -a "x${RUN_ENV_VAR}" != "x1" ]; then
+    #echo "${RUN_FILE} not present, not performing assembly tests."
     exit 0
 fi
 
@@ -29,7 +30,7 @@ stop_loop=false
 proc_uid=$($GET_PROC_UID)
 
 ## Defines
-VERSION="0.01"
+VERSION="1.00"
 LOG_FILE="/root/logs/assembly_tests/assy_tests_${proc_uid}.log"
 [ -d $(dirname $LOG_FILE) ] || mkdir -p $(dirname $LOG_FILE)
 MAGNET_DETECTED_FILE="/root/.assembly_tests_magnet_detected"
@@ -359,7 +360,7 @@ ro
 ## Exit processes
 if ! $test_failed; then
 	## Remove run file => no assembly tests on next run
-	rm ${RUN_FILE}
+	rm -f ${RUN_FILE}
 	sync
 	exit 0
 else

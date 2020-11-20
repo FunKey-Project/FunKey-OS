@@ -9,7 +9,7 @@ if [ ${#} -ne 0 ]; then
 fi
 
 # Sanity check: Check if integer
-brightness=$(fw_printenv | grep brightness= | cut -d'=' -f 2-)
+brightness=$(fw_printenv -n brightness 2>/dev/null)
 if ! [ ! "${brightness}" -ne "${brightness}" ] 2> /dev/null; then
     brightness=${BRIGHTNESS_DEFAULT_VALUE}
 	fw_setenv brightness ${brightness}

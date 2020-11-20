@@ -9,7 +9,7 @@ if [ ${#} -ne 0 ]; then
 fi
 
 # Sanity check: Check if integer
-volume=$(fw_printenv | grep volume= | cut -d'=' -f 2-)
+volume=$(fw_printenv -n volume 2>/dev/null)
 if ! [ ! "${volume}" -ne "${volume}" ] 2> /dev/null; then
     volume=${VOLUME_DEFAULT_VALUE}
 	fw_setenv volume ${volume}

@@ -227,9 +227,11 @@ menu_run () {
 	    if [ $? -eq 0 ]; then
 		if [ -e /mnt/.assembly_tests ]; then
 		    rm -f /mnt/.assembly_tests
+		    fw_setenv assembly_tests 0
 		    message=" FACTORY TESTS ENABLE"
 		else
-		    touch /mnt/.assembly_tests
+		    #touch /mnt/.assembly_tests
+		    fw_setenv assembly_tests 1
 		    message=" FACTORY TESTS DISABLE"
 		fi
 		notif "${message}"
