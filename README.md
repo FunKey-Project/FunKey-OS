@@ -94,7 +94,7 @@ You may now build your FunKey with:
 ```bash
 $ make
 ```
-This may take a while, consider getting yourself a cup or glass of your favorite beverage ;-)
+This may take a while (~1h30), so consider getting yourself a cup or glass of your favorite beverage ;-)
 
 <ins>Note</ins>: you will need to have access to the network, since buildroot will download the package sources.
 
@@ -125,7 +125,7 @@ You may now build your FunKey with:
 ```bash
 $ docker run -d --name funkey-os funkey-project/funkey-os
 ```
-This may take a while, consider getting yourself a cup or glass of your favorite beverage ;-)
+This may take a while (~1h30), so consider getting yourself a cup or glass of your favorite beverage ;-)
 
 <ins>Note</ins>: you will need to have access to the network, since buildroot will download the package sources.
 
