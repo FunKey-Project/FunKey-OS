@@ -107,7 +107,7 @@ After building, you should obtain the SD Card image `sdcard.img` and the firmwar
 When using a Docker container, all the prerequisites are automatically installed.
 
 ### How to get the sources
-When using a Docker container, you must first get the FunKey-OS [Dockerfile](https://raw.githubusercontent.com/FunKey-Project/master/docker/Dockerfile) and put it into a separate directory:
+When using a Docker container, you must first get the FunKey-OS [Dockerfile](https://raw.githubusercontent.com/FunKey-Project/FunKey-OS/master/docker/Dockerfile) and put it into a separate directory:
 
 ```bash
 $ mkdir <FunKey directory>
@@ -154,7 +154,7 @@ Once the SD card is burnt, insert it into your FunKey S console slot, and
 power it up. Your new system should come up now and start a console on
 the UART0 serial port and display the retro game launcher on the graphical screen.
 
-## How to update the FunKey S firmware
+## How to update the FunKey S firmware
 It is possible to update a FunKey-S over USB:
  - Connect the FunKey S console to your host machine using the USB cable
  - From the retro-game launcher, press the **ON/OFF** button to access the menu
