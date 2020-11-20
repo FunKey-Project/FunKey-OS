@@ -94,7 +94,7 @@ You may now build your FunKey with:
 ```bash
 $ make
 ```
-This may take a while (~1h30), so consider getting yourself a cup or glass of your favorite beverage ;-)
+This may take a while (~1h30), so consider getting yourself a cup, a glass or a bottle of your favorite beverage ;-)
 
 <ins>Note</ins>: you will need to have access to the network, since buildroot will download the package sources.
 
@@ -111,6 +111,7 @@ When using a Docker container, you must first create a new directory (here we cr
 ```bash
 $ mkdir FunKey-OS
 $ cd FunKey-OS
+$ wget https://raw.githubusercontent.com/FunKey-Project/FunKey-OS/master/docker/Dockerfile
 ```
 
 You must then build the docker image (don't forget the final dot!):
@@ -138,7 +139,7 @@ Or:
 $ docker logs funkey-os
 ```
 
-This may take a while (~1h30), so consider getting yourself a cup or glass of your favorite beverage ;-)
+This may take a while (~1h30), so consider getting yourself a cup, a glass or a bottle of your favorite beverage ;-)
 
 <ins>Note</ins>: you will need to have access to the network, since buildroot will download the package sources.
 
