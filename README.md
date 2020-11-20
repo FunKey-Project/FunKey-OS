@@ -120,10 +120,24 @@ $ docker build -t funkey-project/funkey-os .
 
 ### Build the disk image & firmware update files
 You may now build your FunKey with:
+```bash
+$ docker run --name funkey-os funkey-project/funkey-os
+```
 
+Or alternatively, you can run it in the background with:
 ```bash
 $ docker run -d --name funkey-os funkey-project/funkey-os
 ```
+
+If you launch it in the background, you can still follow what is going on with either:
+```bash
+$ docker top funkey-os
+```
+Or:
+```bash
+$ docker logs funkey-os
+```
+
 This may take a while (~1h30), so consider getting yourself a cup or glass of your favorite beverage ;-)
 
 <ins>Note</ins>: you will need to have access to the network, since buildroot will download the package sources.
