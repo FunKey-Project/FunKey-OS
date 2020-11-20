@@ -111,7 +111,7 @@ When using a Docker container, you must first create a new directory (here we cr
 ```bash
 $ mkdir FunKey-OS
 $ cd FunKey-OS
-$ wget https://raw.githubusercontent.com/FunKey-Project/FunKey-OS/master/docker/Dockerfile
+$ wget https://raw.githubusercontent.com/FunKey-Project/FunKey-OS/master/docker/Dockerfile -o Dockerfile
 ```
 
 You must then build the docker image (don't forget the final dot!):
