@@ -22,5 +22,11 @@ mv ${TARGET_DIR}/etc/init.d/S50dropbear ${TARGET_DIR}/etc/init.d/S42dropbear
 rm -rf ${TARGET_DIR}/etc/dropbear
 ln -s /tmp ${TARGET_DIR}/etc/dropbear
 
-# Generate U-Boot environment
+# Generate U-Boot environment for app
 ${HOST_DIR}/bin/mkenvimage -p 0x0 -s 0x20000 -o ${BINARIES_DIR}/u-boot-env.img ${TARGET_DIR}/etc/u-boot.env
+
+# Generate U-Boot environment for production
+cp ${TARGET_DIR}/etc/u-boot.env ${TARGET_DIR}/etc/u-boot-prod.env
+echo "assembly_tests=1" >> ${TARGET_DIR}/etc/u-boot-prod.env
+${HOST_DIR}/bin/mkenvimage -p 0x0 -s 0x20000 -o ${BINARIES_DIR}/u-boot-env-prod.img ${TARGET_DIR}/etc/u-boot-prod.env
+rm ${TARGET_DIR}/etc/u-boot-prod.env

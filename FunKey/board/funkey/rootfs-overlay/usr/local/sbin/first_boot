@@ -129,9 +129,10 @@ format_backing_store_partition () {
 }
 
 copy_files_to_store_partition () {
-    # Add file to force assembly tests 
+    # Add file to force assembly tests
+    
+    
     mount /mnt/ || die 18 "Cannot mount /mnt"
-    #touch /mnt/.assembly_tests || die 19 "Cannot create assembly tests run file"
     unzip -q -o /usr/local/share/mnt_freware_games.zip -d /mnt/
     umount /mnt/ || die 20 "Cannot unmount /mnt"
     return 0

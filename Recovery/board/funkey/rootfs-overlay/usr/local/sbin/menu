@@ -62,9 +62,9 @@ menu_display () {
 
 	    # Factory tests enable/disable
 	    if [ -e /mnt/.assembly_tests ]; then
-		message=" FACTORY TESTS DISABLE"
+			message=" FACTORY TESTS DISABLE"
 	    else
-		message=" FACTORY TESTS ENABLE"
+			message=" FACTORY TESTS ENABLE"
 	    fi
 	    ;;
 
@@ -223,21 +223,15 @@ menu_run () {
 	6)
 
 	    # Factory tests enable/disable
-	    mount | grep -q /dev/mmcblk0p4
-	    if [ $? -eq 0 ]; then
-		if [ -e /mnt/.assembly_tests ]; then
-		    rm -f /mnt/.assembly_tests
+	    RUN_ENV_VAR=$(fw_printenv -n assembly_tests 2>/dev/null)
+		if [ "x${RUN_ENV_VAR}" == "x1" ]; then
 		    fw_setenv assembly_tests 0
 		    message=" FACTORY TESTS ENABLE"
 		else
-		    #touch /mnt/.assembly_tests
 		    fw_setenv assembly_tests 1
 		    message=" FACTORY TESTS DISABLE"
 		fi
 		notif "${message}"
-	    else
-		notif "${message}...^CANNOT TEST IF MOUNTED!"
-	    fi
 	    ;;
 
 	7)

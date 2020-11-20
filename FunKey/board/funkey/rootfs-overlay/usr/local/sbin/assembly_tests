@@ -1,10 +1,8 @@
 #!/bin/sh
 
 ## Check if tests must be run
-RUN_FILE=/mnt/.assembly_tests
 RUN_ENV_VAR=$(fw_printenv -n assembly_tests 2>/dev/null)
-if [ ! -f ${RUN_FILE} -a "x${RUN_ENV_VAR}" != "x1" ]; then
-    #echo "${RUN_FILE} not present, not performing assembly tests."
+if [ "x${RUN_ENV_VAR}" != "x1" ]; then
     exit 0
 fi
 
@@ -360,7 +358,7 @@ ro
 ## Exit processes
 if ! $test_failed; then
 	## Remove run file => no assembly tests on next run
-	rm -f ${RUN_FILE}
+	fw_setenv assembly_tests 0
 	sync
 	exit 0
 else

@@ -81,6 +81,14 @@ image: fun
 	@./Recovery/output/host/bin/genimage --loglevel 0 --inputpath .
 	@rm -rf root tmp
 
+
+image-prod: fun
+	@$(call MESSAGE,"Creating disk image")
+	@rm -rf root tmp
+	@mkdir -p root tmp
+	@./Recovery/output/host/bin/genimage --loglevel 0 --config "genimage-prod.cfg" --inputpath .
+	@rm -rf root tmp
+
 update: fun
 	@$(call MESSAGE,"Creating update file")
 	@rm -rf tmp

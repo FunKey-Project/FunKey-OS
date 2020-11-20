@@ -9,7 +9,7 @@ nb_secs_to_wait=$1
 
 # Wait $nb_secs_to_wait seconds to catch signal USR2
 # If the signal is caught, then it means a process canceled this shutdown
-sleep ${nbl_secs_to_wait}
+sleep ${nb_secs_to_wait}
 
 # Too late to cancel: init shutdown
 shutdown_funkey
