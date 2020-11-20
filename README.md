@@ -76,16 +76,16 @@ $ sudo apt install bash bc binutils build-essential bzip2 ca-certificates cpio c
 ```
 
 ### How to get the sources
-When using either physical or virtual Linux machines, you must clone the FunKey OS repository from Github:
+When using either physical or virtual Linux machines, you must clone the FunKey OS repository from Github (here we place it into a `FunKey-OS` directory):
 
 ```bash
-$ git clone https://github.com/FunKey-Project/FunKey-OS.git <FunKey directory>
+$ git clone https://github.com/FunKey-Project/FunKey-OS.git FunKey-OS
 ```
 
 Then enter into the created directory:
 
 ```bash
-$ cd <FunKey directory>
+$ cd FunKey-OS
 ```
 
 ### Build the disk image & firmware update files
@@ -107,11 +107,11 @@ After building, you should obtain the SD Card image `sdcard.img` and the firmwar
 When using a Docker container, all the prerequisites are automatically installed.
 
 ### How to get the sources
-When using a Docker container, you must first get the FunKey-OS [Dockerfile](https://raw.githubusercontent.com/FunKey-Project/FunKey-OS/master/docker/Dockerfile) and put it into a separate directory:
+When using a Docker container, you must first get the FunKey-OS [Dockerfile](https://raw.githubusercontent.com/FunKey-Project/FunKey-OS/master/docker/Dockerfile) and put it into a separate directory  (here we place it into a `FunKey-OS` directory):
 
 ```bash
-$ mkdir <FunKey directory>
-$ cd <FunKey directory>
+$ mkdir FunKey-OS
+$ cd FunKey-OS
 $ wget https://raw.githubusercontent.com/FunKey-Project/FunKey-OS/master/docker/Dockerfile
 ```
 You must then build the docker image (don't forget the final dot!):
@@ -133,8 +133,8 @@ This may take a while, consider getting yourself a cup or glass of your favorite
 After building, you can copy the SD Card image `sdcard.img` and the firmware update file `FunKey-rootfs-X.Y.fwu` from the container into the host current directory:
 ```bash
 $ mkdir images
-$ docker cp funkey-os:/home/funkey/<FunKey directory>/images/sdcard.img images/
-$ docker cp funkey-os:/home/funkey/<FunKey directory>/images/FunKey-rootfs-X.Y.fwu images/
+$ docker cp funkey-os:/home/funkey/FunKey-OS/images/sdcard.img images/
+$ docker cp funkey-os:/home/funkey/FunKey-OS/images/FunKey-rootfs-X.Y.fwu images/
 ```
 
 ## How to write to the SD card
