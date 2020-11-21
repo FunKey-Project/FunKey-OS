@@ -1,4 +1,4 @@
-
+![FunKey-OS Build](https://github.com/FunKey-Project/FunKey-OS/workflows/FunKey-OS%20Build/badge.svg)
 # FunKey-OS
 
 ## Intro
