@@ -1,6 +1,6 @@
 software =
 {
-        version = "0.6";
+        version = "1.00";
 
         hardware-compatibility = [ "#RE:^Rev\.[D-E]$" ];
 
