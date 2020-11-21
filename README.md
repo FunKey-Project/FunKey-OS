@@ -99,7 +99,7 @@ This may take a while (~1h30), so consider getting yourself a cup, a glass or a 
 <ins>Note</ins>: you will need to have access to the network, since buildroot will download the package sources.
 
 ### Result of the build
-After building, you should obtain the SD Card image `sdcard.img` and the firmware update file `FunKey-rootfs-X.Y.fwu` in the `image` directory.
+After building, you should obtain the SD Card image `sdcard.img` and the firmware update file `FunKey-rootfs-X.Y.fwu` in the `images` directory.
 
 ## Build in a container
 
