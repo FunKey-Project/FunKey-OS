@@ -116,18 +116,18 @@ $ wget https://raw.githubusercontent.com/FunKey-Project/FunKey-OS/master/docker/
 
 You must then build the docker image (don't forget the final dot!):
 ```bash
-$ docker build -t funkey-project/funkey-os .
+$ docker build -t funkeyproject/funkey-os .
 ```
 
 ### Build the disk image & firmware update files
 You may now build your FunKey with:
 ```bash
-$ docker run --name funkey-os funkey-project/funkey-os
+$ docker run --name funkey-os funkeyproject/funkey-os
 ```
 
 Or alternatively, you can run it in the background with:
 ```bash
-$ docker run -d --name funkey-os funkey-project/funkey-os
+$ docker run -d --name funkey-os funkeyproject/funkey-os
 ```
 
 If you launch it in the background, you can still follow what is going on with either:
