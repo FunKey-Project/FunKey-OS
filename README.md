@@ -147,8 +147,8 @@ This may take a while (~1h30), so consider getting yourself a cup, a glass or a 
 After building, you can copy the SD Card image `sdcard.img` and the firmware update file `FunKey-rootfs-X.Y.fwu` from the container into the host current directory:
 ```bash
 $ mkdir images
-$ docker cp funkey-os:/home/funkey/FunKey-OS/images/sdcard.img images/
-$ docker cp funkey-os:/home/funkey/FunKey-OS/images/FunKey-rootfs-X.Y.fwu images/
+$ docker cp funkey-os:/home/funkey/FunKey-OS/images/FunKey-sdcard-X.Y.Z.img images/
+$ docker cp funkey-os:/home/funkey/FunKey-OS/images/FunKey-rootfs-X.Y.Z.fwu images/
 ```
 
 ## How to write to the SD card
