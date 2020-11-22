@@ -80,7 +80,7 @@ image: fun
 	@mkdir -p root tmp
 	@./Recovery/output/host/bin/genimage --loglevel 0 --inputpath .
 	@rm -rf root tmp
-
+	@mv images/sdcard.img images/FunKey-sdcard-$(shell cat FunKey/board/funkey/rootfs-overlay/etc/sw-versions | cut -f 2).img
 
 image-prod: fun
 	@$(call MESSAGE,"Creating disk image")
@@ -88,6 +88,7 @@ image-prod: fun
 	@mkdir -p root tmp
 	@./Recovery/output/host/bin/genimage --loglevel 0 --config "genimage-prod.cfg" --inputpath .
 	@rm -rf root tmp
+	@mv images/sdcard-prod.img images/FunKey-sdcard-prod-$(shell cat FunKey/board/funkey/rootfs-overlay/etc/sw-versions | cut -f 2).img
 
 update: fun
 	@$(call MESSAGE,"Creating update file")
