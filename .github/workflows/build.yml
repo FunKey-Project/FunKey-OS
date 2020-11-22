@@ -28,6 +28,5 @@ jobs:
       with:
         name: Upload artifacts
         path: |
-          images/sdcard.img
-          images/FunKey-rootfs-*.fwu
+          images/*
           br.log
