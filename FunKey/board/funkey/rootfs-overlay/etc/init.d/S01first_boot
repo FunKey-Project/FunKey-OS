@@ -6,14 +6,14 @@ case "$1" in
     start)
 
     # Check is SWAP partition already created
-    sgdisk -p /dev/mmcblk0 | grep swap > /dev/null
+    fdisk -l /dev/mmcblk0 | grep "Linux swap" > /dev/null
     if [ $? -ne 0 ]; then
-            first_boot
-            exit $?
+        first_boot
+        exit $?
     fi
 
     # Check is share partition already created
-    sgdisk -p /dev/mmcblk0 | grep share > /dev/null
+    fdisk -l /dev/mmcblk0 | grep "W95 FAT32" > /dev/null
     if [ $? -ne 0 ]; then
         first_boot
         exit $?

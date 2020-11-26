@@ -1,12 +1,12 @@
 NAME="FunKey-OS"
-VERSION="1.0.1 (Funky Fish)"
+VERSION="1.1.0 (Quacking Quagga)"
 ID=funkey
 ID_LIKE=buildroot
-PRETTY_NAME="FunKey-OS 1.0.1"
-VERSION_ID="1.0.1"
+PRETTY_NAME="FunKey-OS 1.1.0"
+VERSION_ID="1.1.0"
 HOME_URL="https://www.funkey-project.com/"
 SUPPORT_URL="https://www.funkey-project.com/"
 BUG_REPORT_URL="https://www.funkey-project.com/"
 PRIVACY_POLICY_URL="https://www.funkey-project.com"
-VERSION_CODENAME=Funky
-UBUNTU_CODENAME=Funky
+VERSION_CODENAME=Quacking
+UBUNTU_CODENAME=Quacking

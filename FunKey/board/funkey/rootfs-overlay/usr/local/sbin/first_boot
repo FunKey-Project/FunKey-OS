@@ -3,6 +3,9 @@
 # Uncomment the following line to get debug info
 #set -x
 
+# This is to avoid expanding '*' in fdisk results
+set -f
+
 source /usr/local/lib/utils
 
 SELF=$(basename $0)
@@ -22,11 +25,6 @@ swap_part=/dev/mmcblk0p${swap_part_num}
 let share_part_num=${swap_part_num}+1
 share_part=/dev/mmcblk0p${share_part_num}
 
-check_first_boot () {
-    [ -f /.first_boot ] && die 0 "nothing to do"
-    return 0
-}
-
 check_root_id () {
     [ $(id -u) -ne 0 ] && die 3 "this script must be run as root, aborting"
     return 0
@@ -35,25 +33,30 @@ check_root_id () {
 resize_rootfs_partition () {
 
     # Check that the last partition is the rootfs partition
-    local last_part_line=$(sgdisk -p /dev/mmcblk0 | tail -n 1)
+    local last_part_line=$(fdisk -l /dev/mmcblk0 2>/dev/null | tail -n 1)
     set ${last_part_line}
-    local last_part=${1}
-    if [ "${last_part}" != "${root_part_num}" ]; then
+    local last_part_num=${1#/dev/mmcblk0p}
+    local part_start=${3}
+    if [ "${last_part_num}" != "${root_part_num}" ]; then
 	die 4 "rootfs is not the last partition. Don't know how to expand, aborting"
     fi
 
     # Remove (temporarily) the rootfs partition
-    sgdisk -d ${root_part_num} /dev/mmcblk0 >/dev/null 2>&1 || die 5 "cannot remove the rootfs partition, aborting"
-
     # Re-create the rootfs partition with a 1GB size
-    sgdisk -n ${root_part_num}:0:+1G -c ${root_part_num}:rootfs /dev/mmcblk0 >/dev/null 2>&1 || die 6 "cannot resize the rootfs partition, aborting"
+    fdisk /dev/mmcblk0 >/dev/null 2>&1 <<EOF
+d
+${root_part_num}
+n
+p
+${root_part_num}
+${part_start}
++1G
+w
+EOF
 
     # Mark the rootfs partition as bootable
-    sgdisk -A ${root_part_num}:set:2 /dev/mmcblk0 >/dev/null 2>&1 || die 7 "cannot make the rootfs partition bootable, aborting"
+    sfdisk -A /dev/mmcblk0 ${root_part_num} >/dev/null 2>&1 || die 7 "cannot make the rootfs partition bootable, aborting"
 
-    # Copy the primary GPT to the end of the disk
-    sgdisk -e /dev/mmcblk0 >/dev/null 2>&1 || die 8 "cannot move the GPT to the end of the disk"
-    sync
     return 0
 }
 
@@ -74,9 +77,9 @@ create_swap () {
     if [ $? -ne 0 ]; then
 
 	# Check that the last partition is the rootfs partition
-	local last_part_line=$(sgdisk -p /dev/mmcblk0 2>/dev/null | tail -n 1)
+	local last_part_line=$(fdisk -l /dev/mmcblk0 2>/dev/null | tail -n 1)
 	set ${last_part_line}
-	local last_part_num=${1}
+	local last_part_num=${1#/dev/mmcblk0p}
 	if [ "$last_part_num" != "$root_part_num" ]; then
 	    die 11 "rootfs is not the last partition. Don't know how to create the backing store partition"
 	fi
@@ -84,9 +87,17 @@ create_swap () {
 	# Create an additional linux swap partition
 	let swap_part_num=${last_part_num}+1
 	swap_part=/dev/mmcblk0p${swap_part_num}
-	sgdisk -n ${swap_part_num}:0:+128M -c ${swap_part_num}:swap -t ${swap_part_num}:8200 /dev/mmcblk0 >/dev/null 2>&1 || die 12 "cannot create the swap partition, aborting"
-	sync
-	partprobe /dev/mmcblk0 >/dev/null 2>&1 || die 13 "cannot reload the partition table, aborting"
+	fdisk /dev/mmcblk0 >/dev/null 2>&1 <<EOF
+n
+p
+${swap_part_num}
+
++128M
+t
+${wap_part_num}
+82
+w
+EOF
 	mkswap ${swap_part} >/dev/null 2>&1
 	if [ $? -ne 0 ]; then
 	    die 14 "cannot create swap file, aborting"
@@ -105,17 +116,27 @@ create_backing_store_partition () {
     if [ $? -ne 0 ]; then
 
 	# Check that the last partition is the swap partition
-	local last_part_line=$(sgdisk -p /dev/mmcblk0 2>/dev/null | tail -n 1)
+	local last_part_line=$(fdisk -l /dev/mmcblk0 2>/dev/null | tail -n 1)
 	set ${last_part_line}
-	local last_part_num=${1}
+	local last_part_num=${1#/dev/mmcblk0p}
 	if [ "${last_part_num}" != "${swap_part_num}" ]; then
 	    die 15 "rootfs is not the last partition. Don't know how to create the backing store partition"
 	fi
 
-	# Create an additional Microsoft basic data partition share partition that fills the disk
+	# Create an additional FAT32 share partition that fills the disk
 	let share_part_num=${last_part_num}+1
 	share_part=/dev/mmcblk0p${share_part_num}
-	sgdisk -n ${share_part_num}:0:-0 -c ${share_part_num}:share -t ${share_part_num}:0700 /dev/mmcblk0 >/dev/null 2>&1 || die 16 "cannot create the backing store partition, aborting"
+	fdisk /dev/mmcblk0 >/dev/null 2>&1 <<EOF
+n
+p
+${share_part_num}
+
+
+t
+${share_part_num}
+c
+w
+EOF
 	sync
     fi
     return 0
@@ -139,7 +160,6 @@ copy_files_to_store_partition () {
 }
 
 check_root_id
-check_first_boot
 notif " FIRST BOOT DETECTED"
 
 notif " 1/9 RESIZE ROOT PARTITION"
