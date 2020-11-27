@@ -99,7 +99,7 @@ This may take a while (~1h30), so consider getting yourself a cup, a glass or a 
 <ins>Note</ins>: you will need to have access to the network, since buildroot will download the package sources.
 
 ### Result of the build
-After building, you should obtain the SD Card image `sdcard.img` and the firmware update file `FunKey-rootfs-X.Y.fwu` in the `images` directory.
+After building, you should obtain the SD Card image `FunKey-sdcard-X.Y.Z.img` and the firmware update file `FunKey-rootfs-X.Y.fwu` in the `images` directory.
 
 ## Build in a container
 
@@ -155,7 +155,7 @@ $ docker cp funkey-os:/home/funkey/FunKey-OS/images/FunKey-rootfs-X.Y.Z.fwu imag
 You can copy the bootable `images/sdcard.img` onto an SD card using "dd":
 
 ```bash
-$ sudo dd if=images/sdcard.img of=/dev/sdX
+$ sudo dd if=images/FunKey-sdcard-X.Y.Z.img of=/dev/sdX
 ```
 <ins>Warning</ins>: Please make sure that */dev/sdX* device corresponds to your SD Card, otherwise you may wipe out one of your hard drive partitions!
 
