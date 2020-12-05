@@ -21,6 +21,8 @@ define FONTS_DROID_INSTALL_TARGET_CMDS
 	mkdir -p $(TARGET_DIR)/usr/share/fonts/droid/
 	install -m 0644 $(@D)/NOTICE $(@D)/DroidSansFallback.ttf \
 	  $(TARGET_DIR)/usr/share/fonts/droid/
+	install -m 0644 $(@D)/NOTICE $(@D)/DroidSansFallbackFull.ttf \
+	  $(TARGET_DIR)/usr/share/fonts/droid/
 endef
 
 $(eval $(generic-package))
