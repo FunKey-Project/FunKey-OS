@@ -4,6 +4,7 @@ LOCK_FILE=/var/lock/launcher.lock
 PREVENT_LAUNCHER_FILE=/mnt/prevent_launcher
 PREVENT_LAUNCHER_FILE2=/boot/prevent_launcher
 QUICK_LOAD_FILE=/mnt/quick_load_cmd
+GMENU2X_FILE=/mnt/gmenu2x
 
 if [ -f ${LOCK_FILE} ]; then
     echo "${LOCK_FILE} already exists"
@@ -35,8 +36,15 @@ while true; do
 	echo "Found file: ${PREVENT_LAUNCHER_FILE2}, not launching launcher" 
 	sleep 5
     else
-	# Launch Retrofe
-	retrofe
+	if [ -f ${GMENU2X_FILE} ]; then
+
+	    # Launch gmenu2x
+	    gmenu2x
+	else
+
+	    # Launch Retrofe
+	    retrofe
+	fi
 
 	# In case retrofe quits with errors, clear graphic VT
 	termfix_all
