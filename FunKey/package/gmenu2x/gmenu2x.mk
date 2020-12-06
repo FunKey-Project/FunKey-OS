@@ -3,7 +3,7 @@
 # gmenu2x
 #
 #############################################################
-GMENU2X_VERSION = 770b7a2
+GMENU2X_VERSION = a059d10
 GMENU2X_SITE_METHOD = git
 GMENU2X_SITE = https://github.com/FunKey-Project/gmenu2x.git
 GMENU2X_LICENSE = GPL-2.0
@@ -23,6 +23,8 @@ GMENU2X_CONF_OPTS += -DCPUFREQ=ON
 else
 GMENU2X_CONF_OPTS += -DCPUFREQ=OFF
 endif
+
+GMENU2X_CONF_OPTS += -DSCREEN_WIDTH=240 -DSCREEN_HEIGHT=240 -DSCREEN_DEPTH=16
 
 ifeq ($(BR2_PACKAGE_LIBOPK),y)
 GMENU2X_DEPENDENCIES += libopk
