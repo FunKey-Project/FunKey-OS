@@ -5,6 +5,7 @@ PREVENT_LAUNCHER_FILE=/mnt/prevent_launcher
 PREVENT_LAUNCHER_FILE2=/boot/prevent_launcher
 QUICK_LOAD_FILE=/mnt/quick_load_cmd
 GMENU2X_FILE=/mnt/gmenu2x
+GMENU2X_HOME=/mnt/funkey/.gmenu2x
 
 if [ -f ${LOCK_FILE} ]; then
     echo "${LOCK_FILE} already exists"
@@ -14,6 +15,9 @@ touch ${LOCK_FILE}
 
 mkdir -p ${MEDNAFEN_HOME}
 cp /usr/games/lynxboot.img /usr/games/mednafen-09x.cfg ${MEDNAFEN_HOME}/
+
+mkdir -p ${GMENU2X_HOME}
+mkdir -p /mnt/apps
 
 # Launch Previous Game
 if [ -f ${QUICK_LOAD_FILE} ]; then
