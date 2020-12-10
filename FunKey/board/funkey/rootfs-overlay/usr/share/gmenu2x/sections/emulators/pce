@@ -1,0 +1,7 @@
+title=PC Engine
+description=PCE-TurboGrafx Emulator
+icon=skin:icons/pce.png
+exec=/usr/games/launchers/pce_launch.sh
+selectorbrowser=true
+selectordir=/mnt/PCE-TurboGrafx
+selectorfilter=zip,ZIP,pce,PCE,sgx,SGX

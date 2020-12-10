@@ -1,0 +1,7 @@
+title=Master System
+description=Sega MAster System Emulator
+icon=skin:icons/sms.png
+exec=/usr/games/launchers/sms_launch.sh
+selectorbrowser=true
+selectordir=/mnt/Sega Master System
+selectorfilter=zip,ZIP,sms,SMS
