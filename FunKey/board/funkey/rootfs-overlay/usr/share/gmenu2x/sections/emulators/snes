@@ -1,0 +1,7 @@
+title=SNES
+description=SNES Emulator
+icon=skin:icons/snes.png
+exec=/usr/games/launchers/snes_launch.sh
+selectorbrowser=true
+selectordir=/mnt/SNES
+selectorfilter=sfc,SFC,smc,SMC

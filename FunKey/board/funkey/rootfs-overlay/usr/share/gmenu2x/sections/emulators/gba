@@ -1,0 +1,7 @@
+title=GameBoy Adv
+description=Game Boy Advance Emulator
+icon=skin:icons/gba.png
+exec=/usr/games/launchers/gba_launch_gpsp.sh
+selectorbrowser=true
+selectordir=/mnt/Game Boy Advance
+selectorfilter=gba,GBA
