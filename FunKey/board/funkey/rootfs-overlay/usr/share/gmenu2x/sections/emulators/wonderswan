@@ -1,0 +1,7 @@
+title=WonderSwan
+description=WonderSwan/WonderSwan Color Emulator
+icon=skin:icons/wonderswan.png
+exec=/usr/games/launchers/wonderswan_launch.sh
+selectorbrowser=true
+selectordir=/mnt/WonderSwan
+selectorfilter=zip,ZIP,wsc,WSC
