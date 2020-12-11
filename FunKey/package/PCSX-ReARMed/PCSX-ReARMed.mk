@@ -62,4 +62,10 @@ define PCSX_REARMED_INSTALL_TARGET_CMDS
 	$(INSTALL) -m 0755 $(@D)/pcsx $(TARGET_DIR)/usr/games/pcsx
 endef
 
+define PCSX_REARMED_CREATE_OPK
+	$(INSTALL) -d -m 0755 $(TARGET_DIR)/usr/games/opk
+	$(HOST_DIR)/usr/bin/mksquashfs $(PCSX_REARMED_PKGDIR)/opk/ps1 $(TARGET_DIR)/usr/games/opk/ps1.opk -all-root -noappend -no-exports -no-xattrs
+endef
+PCSX_REARMED_POST_INSTALL_TARGET_HOOKS += PCSX_REARMED_CREATE_OPK
+
 $(eval $(generic-package))

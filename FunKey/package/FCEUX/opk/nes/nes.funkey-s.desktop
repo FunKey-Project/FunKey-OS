@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=NES
+Comment=FC/NES Emulator
+Icon=nes
+Exec=/usr/games/launchers/nes_launch.sh %f
+Terminal=false
+X-OD-NeedsDownscaling=true
+Categories=emulators;
+selectorbrowser=true
+SelectorDir=/mnt/NES
+SelectorFilter=nes,NES
