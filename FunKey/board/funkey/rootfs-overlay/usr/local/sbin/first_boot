@@ -155,6 +155,10 @@ copy_files_to_store_partition () {
     
     mount /mnt/ || die 18 "Cannot mount /mnt"
     unzip -q -o /usr/local/share/mnt_freware_games.zip -d /mnt/
+    mkdir -p /mnt/apps
+    set +f
+    cp -f /usr/games/opk/*.opk /mnt/apps/
+    set -f
     umount /mnt/ || die 20 "Cannot unmount /mnt"
     return 0
 }

@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=MegaDrive
+Comment=Sega Genesis/MegaDrive Emulator
+Icon=megadrive
+Exec=/usr/games/launchers/megadrive_launch.sh
+Terminal=false
+X-OD-NeedsDownscaling=true
+Categories=emulators;
+selectorbrowser=true
+SelectorDir=/mnt/Sega Genesis
+SelectorFilter=zip,ZIP,md,MD

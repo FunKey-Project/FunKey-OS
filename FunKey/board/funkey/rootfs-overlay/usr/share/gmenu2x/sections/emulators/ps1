@@ -1,7 +1,0 @@
-title=PS1
-description=PS1 Emulator
-icon=skin:icons/ps1.png
-exec=/usr/games/launchers/psone_launch_pcsx.sh
-selectorbrowser=true
-selectordir=/mnt/PS1
-selectorfilter=bin,BIN,cue,CUE,pbp,PBP

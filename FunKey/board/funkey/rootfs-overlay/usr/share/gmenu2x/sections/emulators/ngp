@@ -1,7 +1,0 @@
-title=Neo Geo
-description=Neo Geo Pocket Emulator
-icon=skin:icons/ngp.png
-exec=/usr/games/launchers/ngp_launch.sh
-selectorbrowser=true
-selectordir=/mnt/Neo Geo Pocket
-selectorfilter=zip,ZIP,ngp,NGP

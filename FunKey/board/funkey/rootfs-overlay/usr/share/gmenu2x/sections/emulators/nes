@@ -1,7 +1,0 @@
-title=NES
-description=FC/NES Emulator
-icon=skin:icons/nes.png
-exec=/usr/games/launchers/nes_launch.sh
-selectorbrowser=true
-selectordir=/mnt/NES
-selectorfilter=nes,NES

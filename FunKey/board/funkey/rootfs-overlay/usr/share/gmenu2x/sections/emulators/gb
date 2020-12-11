@@ -1,7 +1,0 @@
-title=GameBoy
-description=Game Boy Emulator
-icon=skin:icons/gb.png
-exec=/usr/games/launchers/gb_launch.sh
-selectorbrowser=true
-selectordir=/mnt/Game Boy
-selectorfilter=gb,GB
