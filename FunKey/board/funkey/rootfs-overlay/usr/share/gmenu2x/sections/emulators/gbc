@@ -1,7 +1,0 @@
-title=GameBoy Col
-description=Game Boy Color Emulator
-icon=skin:icons/gbc.png
-exec=/usr/games/launchers/gb_launch.sh
-selectorbrowser=true
-selectordir=/mnt/Game Boy Color
-selectorfilter=gbc,GBC
