@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=PS1
+Comment=PS1 Emulator
+Icon=ps1
+Exec=/usr/games/launchers/psone_launch_pcsx.sh
+Terminal=false
+X-OD-NeedsDownscaling=true
+Categories=emulators;
+selectorbrowser=true
+SelectorDir=/mnt/PS1
+SelectorFilter=bin,BIN,cue,CUE,pbp,PBP

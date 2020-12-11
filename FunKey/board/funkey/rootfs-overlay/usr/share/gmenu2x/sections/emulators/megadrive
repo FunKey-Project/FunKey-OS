@@ -1,7 +1,0 @@
-title=MegaDrive
-description=Sega Genesis/MegaDrive Emulator
-icon=skin:icons/megadrive.png
-exec=/usr/games/launchers/megadrive_launch.sh
-selectorbrowser=true
-selectordir=/mnt/Sega Genesis
-selectorfilter=zip,ZIP,md,MD

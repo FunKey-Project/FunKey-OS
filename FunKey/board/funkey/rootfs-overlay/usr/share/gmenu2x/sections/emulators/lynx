@@ -1,7 +1,0 @@
-title=Lynx
-description=Atari Lynx Emulator
-icon=skin:icons/lynx.png
-exec=/usr/games/launchers/lynx_launch.sh
-selectorbrowser=true
-selectordir=/mnt/Atari lynx
-selectorfilter=zip,ZIP,lnx,LNX
