@@ -1,7 +1,0 @@
-title=Game Gear
-description=Game Gear Emulator
-icon=skin:icons/gamegear.png
-exec=/usr/games/launchers/gamegear_launch.sh
-selectorbrowser=true
-selectordir=/mnt/Game Gear
-selectorfilter=zip,ZIP,gg,GG
