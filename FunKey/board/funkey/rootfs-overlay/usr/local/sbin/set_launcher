@@ -1,0 +1,24 @@
+#!/bin/sh
+
+# Check number of args
+if [ ${#} -ne 1 ]; then
+    echo "Usage: $(basename ${0}) launcher"
+    echo "	launcher: retrofe, gmenu2x"
+    exit 1
+fi
+
+# Check Launcher
+LAUNCHER=${1}
+if [ ${LAUNCHER} == "gmenu2x" ]; then
+    echo "Setting default launcher: gmenu2x"
+    touch /mnt/gmenu2x
+elif [ ${LAUNCHER} == "retrofe" ]; then
+    echo "Setting default launcher: retrofe"
+    rm -rf /mnt/gmenu2x
+else
+    echo "Usage: $(basename ${0}) launcher"
+    echo "      launcher: retrofe, gmenu2x"
+    exit 1
+fi
+
+exit 0
