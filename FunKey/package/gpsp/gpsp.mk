@@ -12,25 +12,7 @@ GPSP_LICENSE_FILES = COPYING.DOC
 
 GPSP_DEPENDENCIES = sdl sdl_image sdl_mixer sdl_ttf zlib
 
-GPSP_CFLAGS = $(TARGET_CFLAGS)
-
-ifeq ($(BR2_ARM_CPU_ARMV7A),y)
-GPSP_CFLAGS += -march=armv7-a
-endif
-
-ifeq ($(BR2_GCC_TARGET_CPU),"cortex-a7")
-GPSP_CFLAGS += -mtune=cortex-a7
-endif
-
-ifeq ($(BR2_GCC_TARGET_FLOAT_ABI),"hard")
-GPSP_CFLAGS += -mfloat-abi=hard -ffast-math -funsafe-math-optimizations
-else ifeq ($(BR2_GCC_TARGET_FLOAT_ABI),"soft")
-GPSP_CFLAGS += -mfloat-abi=soft -ffast-math -funsafe-math-optimizations
-endif
-
-ifeq ($(BR2_ARM_CPU_HAS_NEON),y)
-GPSP_CFLAGS += -D__ARM_NEON__ -mfpu=neon -mvectorize-with-neon-quad
-endif
+GPSP_CFLAGS = $(TARGET_CFLAGS) $(subst $\",,$(BR2_TARGET_OPTIMIZATION)) -mfloat-abi=hard -ffast-math -funsafe-math-optimizations
 
 GPSP_SDL_CFLAGS += $(shell $(STAGING_DIR)/usr/bin/sdl-config --cflags)
 GPSP_SDL_LIBS += $(shell $(STAGING_DIR)/usr/bin/sdl-config --libs)

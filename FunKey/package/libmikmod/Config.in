@@ -1,0 +1,7 @@
+config BR2_PACKAGE_LIBMIKMOD
+	bool "libmikmod"
+	help
+	  Mikmod is a module player and library supporting many
+	  tracker formats, including mod, s3m, it, and xm.
+
+	  http://mikmod.shlomifish.org/

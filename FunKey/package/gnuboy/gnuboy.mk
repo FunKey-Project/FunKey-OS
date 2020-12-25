@@ -12,25 +12,7 @@ GNUBOY_LICENSE_FILES = COPYING
 
 GNUBOY_DEPENDENCIES = sdl sdl_image sdl_mixer sdl_ttf zlib
 
-GNUBOY_CFLAGS = $(TARGET_CFLAGS)
-
-ifeq ($(BR2_ARM_CPU_ARMV7A),y)
-GNUBOY_CFLAGS += -march=armv7-a
-endif
-
-ifeq ($(BR2_GCC_TARGET_CPU),"cortex-a7")
-GNUBOY_CFLAGS += -mtune=cortex-a7
-endif
-
-ifeq ($(BR2_GCC_TARGET_FLOAT_ABI),"hard")
-GNUBOY_CFLAGS += -mfloat-abi=hard -ffast-math -funsafe-math-optimizations
-else ifeq ($(BR2_GCC_TARGET_FLOAT_ABI),"soft")
-GNUBOY_CFLAGS += -mfloat-abi=soft -ffast-math -funsafe-math-optimizations
-endif
-
-ifeq ($(BR2_ARM_CPU_HAS_NEON),y)
-GNUBOY_CFLAGS += -D__ARM_NEON__ -mfpu=neon -mvectorize-with-neon-quad
-endif
+GNUBOY_CFLAGS = $(TARGET_CFLAGS) $(subst $\",,$(BR2_TARGET_OPTIMIZATION)) -mfloat-abi=hard -ffast-math -funsafe-math-optimizations
 
 GNUBOY_CFLAGS += -ggdb -O3
 

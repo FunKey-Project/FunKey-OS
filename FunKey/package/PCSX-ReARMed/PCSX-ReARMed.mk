@@ -12,25 +12,10 @@ PCSX_REARMED_LICENSE_FILES = COPYING
 
 PCSX_REARMED_DEPENDENCIES = sdl sdl_image sdl_mixer sdl_ttf zlib
 
-PCSX_REARMED_CFLAGS = $(TARGET_CFLAGS)
-
-ifeq ($(BR2_ARM_CPU_ARMV7A),y)
-PCSX_REARMED_CFLAGS += -march=armv7-a
-endif
-
-ifeq ($(BR2_GCC_TARGET_CPU),"cortex-a7")
-PCSX_REARMED_CFLAGS += -mtune=cortex-a7
-endif
-
-ifeq ($(BR2_GCC_TARGET_FLOAT_ABI),"hard")
-PCSX_REARMED_CFLAGS += -mfloat-abi=hard -ffast-math -funsafe-math-optimizations
-else ifeq ($(BR2_GCC_TARGET_FLOAT_ABI),"soft")
-PCSX_REARMED_CFLAGS += -mfloat-abi=soft -ffast-math -funsafe-math-optimizations
-endif
+PCSX_REARMED_CFLAGS = $(TARGET_CFLAGS) $(subst $\",,$(BR2_TARGET_OPTIMIZATION)) -mfloat-abi=hard -ffast-math -funsafe-math-optimizations
 
 ifeq ($(BR2_ARM_CPU_HAS_NEON),y)
-PCSX_REARMED_CONF_OPTS += --enable-neon --gpu=neon
-PCSX_REARMED_CFLAGS += -D__ARM_NEON__ -mfpu=neon -mvectorize-with-neon-quad
+    PCSX_REARMED_CONF_OPTS += --enable-neon --gpu=neon
 endif
 
 PCSX_REARMED_CONF_OPTS += --sound-drivers=sdl

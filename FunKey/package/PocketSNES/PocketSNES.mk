@@ -12,25 +12,7 @@ POCKETSNES_LICENSE_FILES = COPYING
 
 POCKETSNES_DEPENDENCIES = sdl sdl_image sdl_mixer sdl_ttf zlib
 
-POCKETSNES_CFLAGS = $(TARGET_CFLAGS)
-
-ifeq ($(BR2_ARM_CPU_ARMV7A),y)
-POCKETSNES_CFLAGS += -march=armv7-a
-endif
-
-ifeq ($(BR2_GCC_TARGET_CPU),"cortex-a7")
-POCKETSNES_CFLAGS += -mtune=cortex-a7
-endif
-
-ifeq ($(BR2_GCC_TARGET_FLOAT_ABI),"hard")
-POCKETSNES_CFLAGS += -mfloat-abi=hard -ffast-math -funsafe-math-optimizations
-else ifeq ($(BR2_GCC_TARGET_FLOAT_ABI),"soft")
-POCKETSNES_CFLAGS += -mfloat-abi=soft -ffast-math -funsafe-math-optimizations
-endif
-
-ifeq ($(BR2_ARM_CPU_HAS_NEON),y)
-POCKETSNES_CFLAGS += -D__ARM_NEON__ -mfpu=neon -mvectorize-with-neon-quad
-endif
+POCKETSNES_CFLAGS = $(TARGET_CFLAGS) $(subst $\",,$(BR2_TARGET_OPTIMIZATION)) -mfloat-abi=hard -ffast-math -funsafe-math-optimizations
 
 POCKETSNES_SDL_CFLAGS += $(shell $(STAGING_DIR)/usr/bin/sdl-config --cflags)
 POCKETSNES_SDL_LIBS += $(shell $(STAGING_DIR)/usr/bin/sdl-config --libs)

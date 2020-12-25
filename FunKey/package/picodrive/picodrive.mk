@@ -12,25 +12,7 @@ PICODRIVE_LICENSE_FILES = COPYING
 
 PICODRIVE_DEPENDENCIES = sdl sdl_image sdl_mixer sdl_ttf zlib
 
-PICODRIVE_CFLAGS = $(TARGET_CFLAGS)
-
-ifeq ($(BR2_ARM_CPU_ARMV7A),y)
-PICODRIVE_CFLAGS += -march=armv7-a
-endif
-
-ifeq ($(BR2_GCC_TARGET_CPU),"cortex-a7")
-PICODRIVE_CFLAGS += -mtune=cortex-a7
-endif
-
-ifeq ($(BR2_GCC_TARGET_FLOAT_ABI),"hard")
-PICODRIVE_CFLAGS += -mfloat-abi=hard -ffast-math -funsafe-math-optimizations
-else ifeq ($(BR2_GCC_TARGET_FLOAT_ABI),"soft")
-PICODRIVE_CFLAGS += -mfloat-abi=soft -ffast-math -funsafe-math-optimizations
-endif
-
-ifeq ($(BR2_ARM_CPU_HAS_NEON),y)
-PICODRIVE_CFLAGS += -D__ARM_NEON__ -mfpu=neon -mvectorize-with-neon-quad
-endif
+PICODRIVE_CFLAGS = $(TARGET_CFLAGS) $(subst $\",,$(BR2_TARGET_OPTIMIZATION)) -mfloat-abi=hard -ffast-math -funsafe-math-optimizations
 
 PICODRIVE_CONF_OPTS += --platform=generic --sound-drivers=sdl
 PICODRIVE_CFLAGS += -ggdb -O3

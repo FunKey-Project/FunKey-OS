@@ -1,0 +1,11 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -125,7 +125,7 @@
+     endif()
+ endif()
+ 
+-option(FLUIDLITE_BUILD_SHARED "Build shared library" TRUE)
++option(FLUIDLITE_BUILD_SHARED "Build shared library" FALSE)
+ if(FLUIDLITE_BUILD_SHARED)
+     add_library(${PROJECT_NAME} SHARED ${SOURCES})
+ 
