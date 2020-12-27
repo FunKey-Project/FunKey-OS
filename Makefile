@@ -57,6 +57,28 @@ fun: buildroot Recovery/output/.config FunKey/output/.config
 	@$(call MESSAGE,"Making fun in FunKey")
 	@$(BRMAKE) BR2_EXTERNAL=../FunKey O=../FunKey/output
 
+sdk: buildroot SDK/output/.config
+	@$(call MESSAGE,"Making FunKey SDK")
+	@$(BRMAKE) BR2_EXTERNAL=../SDK O=../SDK/output prepare-sdk
+	@$(call MESSAGE,"Generating SDK tarball")
+	@cd SDK/output/host; \
+	PWD=$(shell pwd); \
+	export LC_ALL=C; \
+	SDK=FunKey-sdk-$(shell cat FunKey/board/funkey/rootfs-overlay/etc/sw-versions | cut -f 2); \
+	grep -lr "$(shell pwd)/SDK/output/host" . | while read -r FILE ; do \
+		if file -b --mime-type "$${FILE}" | grep -q '^text/'; then \
+			sed -i "s|$(shell pwd)/SDK/output/host|/opt/$${SDK}|g" "$${FILE}"; \
+		fi; \
+	done; \
+	cd $(shell pwd); \
+	tar czf "images/$${SDK}.tar.gz" \
+		--owner=0 --group=0 --numeric-owner \
+		--transform="s#^$(patsubst /%,%,$(shell pwd))/SDK/output/host#$${SDK}#" \
+		-C / "$(patsubst /%,%,$(shell pwd))/SDK/output/host"; \
+	rm -f download/toolchain-external-custom/$${SDK}.tar.gz; \
+	mkdir -p download/toolchain-external-custom; \
+	ln -s ../../images/$${SDK}.tar.gz download/toolchain-external-custom/
+
 FunKey/%: FunKey/output/.config
 	@$(call MESSAGE,"Making $(notdir $@) in $(subst /,,$(dir $@))")
 	@$(BR) BR2_EXTERNAL=../FunKey O=../FunKey/output $(notdir $@)
@@ -65,12 +87,17 @@ Recovery/%: Recovery/output/.config
 	@$(call MESSAGE,"Making $(notdir $@) in $(subst /,,$(dir $@))")
 	@$(BR) BR2_EXTERNAL=../Recovery O=../Recovery/output $(notdir $@)
 
+SDK/%: SDK/output/.config
+	@$(call MESSAGE,"Making $(notdir $@) in $(subst /,,$(dir $@))")
+	@$(BR) BR2_EXTERNAL=../SDK O=../SDK/output $(notdir $@)
+
 #%: FunKey/output/.config
 #	@$(call MESSAGE,"Making $@ in FunKey")
 #	@$(BR) BR2_EXTERNAL=../FunKey O=../FunKey/output $@
 
 source:
 	@$(call MESSAGE,"Getting sources")
+	@$(BR) BR2_EXTERNAL=../SDK O=../SDK/output source
 	@$(BR) BR2_EXTERNAL=../Recovery O=../Recovery/output source
 	@$(BR) BR2_EXTERNAL=../FunKey O=../FunKey/output source
 
@@ -108,6 +135,8 @@ update: fun
 
 defconfig:
 	@$(call MESSAGE,"Updating default configs")
+	@$(call MESSAGE,"Updating default configs in SDK")
+	@$(BR) BR2_EXTERNAL=../SDK O=../SDK/output savedefconfig
 	@$(call MESSAGE,"Updating default configs in Recovery")
 	@$(BR) BR2_EXTERNAL=../Recovery O=../Recovery/output savedefconfig linux-update-defconfig uboot-update-defconfig busybox-update-config
 	@$(call MESSAGE,"Updating default configs in FunKey")
@@ -115,6 +144,7 @@ defconfig:
 
 clean:
 	@$(call MESSAGE,"Clean everything")
+	@$(BR) BR2_EXTERNAL=../SDK O=../SDK/output distclean
 	@$(BR) BR2_EXTERNAL=../Recovery O=../Recovery/output distclean
 	@$(BR) BR2_EXTERNAL=../FunKey O=../FunKey/output distclean
 	@rm -f br.log
@@ -132,3 +162,8 @@ Recovery/output/.config:
 	@$(call MESSAGE,"Configure Recovery")
 	@mkdir -p Recovery/board/funkey/patches
 	@$(BR) BR2_EXTERNAL=../Recovery O=../Recovery/output recovery_defconfig
+
+SDK/output/.config:
+	@$(call MESSAGE,"Configure SDK")
+	@mkdir -p SDK/board/funkey/patches
+	@$(BR) BR2_EXTERNAL=../SDK O=../SDK/output funkey_defconfig
