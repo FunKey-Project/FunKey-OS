@@ -61,16 +61,14 @@ sdk: buildroot SDK/output/.config
 	@$(call MESSAGE,"Making FunKey SDK")
 	@$(BRMAKE) BR2_EXTERNAL=../SDK O=../SDK/output prepare-sdk
 	@$(call MESSAGE,"Generating SDK tarball")
-	@cd SDK/output/host; \
-	PWD=$(shell pwd); \
 	export LC_ALL=C; \
 	SDK=FunKey-sdk-$(shell cat FunKey/board/funkey/rootfs-overlay/etc/sw-versions | cut -f 2); \
-	grep -lr "$(shell pwd)/SDK/output/host" . | while read -r FILE ; do \
+	grep -lr "$(shell pwd)/SDK/output/host" SDK/output/host | while read -r FILE ; do \
 		if file -b --mime-type "$${FILE}" | grep -q '^text/'; then \
 			sed -i "s|$(shell pwd)/SDK/output/host|/opt/$${SDK}|g" "$${FILE}"; \
 		fi; \
 	done; \
-	cd $(shell pwd); \
+	mkdir -p images; \
 	tar czf "images/$${SDK}.tar.gz" \
 		--owner=0 --group=0 --numeric-owner \
 		--transform="s#^$(patsubst /%,%,$(shell pwd))/SDK/output/host#$${SDK}#" \
