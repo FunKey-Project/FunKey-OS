@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-MEDNAFEN_VERSION = mednafen-git-FunKey-1.00
+MEDNAFEN_VERSION = 6016b5f
 MEDNAFEN_SITE_METHOD = git
 MEDNAFEN_SITE = https://github.com/FunKey-Project/mednafen-git.git
 MEDNAFEN_LICENSE = GPL-2.0+
@@ -12,17 +12,20 @@ MEDNAFEN_LICENSE_FILES = COPYING
 
 MEDNAFEN_DEPENDENCIES = sdl sdl_image sdl_mixer sdl_ttf zlib
 
-MEDNAFEN_CFLAGS = $(TARGET_CFLAGS) $(subst $\",,$(BR2_TARGET_OPTIMIZATION)) -mfloat-abi=hard -ffast-math -funsafe-math-optimizations
+MEDNAFEN_CFLAGS = $(TARGET_CFLAGS) $(subst $\",,$(BR2_TARGET_OPTIMIZATION)) -mfloat-abi=hard
 
 #MEDNAFEN_AUTORECONF = YES
 
 MEDNAFEN_CFLAGS += -ggdb -O3
+MEDNAFEN_CFLAGS += -DFUNKEY_FAST_BLIT
 
 #MEDNAFEN_LDFLAGS +=  -lSDL_ttf -lSDL_image
 
-MEDNAFEN_CONF_OPTS += CFLAGS="$(MEDNAFEN_CFLAGS)"
+MEDNAFEN_CONF_OPTS += CXXFLAGS="$(MEDNAFEN_CFLAGS)"
 #MEDNAFEN_CONF_OPTS += LDFLAGS="$(MEDNAFEN_LDFLAGS)"
 MEDNAFEN_CONF_OPTS += --prefix=/usr/local --bindir=/usr/games --without-libsndfile
+MEDNAFEN_CONF_OPTS += --disable-ss --disable-ssfplay --disable-fancy-scalers
+#MEDNAFEN_CONF_OPTS += --disable-nes --disable-gba --disable-psx --disable-snes 
 
 MEDNAFEN_CONF_ENV += SDL_CONFIG="$(STAGING_DIR)/usr/bin/sdl-config"
 
