@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-PICODRIVE_VERSION = picodrive-FunKey-1.00
+PICODRIVE_VERSION = 6d3149e
 PICODRIVE_SITE_METHOD = git
 PICODRIVE_SITE = https://github.com/FunKey-Project/picodrive.git
 PICODRIVE_LICENSE = MAME
