@@ -1,0 +1,11 @@
+#!/bin/sh
+
+# Uncomment the following line to get debug info
+#set -x
+
+if [ ${#} != 0 ]; then
+    echo "Usage: $(basename ${0})"
+    exit 1
+fi
+pkill sched_powerdown
+exit 0

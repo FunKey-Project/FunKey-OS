@@ -1,58 +1,60 @@
 #!/bin/sh
 
-LOCK_FILE=/var/lock/launcher.lock
-PREVENT_LAUNCHER_FILE=/mnt/prevent_launcher
-PREVENT_LAUNCHER_FILE2=/boot/prevent_launcher
-QUICK_LOAD_FILE=/mnt/quick_load_cmd
-GMENU2X_FILE=/mnt/gmenu2x
-GMENU2X_HOME=/mnt/funkey/.gmenu2x
+# Uncomment the following line to get debug info
+#set -x
 
-if [ -f ${LOCK_FILE} ]; then
+LOCK_FILE="/var/lock/launcher.lock"
+INSTANT_PLAY_FILE="/mnt/instant_play"
+GMENU2X_FILE="/mnt/gmenu2x"
+GMENU2X_HOME="/mnt/funkey/.gmenu2x"
+
+if [ -f "${LOCK_FILE}" ]; then
     echo "${LOCK_FILE} already exists"
     exit 1
 fi
-touch ${LOCK_FILE}
+touch "${LOCK_FILE}"
 
-mkdir -p ${MEDNAFEN_HOME}
-cp /usr/games/lynxboot.img /usr/games/mednafen-09x.cfg ${MEDNAFEN_HOME}/
+mkdir -p "${MEDNAFEN_HOME}"
+cp "/usr/games/lynxboot.img" "/usr/games/mednafen-09x.cfg" "${MEDNAFEN_HOME}/"
 
-mkdir -p ${GMENU2X_HOME}
-mkdir -p /mnt/apps
+mkdir -p "${GMENU2X_HOME}"
+mkdir -p "/mnt/apps"
 
-# Launch Previous Game
-if [ -f ${QUICK_LOAD_FILE} ]; then
-    command=$(cat ${QUICK_LOAD_FILE})
-    echo "Found quick load file, restarting previous game with command:"
-    echo ${command}
-    rm ${QUICK_LOAD_FILE}
-    eval ${command}
+# Launch Previous Game if any
+if [ -f "${INSTANT_PLAY_FILE}" ]; then
+    echo "Found Instant Play file, restarting previous game with command: "$(head -n 1 "${INSTANT_PLAY_FILE}")
+    source "${INSTANT_PLAY_FILE}"
+    rm -f "${INSTANT_PLAY_FILE}"
     termfix_all
 fi
 
-# Loop to launch launcher indefinitely
+# Then loop to launch the launcher indefinitely
 while true; do
 	
     # Check if prevent launcher file present
-    if [ -f ${PREVENT_LAUNCHER_FILE} ]; then
-	echo "Found file: ${PREVENT_LAUNCHER_FILE}, not launching launcher" 
-	sleep 5
-    elif [ -f ${PREVENT_LAUNCHER_FILE2} ]; then
-	echo "Found file: ${PREVENT_LAUNCHER_FILE2}, not launching launcher" 
+    if [ -f "${PREVENT_LAUNCHER_FILE}" ]; then
+	echo "${PREVENT_LAUNCHER_FILE} file found, not starting launcher" 
 	sleep 5
     else
-	if [ -f ${GMENU2X_FILE} ]; then
+	if [ -f "${GMENU2X_FILE}" ]; then
 
 	    # Launch gmenu2x
-	    gmenu2x
+	    gmenu2x&
 	else
 
 	    # Launch Retrofe
-	    retrofe
+	    retrofe&
 	fi
+
+	# Record the PID into a file, wait for the
+	# process to terminate and erase the recorded PID
+	record_pid $!
+	wait $!
+	erase_pid
 
 	# In case retrofe quits with errors, clear graphic VT
 	termfix_all
     fi
 done
-rm ${LOCK_FILE}
+rm "${LOCK_FILE}"
 exit 0

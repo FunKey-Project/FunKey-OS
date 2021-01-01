@@ -1,15 +1,21 @@
 #!/bin/sh
 
-if [ ${#} != 1 ]; then
-    echo "Usage: $0	seconds_before_shutdown"
+# Uncomment the following line to get debug info
+#set -x
+
+if [ ${#} != 1 -o "${1}" -eq 0 ]; then
+    echo "Usage: $(basename ${0}) grace_delay"
     exit 1
 fi
 
-nb_secs_to_wait=$1
+# Send USR1 signal to the running FunKey process to warn about
+# impending shutdown
+pkill -USR1 -F /var/run/funkey.pid > /dev/null 2>&1
 
-# Wait $nb_secs_to_wait seconds to catch signal USR2
-# If the signal is caught, then it means a process canceled this shutdown
-sleep ${nb_secs_to_wait}
+# Delay for the given grace period seconds to catch signal USR2.
+# If the signal is caught, then it means the running FunKey process
+# canceled this shutdown and will handle it by itself.
+sleep ${1}
 
-# Too late to cancel: init shutdown
+# Delay expired, initiate shutdown
 shutdown_funkey

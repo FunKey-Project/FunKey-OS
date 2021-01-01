@@ -1,0 +1,37 @@
+#!/bin/sh
+
+# Uncomment the following line to get debug info
+#set -x
+
+# Check args
+if [ ${#} -eq 0 ]; then
+    echo "Usage: $(basename ${0}) args..."
+    exit 1
+fi
+
+INSTANT_PLAY_FILE="/mnt/instant_play"
+
+# Write quick load file args
+echo -n "" > "${INSTANT_PLAY_FILE}"
+for arg in "$@"; do
+    if $(echo "${arg}" | egrep -q '[[:space:]]'); then
+
+	# Add quotes around arguments containing spaces
+        echo -n "\"${arg}\" " >> "${INSTANT_PLAY_FILE}"
+    else
+	echo -n "${arg} "  >> "${INSTANT_PLAY_FILE}"
+    fi
+done
+
+# Add the magic sauce to launch the process in background, record the
+# PID into a file, wait for the process to terminate and erase the
+# recorded PID
+cat << EOF >> "${INSTANT_PLAY_FILE}"
+&
+record_pid \$!
+wait \$!
+erase_pid
+EOF
+
+# Now terminate gracefully
+exec shutdown_funkey

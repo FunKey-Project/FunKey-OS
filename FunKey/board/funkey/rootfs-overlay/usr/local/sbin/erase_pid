@@ -1,0 +1,12 @@
+#!/bin/sh
+
+# Uncomment the following line to get debug info
+#set -x
+
+# Check args
+if [ ${#} -ne 0 ]; then
+    echo "Usage: $(basename ${0})"
+    exit 1
+fi
+rm -f /var/run/funkey.pid
+exit 0

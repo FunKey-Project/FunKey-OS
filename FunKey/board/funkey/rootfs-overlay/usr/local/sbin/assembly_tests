@@ -1,5 +1,9 @@
 #!/bin/sh
 
+## Register ourself as the running FunKey task for receiving USR1
+## signal for shutting down
+echo $$ > "/var/run/funkey.pid"
+
 ## Check if tests must be run
 RUN_ENV_VAR=$(fw_printenv -n assembly_tests 2>/dev/null)
 if [ "x${RUN_ENV_VAR}" != "x1" ]; then
@@ -40,6 +44,9 @@ function function_magnet_detected_ok {
 	## Kill scheduled shutdown
 	pkill sched_shutdown
 
+	## Kill the funkey_prod_screen binary
+	killall -s USR1 "${PROD_SCREEN_BIN} > /dev/null 2>&1
+
 	## Write magnet_detected file
 	if $test_failed; then
 		echo "1" > $MAGNET_DETECTED_FILE
@@ -58,6 +65,9 @@ function function_magnet_detected_ok {
 ## Function called when SIGUSR1 is caught while NOT waiting for it
 function function_magnet_detected_ko {
 	echo "ERROR: Caught SIGUSR1 signal (magnet detected!)"
+
+	## Kill the funkey_prod_screen binary
+	killall -s USR1 "${PROD_SCREEN_BIN} > /dev/null 2>&1
 	sync
 }
 

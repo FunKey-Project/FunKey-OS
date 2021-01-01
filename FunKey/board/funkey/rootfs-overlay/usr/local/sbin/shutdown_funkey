@@ -9,5 +9,7 @@ start_audio_amp 0 >/dev/null 2>&1
 # Force Read Only 
 ro
 
+umount -r /mnt
+
 # Poweroff
 poweroff

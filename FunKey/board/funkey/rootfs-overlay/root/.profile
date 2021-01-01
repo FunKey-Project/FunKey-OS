@@ -56,4 +56,5 @@ assembly_tests >/dev/null 2>&1
 
 # Start launcher
 echo "Start launcher"
-start_launcher >/dev/null 2>&1 &
+#start_launcher >/dev/null 2>&1 &
+start_launcher &
