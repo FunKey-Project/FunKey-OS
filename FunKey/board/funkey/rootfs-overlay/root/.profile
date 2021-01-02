@@ -18,6 +18,10 @@ alias l='ls $LS_OPTIONS -lA'
 # alias cp='cp -i'
 # alias mv='mv -i'
 
+# Relocate HOME into the r/w partition
+export HOME=/mnt/funkey
+mkdir -p ${HOME}
+
 # Resize the console to the terminal dimensions
 resize() {
     if [[ -t 0 && $# -eq 0 ]]; then
