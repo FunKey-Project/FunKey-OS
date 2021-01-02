@@ -1,0 +1,18 @@
+#!/bin/sh
+SNAPSHOT_DIR=/mnt/funkey/snapshots
+# Check args
+if [ ${#} -ne 0 ]; then
+    echo "Usage: $(basename ${0})"
+    exit 1
+fi
+mkdir -p "${SNAPSHOT_DIR}"
+last=$(cd ${SNAPSHOT_DIR}; ls IMG_*.PNG 2> /dev/null | tail -1 | sed 's/^IMG_\([0-9]\+\)\.PNG$/\1/')
+if [ "x${last}" = "x" ]; then
+    last=1
+else
+    let last++
+fi
+snapshot_file=$(printf "IMG_%04d.PNG" $last)
+fbgrab "${SNAPSHOT_DIR}/${snapshot_file}"
+notif_disp 1 "   CAPTURE TO ${snapshot_file}"
+exit 0
