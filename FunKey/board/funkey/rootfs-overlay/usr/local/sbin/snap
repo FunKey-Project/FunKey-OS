@@ -14,5 +14,5 @@ else
 fi
 snapshot_file=$(printf "IMG_%04d.PNG" $last)
 fbgrab "${SNAPSHOT_DIR}/${snapshot_file}"
-notif_disp 1 "   CAPTURE TO ${snapshot_file}"
+notif_disp 2 "   CAPTURE TO ${snapshot_file}"
 exit 0

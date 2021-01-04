@@ -32,7 +32,7 @@ stop_loop=false
 proc_uid=$($GET_PROC_UID)
 
 ## Defines
-VERSION="1.00"
+VERSION="1.01"
 LOG_FILE="/root/logs/assembly_tests/assy_tests_${proc_uid}.log"
 [ -d $(dirname $LOG_FILE) ] || mkdir -p $(dirname $LOG_FILE)
 MAGNET_DETECTED_FILE="/root/.assembly_tests_magnet_detected"
