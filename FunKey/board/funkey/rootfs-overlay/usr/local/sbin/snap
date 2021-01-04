@@ -1,18 +1,36 @@
 #!/bin/sh
-SNAPSHOT_DIR=/mnt/funkey/snapshots
+
+# Uncomment the following line to get debug info
+#set -x
+
 # Check args
 if [ ${#} -ne 0 ]; then
     echo "Usage: $(basename ${0})"
     exit 1
 fi
+
+# Lock file (necessary since fbgrab must run in bg not to block the buttons while gaming)
+LOCK_FILE="/var/lock/snap.lock"
+if [ -f "${LOCK_FILE}" ]; then
+    #echo "${LOCK_FILE} already exists"
+    exit 1
+fi
+touch "${LOCK_FILE}"
+
+# Increment name and save snapshot
+SNAPSHOT_DIR=/mnt/funkey/snapshots
 mkdir -p "${SNAPSHOT_DIR}"
 last=$(cd ${SNAPSHOT_DIR}; ls IMG_*.PNG 2> /dev/null | tail -1 | sed 's/^IMG_\([0-9]\+\)\.PNG$/\1/')
 if [ "x${last}" = "x" ]; then
     last=1
 else
-    let last++
+    last=$(expr $last + 1)
 fi
 snapshot_file=$(printf "IMG_%04d.PNG" $last)
-fbgrab "${SNAPSHOT_DIR}/${snapshot_file}"
-notif_disp 2 "   CAPTURE TO ${snapshot_file}"
+notif_set 2 "   NEW SCREEENSHOT ${snapshot_file}"
+fbgrab "${SNAPSHOT_DIR}/${snapshot_file}" &
+
+# Remove lock file
+rm -f "${LOCK_FILE}"
+
 exit 0
