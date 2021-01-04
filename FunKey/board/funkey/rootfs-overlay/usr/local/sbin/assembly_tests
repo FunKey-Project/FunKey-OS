@@ -1,9 +1,5 @@
 #!/bin/sh
 
-## Register ourself as the running FunKey task for receiving USR1
-## signal for shutting down
-echo $$ > "/var/run/funkey.pid"
-
 ## Check if tests must be run
 RUN_ENV_VAR=$(fw_printenv -n assembly_tests 2>/dev/null)
 if [ "x${RUN_ENV_VAR}" != "x1" ]; then
@@ -19,6 +15,10 @@ if [ -f ${LOCK_FILE} ]; then
     exit 1
 fi
 touch ${LOCK_FILE}
+
+## Register ourself as the running FunKey task for receiving USR1
+## signal for shutting down
+echo $$ > "/var/run/funkey.pid"
 
 ## Binaries
 PROD_SCREEN_BIN="/usr/local/sbin/funkey_prod_screens"
