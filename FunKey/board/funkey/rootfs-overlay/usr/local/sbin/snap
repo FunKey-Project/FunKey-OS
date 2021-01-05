@@ -20,12 +20,8 @@ touch "${LOCK_FILE}"
 # Increment name and save snapshot
 SNAPSHOT_DIR=/mnt/funkey/snapshots
 mkdir -p "${SNAPSHOT_DIR}"
-last=$(cd ${SNAPSHOT_DIR}; ls IMG_*.PNG 2> /dev/null | tail -1 | sed 's/^IMG_\([0-9]\+\)\.PNG$/\1/')
-if [ "x${last}" = "x" ]; then
-    last=1
-else
-    last=$(expr $last + 1)
-fi
+last=$(cd ${SNAPSHOT_DIR}; ls IMG_*.PNG 2> /dev/null | tail -1 | sed 's/^IMG_0*\([0-9]\+\)\.PNG$/\1/')
+let last=${last}+1
 snapshot_file=$(printf "IMG_%04d.PNG" $last)
 notif_set 2 "   NEW SCREEENSHOT ${snapshot_file}"
 fbgrab "${SNAPSHOT_DIR}/${snapshot_file}" &
