@@ -5,6 +5,7 @@
 
 LOCK_FILE="/var/lock/launcher.lock"
 INSTANT_PLAY_FILE="/mnt/instant_play"
+PREVENT_LAUNCHER_FILE="/mnt/prevent_launcher"
 GMENU2X_FILE="/mnt/gmenu2x"
 GMENU2X_HOME="/mnt/funkey/.gmenu2x"
 
@@ -33,27 +34,27 @@ while true; do
 	
     # Check if prevent launcher file present
     if [ -f "${PREVENT_LAUNCHER_FILE}" ]; then
-	echo "${PREVENT_LAUNCHER_FILE} file found, not starting launcher" 
-	sleep 5
+		echo "${PREVENT_LAUNCHER_FILE} file found, not starting launcher" 
+		sleep 5
     else
-	if [ -f "${GMENU2X_FILE}" ]; then
+		if [ -f "${GMENU2X_FILE}" ]; then
 
-	    # Launch gmenu2x
-	    gmenu2x&
-	else
+		    # Launch gmenu2x
+		    gmenu2x&
+		else
 
-	    # Launch Retrofe
-	    retrofe&
-	fi
+		    # Launch Retrofe
+		    retrofe&
+		fi
 
-	# Record the PID into a file, wait for the
-	# process to terminate and erase the recorded PID
-	record_pid $!
-	wait $!
-	erase_pid
+		# Record the PID into a file, wait for the
+		# process to terminate and erase the recorded PID
+		record_pid $!
+		wait $!
+		erase_pid
 
-	# In case retrofe quits with errors, clear graphic VT
-	termfix_all
+		# In case retrofe quits with errors, clear graphic VT
+		termfix_all
     fi
 done
 rm "${LOCK_FILE}"
