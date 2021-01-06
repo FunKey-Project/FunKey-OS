@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-RETROFE_VERSION = 343f64f
+RETROFE_VERSION = d07ca9c
 RETROFE_SITE_METHOD = git
 RETROFE_SITE = https://github.com/FunKey-Project/RetroFE.git
 RETROFE_DEPENDENCIES = gstreamer1 gst1-plugins-base sdl sdl_image sdl_mixer sdl_sound sdl_ttf libglib2 sqlite zlib
