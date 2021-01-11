@@ -6,6 +6,7 @@
 LOCK_FILE="/var/lock/launcher.lock"
 INSTANT_PLAY_FILE="/mnt/instant_play"
 PREVENT_LAUNCHER_FILE="/mnt/prevent_launcher"
+REBOOTING_FILE="/run/rebooting"
 
 
 if [ -f "${LOCK_FILE}" ]; then
@@ -56,12 +57,19 @@ while true; do
 		wait $!
 		erase_pid
 
-        # Restart ampli audio if necessary
-	    start_audio_amp 1 >/dev/null 2>&1
-
 		# In case retrofe quits with errors, clear graphic VT
 		termfix_all
     fi
+
+    # WD to prevent 100% CPU
+    sleep 0.5
+
+    # Exit if console rebooting
+    if [ -f $REBOOTING_FILE ]; then
+    	break
+    fi
 done
+
+# Remove lock file and exit
 rm "${LOCK_FILE}"
 exit 0
