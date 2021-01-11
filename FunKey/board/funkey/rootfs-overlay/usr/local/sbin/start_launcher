@@ -39,9 +39,6 @@ while true; do
     else
 		if [ -f "${GMENU2X_FILE}" ]; then
 
-			# Force stop ampli (no sound in gmenu2x)
-            start_audio_amp 0
-
 		    # Launch gmenu2x
 		    gmenu2x&
 		else

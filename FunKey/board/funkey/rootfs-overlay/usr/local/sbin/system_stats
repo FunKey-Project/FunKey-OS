@@ -20,9 +20,9 @@ while true; do
     if [ ${perform} -eq 1 ]; then
 
 	# Compute stats
-	cpu=$(printf "%.1f\n" $(mpstat -P ALL $UPDATE_PERIOD 1 | tail -1 | awk '{print 100-$12}'))
-	ram_mem=$(printf "%.1f\n" $(free | grep Mem | awk '{print $3/$2 * 100.0}'))
-	ram_swap=$(printf "%.1f\n" $(free | grep Swap | awk '{print $3/$2 * 100.0}'))
+	cpu=$(printf "%.0f\n" $(mpstat -P ALL $UPDATE_PERIOD 1 | tail -1 | awk '{print 100-$12}'))
+	ram_mem=$(printf "%.0f\n" $(free | grep Mem | awk '{print $3/$2 * 100.0}'))
+	ram_swap=$(printf "%.0f\n" $(free | grep Swap | awk '{print $3/$2 * 100.0}'))
 	ip_addr=$(ifconfig usb0 | grep "inet " | awk -F'[: ]+' '{ print $4 }')
 
 	# Notif
@@ -31,9 +31,9 @@ while true; do
 	    notif_dirty=0
 	else
 	    if [ "x${ip_addr}" != "x" ]; then
-		notif_set 0 "CPU:${cpu}%% RAM:${ram_mem}%% SWAP:${ram_swap}%%^IP:${ip_addr}"
+		notif_set 0 " CPU:${cpu}%% RAM:${ram_mem}%% SWAP:${ram_swap}%%^IP:${ip_addr}"
 	    else
-		notif_set 0 "CPU:${cpu}%% RAM:${ram_mem}%% SWAP:${ram_swap}%%"
+		notif_set 0 " CPU:${cpu}%% RAM:${ram_mem}%% SWAP:${ram_swap}%%"
 	    fi
 	fi
     else

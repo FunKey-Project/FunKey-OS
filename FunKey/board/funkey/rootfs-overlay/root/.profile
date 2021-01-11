@@ -41,11 +41,9 @@ resize() {
 }
 
 
-# Start ampli if necessary
-echo "Start audio amplifier if necessary"
-if [[ "$(volume_get)" -ne "0" ]]; then
-        start_audio_amp 1 >/dev/null 2>&1
-fi
+# Start ampli
+echo "Start audio amplifier"
+start_audio_amp 1 >/dev/null 2>&1
 
 # Force unmute sound card and reset volume
 echo "Force unmute sound card and reset volume"

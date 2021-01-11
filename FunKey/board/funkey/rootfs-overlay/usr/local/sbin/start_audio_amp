@@ -6,10 +6,16 @@ if [ ${#} -ne 1 ]; then
     exit 1
 fi
 
-# Check Enable arg
+# Check enable arg
 enable=${1}
 if [ ${enable} -eq 1 ]; then
-    echo "Turning audio amplifier ON"
+
+	# Turn ON only if volume is not null
+	if [ "$(volume_get)" -ne "0" ]; then
+    	echo "Turning audio amplifier ON"
+    else
+    	exit 0
+	fi
 elif [ ${enable} -eq 0 ]; then
     echo "Turning audio amplifier OFF"
 else
