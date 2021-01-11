@@ -19,8 +19,12 @@ alias l='ls $LS_OPTIONS -lA'
 # alias mv='mv -i'
 
 # Relocate HOME into the r/w partition
-export HOME=/mnt/funkey
-mkdir -p ${HOME}
+export HOME=/mnt/FunKey
+mkdir -p "${HOME}"
+export MEDNAFEN_HOME=$HOME/.mednafen
+mkdir -p "${MEDNAFEN_HOME}"
+export GMENU2X_HOME="$HOME/.gmenu2x"
+mkdir -p "${GMENU2X_HOME}"
 
 # Resize the console to the terminal dimensions
 resize() {

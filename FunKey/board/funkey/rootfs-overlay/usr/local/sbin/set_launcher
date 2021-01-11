@@ -3,22 +3,16 @@
 # Check number of args
 if [ ${#} -ne 1 ]; then
     echo "Usage: $(basename ${0}) launcher"
-    echo "	launcher: retrofe, gmenu2x"
     exit 1
 fi
 
+# Launcher File
+LAUNCHER_FILE=$HOME/Launchers/launcher.txt
+mkdir -p "$(dirname "$LAUNCHER_FILE")"
+
 # Check Launcher
-LAUNCHER=${1}
-if [ ${LAUNCHER} == "gmenu2x" ]; then
-    echo "Setting default launcher: gmenu2x"
-    touch /mnt/gmenu2x
-elif [ ${LAUNCHER} == "retrofe" ]; then
-    echo "Setting default launcher: retrofe"
-    rm -rf /mnt/gmenu2x
-else
-    echo "Usage: $(basename ${0}) launcher"
-    echo "      launcher: retrofe, gmenu2x"
-    exit 1
-fi
+NEW_LAUNCHER=${1}
+echo "Setting launcher: ${NEW_LAUNCHER}"
+echo ${NEW_LAUNCHER} > "$LAUNCHER_FILE"
 
 exit 0

@@ -150,14 +150,11 @@ format_backing_store_partition () {
 }
 
 copy_files_to_store_partition () {
-    # Add file to force assembly tests
-    
-    
     mount /mnt/ || die 18 "Cannot mount /mnt"
     unzip -q -o /usr/local/share/mnt_freware_games.zip -d /mnt/
-    mkdir -p /mnt/apps
+    mkdir -p /mnt/Emulators
     set +f
-    cp -f /usr/games/opk/*.opk /mnt/apps/
+    cp -f /usr/games/opk/*.opk /mnt/Emulators/
     set -f
     umount /mnt/ || die 20 "Cannot unmount /mnt"
     return 0

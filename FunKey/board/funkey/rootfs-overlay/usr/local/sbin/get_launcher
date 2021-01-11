@@ -1,0 +1,25 @@
+#!/bin/sh
+
+# Check args
+if [ ${#} -ne 0 ]; then
+    echo "Usage: $(basename ${0})"
+    exit 1
+fi
+
+# Launcher File
+LAUNCHER_FILE=$HOME/Launchers/launcher.txt
+DEFAULT_LAUNCHER=retrofe
+
+# Check that file exists
+[ -f "$LAUNCHER_FILE" ] || set_launcher $DEFAULT_LAUNCHER >/dev/null 2>&1
+
+# Check Launcher
+launcher=$(cat "$LAUNCHER_FILE" | head -1)
+
+# Check not empty
+[ -z "$LAUNCHER_FILE" ] && launcher=$DEFAULT_LAUNCHER; set_launcher $launcher >/dev/null 2>&1
+
+# Return launcher name
+echo $launcher
+
+exit 0

@@ -6,8 +6,7 @@
 LOCK_FILE="/var/lock/launcher.lock"
 INSTANT_PLAY_FILE="/mnt/instant_play"
 PREVENT_LAUNCHER_FILE="/mnt/prevent_launcher"
-GMENU2X_FILE="/mnt/gmenu2x"
-GMENU2X_HOME="/mnt/funkey/.gmenu2x"
+
 
 if [ -f "${LOCK_FILE}" ]; then
     echo "${LOCK_FILE} already exists"
@@ -15,11 +14,9 @@ if [ -f "${LOCK_FILE}" ]; then
 fi
 touch "${LOCK_FILE}"
 
+# Sanity cmd: in case these files do not exist
 mkdir -p "${MEDNAFEN_HOME}"
 cp "/usr/games/lynxboot.img" "/usr/games/mednafen-09x.cfg" "${MEDNAFEN_HOME}/"
-
-mkdir -p "${GMENU2X_HOME}"
-mkdir -p "/mnt/apps"
 
 # Launch Previous Game if any
 if [ -f "${INSTANT_PLAY_FILE}" ]; then
@@ -37,14 +34,20 @@ while true; do
 		echo "${PREVENT_LAUNCHER_FILE} file found, not starting launcher" 
 		sleep 5
     else
-		if [ -f "${GMENU2X_FILE}" ]; then
+    	LAUNCHER=$(get_launcher)
+
+		if [ ${LAUNCHER} == "gmenu2x" ]; then
 
 		    # Launch gmenu2x
 		    gmenu2x&
-		else
+		elif [ ${LAUNCHER} == "retrofe" ]; then
 
 		    # Launch Retrofe
 		    retrofe&
+		else
+			DEFAULT_LAUNCHER=retrofe
+		    echo "Not recognized launcher: $LAUNCHER, setting $DEFAULT_LAUNCHER"
+		    set_launcher $DEFAULT_LAUNCHER
 		fi
 
 		# Record the PID into a file, wait for the
@@ -54,9 +57,7 @@ while true; do
 		erase_pid
 
         # Restart ampli audio if necessary
-        if [[ "$(volume_get)" -ne "0" ]]; then
-	        start_audio_amp 1 >/dev/null 2>&1
-		fi
+	    start_audio_amp 1 >/dev/null 2>&1
 
 		# In case retrofe quits with errors, clear graphic VT
 		termfix_all
