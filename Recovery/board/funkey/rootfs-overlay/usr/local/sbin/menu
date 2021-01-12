@@ -16,8 +16,8 @@ menu_display () {
     case ${entry} in
 	0)
 
-	    # Version
-	    message=" VERSION"
+	    # Information
+	    message=" INFO"
 	    ;;
 
 	1)
@@ -90,7 +90,7 @@ menu_run () {
     case ${entry} in
 	0)
 
-	    # Version
+	    # Information
 	    rootfs_mount=/tmp/rootfs
 	    mkdir -p ${rootfs_mount}
 	    mount -t ext4 -o ro /dev/mmcblk0p2 ${rootfs_mount}
@@ -101,7 +101,8 @@ menu_run () {
 	    fi
 	    umount ${rootfs_mount}
 	    version_recovery=$(grep Recovery /etc/sw-versions | cut -f 2)
-	    notif "${message}^^     Recovery: ${version_recovery}^     rootfs  : ${version_rootfs}"
+	    ip_addr=$(ifconfig usb0 | grep "inet " | awk -F'[: ]+' '{ print $4 }')
+	    notif "${message}^^    Recovery: ${version_recovery}^    rootfs  : ${version_rootfs}^    IP addr : ${ip_addr}"
 	    ;;
 
 	1)
