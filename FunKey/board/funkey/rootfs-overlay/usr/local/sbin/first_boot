@@ -14,11 +14,11 @@ SELF=$(basename $0)
 root_part=$(cat /proc/cmdline | sed -n 's|^.*root=\([^ ]*\).*|\1|p')
 root_part_num=${root_part#/dev/mmcblk0p}
 if [ "${root_part_num}" -eq 1 ]; then
-    die 0 "recovery mode"
+    die_notif 0 "recovery mode"
 elif [ "${root_part_num}" = "{$root_part}" ]; then
-    die 1 "${root_part} is not an SD card partition, aborting"
+    die_notif 1 "${root_part} is not an SD card partition, aborting"
 elif [ "${root_part_num}" -ne 2 ]; then
-    die 2 "unknown partition layout, aborting"
+    die_notif 2 "unknown partition layout, aborting"
 fi
 let swap_part_num=${root_part_num}+1
 swap_part=/dev/mmcblk0p${swap_part_num}
@@ -26,7 +26,7 @@ let usb_part_num=${swap_part_num}+1
 usb_part=/dev/mmcblk0p${usb_part_num}
 
 check_root_id () {
-    [ $(id -u) -ne 0 ] && die 3 "this script must be run as root, aborting"
+    [ $(id -u) -ne 0 ] && die_notif 3 "this script must be run as root, aborting"
     return 0
 }
 
@@ -47,7 +47,7 @@ resize_rootfs_partition () {
     local last_part_num=${1#/dev/mmcblk0p}
     local part_start=${3}
     if [ "${last_part_num}" != "${root_part_num}" ]; then
-	die 4 "rootfs is not the last partition. Don't know how to expand, aborting"
+	die_notif 4 "rootfs is not the last partition. Don't know how to expand, aborting"
     fi
 
     # Remove (temporarily) the rootfs partition
@@ -64,10 +64,10 @@ w
 EOF
 
     # Mark the rootfs partition as bootable
-    sfdisk -A /dev/mmcblk0 ${root_part_num} >/dev/null 2>&1 || die 7 "cannot make the rootfs partition bootable, aborting"
+    sfdisk -A /dev/mmcblk0 ${root_part_num} >/dev/null 2>&1 || die_notif 7 "cannot make the rootfs partition bootable, aborting"
 
     # Reload the partition table
-    partprobe /dev/mmcblk0 >/dev/null 2>&1 || die 8 "cannot reload the partition table, aborting"
+    partprobe /dev/mmcblk0 >/dev/null 2>&1 || die_notif 8 "cannot reload the partition table, aborting"
 
     return 0
 }
@@ -81,7 +81,7 @@ resize_rootfs_filesystem () {
 	return 0
     fi
     rw
-    resize2fs ${root_part} >/dev/null 2>&1 || die 9 "cannot resize the root filesystem, aborting"
+    resize2fs ${root_part} >/dev/null 2>&1 || die_notif 9 "cannot resize the root filesystem, aborting"
     ro
     return 0
 }
@@ -101,7 +101,7 @@ create_swap () {
 	    set ${last_part_line}
 	    local last_part_num=${1#/dev/mmcblk0p}
 	    if [ "$last_part_num" != "$root_part_num" ]; then
-		die 10 "rootfs is not the last partition. Don't know how to create the backing store partition"
+		die_notif 10 "rootfs is not the last partition. Don't know how to create the backing store partition"
 	    fi
 
 	    # Create an additional linux swap partition
@@ -128,11 +128,11 @@ EOF
     if [ ${swap_size} -eq 0 ]; then
 	mkswap ${swap_part} >/dev/null 2>&1
 	if [ $? -ne 0 ]; then
-	    die 11 "cannot create swap file, aborting"
+	    die_notif 11 "cannot create swap file, aborting"
 	fi
 
 	# Enable swap
-	swapon -a >/dev/null 2>&1 || die 12 "cannot enable swap file, aborting"
+	swapon -a >/dev/null 2>&1 || die_notif 12 "cannot enable swap file, aborting"
     fi
     return 0
 }
@@ -154,7 +154,7 @@ create_usb_partition () {
 	set ${last_part_line}
 	local last_part_num=${1#/dev/mmcblk0p}
 	if [ "${last_part_num}" != "${swap_part_num}" ]; then
-	    die 13 "rootfs is not the last partition. Don't know how to create the backing store partition"
+	    die_notif 13 "rootfs is not the last partition. Don't know how to create the backing store partition"
 	fi
 
 	# Create an additional FAT32 USB partition that fills the disk
@@ -175,7 +175,7 @@ EOF
     fi
 
     # Reload the partition table
-    partprobe /dev/mmcblk0 >/dev/null 2>&1 || die 14 "cannot reload the partition table, aborting"
+    partprobe /dev/mmcblk0 >/dev/null 2>&1 || die_notif 14 "cannot reload the partition table, aborting"
 
     return 0
 }
@@ -190,7 +190,7 @@ format_usb_partition () {
     fi
 
     # Format the backing store as FAT32
-    mkfs.vfat ${usb_part} >/dev/null 2>&1 || die 15 "cannot format the backing store partition"
+    mkfs.vfat ${usb_part} >/dev/null 2>&1 || die_notif 15 "cannot format the backing store partition"
     return 0
 }
 
@@ -199,14 +199,14 @@ copy_files_to_usb_partition () {
     # Check if the USB partition is already mounted
     mount | grep /mnt > /dev/null 2>&1
     if [ $? -ne 0 ]; then
-	mount /mnt/ || die 16 "Cannot mount /mnt"
+	mount /mnt/ || die_notif 16 "Cannot mount /mnt"
     fi
     unzip -q -o /usr/local/share/mnt_freware_games.zip -d /mnt/
     mkdir -p /mnt/Emulators
     set +f
     cp -f /usr/games/opk/*.opk /mnt/Emulators/
     set -f
-    umount /mnt/ || die 17 "Cannot unmount /mnt"
+    umount /mnt/ || die_notif 17 "Cannot unmount /mnt"
     return 0
 }
 
