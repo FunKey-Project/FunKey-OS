@@ -61,20 +61,32 @@ menu_display () {
 	6)
 
 	    # Factory tests enable/disable
-	    if [ -e /mnt/.assembly_tests ]; then
-			message=" FACTORY TESTS DISABLE"
+	    RUN_ENV_VAR=$(fw_printenv -n assembly_tests 2>/dev/null)
+	    if [ "x${RUN_ENV_VAR}" == "x1" ]; then
+		message=" FACTORY TESTS DISABLE"
 	    else
-			message=" FACTORY TESTS ENABLE"
+		message=" FACTORY TESTS ENABLE"
 	    fi
 	    ;;
 
 	7)
 
+	    # First boot enable/disable
+	    FIRST_BOOT_OK_ENV_VAR=$(fw_printenv -n first_boot_ok 2>/dev/null)
+	    if [ "x${FIRST_BOOT_OK_ENV_VAR}" == "x1" ]; then
+		message=" FIRST BOOT DISABLE"
+	    else
+		message=" FACTORY TESTS ENABLE"
+	    fi
+	    ;;
+
+	8)
+
 	    # Exit Recovery
 	    message=" EXIT RECOVERY"
 	    ;;
 
-	8)
+	9)
 
 	    # Shutdown
 	    message=" SHUTDOWN"
@@ -225,22 +237,36 @@ menu_run () {
 
 	    # Factory tests enable/disable
 	    RUN_ENV_VAR=$(fw_printenv -n assembly_tests 2>/dev/null)
-		if [ "x${RUN_ENV_VAR}" == "x1" ]; then
-		    fw_setenv assembly_tests 0
-		    message=" FACTORY TESTS ENABLE"
-		else
-		    fw_setenv assembly_tests 1
-		    message=" FACTORY TESTS DISABLE"
-		fi
-		notif "${message}"
+	    if [ "x${RUN_ENV_VAR}" == "x1" ]; then
+		fw_setenv assembly_tests 0
+		message=" FACTORY TESTS ENABLE"
+	    else
+		fw_setenv assembly_tests 1
+		message=" FACTORY TESTS DISABLE"
+	    fi
+	    notif "${message}"
 	    ;;
 
 	7)
+
+	    # First boot enable/disable
+	    FIRST_BOOT_OK_ENV_VAR=$(fw_printenv -n first_boot_ok 2>/dev/null)
+	    if [ "x${FIRST_BOOT_OK_ENV_VAR}" == "x1" ]; then
+		fw_setenv first_boot_ok
+		message=" FIRST BOOT ENABLE"
+	    else
+		fw_setenv first_boot_ok 1
+		message=" FIRST BOOT DISABLE"
+	    fi
+	    notif "${message}"
+	    ;;
+
+	8)
 	    notif "^^^^^^^^         RESTARTING...^^^^^^^^"
 	    normal_mode
 	    ;;
 
-	8)
+	9)
 	    notif "^^^^^^^^          SHUTDOWN...^^^^^^^^"
 	    poweroff
 	    ;;

@@ -233,7 +233,7 @@ copy_files_to_usb_partition
 
 notif " FIRST BOOT SETUP FINISHED!"
 
-setenv first_boot_ok 1
+fw_setenv first_boot_ok 1
 
 sleep 1
 clear_notif
