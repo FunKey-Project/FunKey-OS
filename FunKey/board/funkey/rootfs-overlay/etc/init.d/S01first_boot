@@ -4,20 +4,10 @@ THIS=$(basename $0)
 
 case "$1" in
     start)
-
-    # Check is SWAP partition already created
-    fdisk -l /dev/mmcblk0 | grep "Linux swap" > /dev/null
-    if [ $? -ne 0 ]; then
-        first_boot
-        exit $?
-    fi
-
-    # Check is share partition already created
-    fdisk -l /dev/mmcblk0 | grep "W95 FAT32" > /dev/null
-    if [ $? -ne 0 ]; then
-        first_boot
-        exit $?
-    fi
+	first_boot_ok=$(fw_printenv -n first_boot_ok 2>/dev/null)
+	if ! [ ! "${first_boot_ok}" -ne "${first_boot_ok}" ] 2> /dev/null; then
+	    first_boot
+	fi
 	;;
     stop)
 	;;
