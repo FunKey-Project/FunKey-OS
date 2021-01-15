@@ -3,7 +3,7 @@
 # libxdgmime
 #
 #############################################################
-LIBXDGMIME_VERSION = db79e7c
+LIBXDGMIME_VERSION = libxdgmime-FunKey-1.0.0
 LIBXDGMIME_SITE_METHOD = git
 LIBXDGMIME_SITE = https://github.com/FunKey-Project/libxdgmime.git
 LIBXDGMIME_DEPENDENCIES = shared-mime-info
