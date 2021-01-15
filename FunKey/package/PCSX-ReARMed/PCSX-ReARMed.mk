@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-PCSX_REARMED_VERSION = 65524b1
+PCSX_REARMED_VERSION = 987c2fb
 PCSX_REARMED_SITE_METHOD = git
 PCSX_REARMED_SITE = https://github.com/FunKey-Project/pcsx_rearmed.git
 PCSX_REARMED_LICENSE = GPL-2.0
