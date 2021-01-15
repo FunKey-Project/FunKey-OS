@@ -13,7 +13,7 @@ BR2_TOOLCHAIN_EXTERNAL_URL="https://github.com/FunKey-Project/FunKey-OS/releases
 BR2_TOOLCHAIN_EXTERNAL_HEADERS_4_14=y
 BR2_TOOLCHAIN_EXTERNAL_CUSTOM_MUSL=y
 BR2_TOOLCHAIN_EXTERNAL_CXX=y
-BR2_TARGET_OPTIMIZATION="-fno-PIC -march=armv7-a+neon-vfpv4 -mtune=cortex-a7 -mfpu=neon-vfpv4 -mvectorize-with-neon-quad -D__ARM_NEON__"
+BR2_TARGET_OPTIMIZATION="-fno-PIC -march=armv7-a+neon-vfpv4 -mtune=cortex-a7 -mfpu=neon-vfpv4 -mvectorize-with-neon-quad"
 BR2_TARGET_GENERIC_HOSTNAME="FunKey"
 BR2_TARGET_GENERIC_ISSUE="Welcome to Buildroot for the FunKey"
 BR2_ROOTFS_DEVICE_TABLE="$(BR2_EXTERNAL_FUNKEY_PATH)/board/funkey/device_table.txt"
