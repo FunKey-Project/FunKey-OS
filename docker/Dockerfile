@@ -119,4 +119,4 @@ ENV \
 # 	"/home/funkey/FunKey-OS/FunKey/output/build", \
 # 	"/home/funkey/FunKey-OS/FunKey/output/target"]
 
-CMD ["/usr/bin/make", "-C", "/home/funkey/FunKey-OS"]
+CMD ["/usr/bin/make", "sdk", "all", "-C", "/home/funkey/FunKey-OS"]
