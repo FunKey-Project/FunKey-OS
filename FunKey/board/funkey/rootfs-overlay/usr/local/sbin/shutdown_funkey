@@ -1,11 +1,14 @@
 #!/bin/sh
 
-# Notify system, reboot in progress
-REBOOTING_FILE="/run/rebooting"
-touch $REBOOTING_FILE
+# Sync before all else
+sync
 
 # Notif fullscreen "Shutting down"
 notif_set 0 "^^^^^^^^      SHUTTING DOWN...^^^^^^^^"
+
+# Notify system, reboot in progress
+REBOOTING_FILE="/run/rebooting"
+touch $REBOOTING_FILE
 
 # Shutdown amp
 start_audio_amp 0 >/dev/null 2>&1
@@ -13,7 +16,7 @@ start_audio_amp 0 >/dev/null 2>&1
 # Force Read Only 
 ro
 
-# Unmount writeable partition to force 
+# Force unmount writeable partition
 umount -r /mnt
 
 # Poweroff
