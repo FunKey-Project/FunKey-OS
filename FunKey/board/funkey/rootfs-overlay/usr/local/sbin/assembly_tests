@@ -16,6 +16,10 @@ if [ -f ${LOCK_FILE} ]; then
 fi
 touch ${LOCK_FILE}
 
+## Register ourself as the running FunKey task for receiving USR1
+## signal for shutting down
+echo $$ > "/var/run/funkey.pid"
+
 ## Binaries
 PROD_SCREEN_BIN="/usr/local/sbin/funkey_prod_screens"
 GET_PROC_UID="/usr/local/sbin/get_sid"
@@ -28,7 +32,7 @@ stop_loop=false
 proc_uid=$($GET_PROC_UID)
 
 ## Defines
-VERSION="1.00"
+VERSION="1.01"
 LOG_FILE="/root/logs/assembly_tests/assy_tests_${proc_uid}.log"
 [ -d $(dirname $LOG_FILE) ] || mkdir -p $(dirname $LOG_FILE)
 MAGNET_DETECTED_FILE="/root/.assembly_tests_magnet_detected"
@@ -39,6 +43,9 @@ QR_CODE_IMG="/root/logs/assembly_tests/qrcode.png"
 function function_magnet_detected_ok {
 	## Kill scheduled shutdown
 	pkill sched_shutdown
+
+	## Kill the funkey_prod_screen binary
+	killall -s USR1 "${PROD_SCREEN_BIN} > /dev/null 2>&1
 
 	## Write magnet_detected file
 	if $test_failed; then
@@ -58,6 +65,9 @@ function function_magnet_detected_ok {
 ## Function called when SIGUSR1 is caught while NOT waiting for it
 function function_magnet_detected_ko {
 	echo "ERROR: Caught SIGUSR1 signal (magnet detected!)"
+
+	## Kill the funkey_prod_screen binary
+	killall -s USR1 "${PROD_SCREEN_BIN} > /dev/null 2>&1
 	sync
 }
 

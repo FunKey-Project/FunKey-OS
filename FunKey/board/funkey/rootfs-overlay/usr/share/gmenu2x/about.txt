@@ -1,0 +1,20 @@
+GMenu2X has been created by Massimiliano "Ryo" Torromeo, and is released under the GPL-v2 license.
+
+This version is maintained by the Qi-Hardware and OpenDingux crew. The credits, as well as the latest source code can be found here:
+http://projects.qi-hardware.com/index.php/p/gmenu2x
+
+Credits for the translations:
+----
+English & Italian by Massimiliano Torromeo
+French by Paul Cercueil
+Danish by claus
+Dutch by superfly
+Spanish by pedator
+Portuguese (Portugal) by NightShadow
+Slovak by Jozef
+Swedish by Esslan and Micket
+German by fusion_power, johnnysnet and Waldteufel
+Finnish by Jontte and Atte
+Norwegian by Lithium Flower
+Russian by XaMMaX90
+Polish by Artur Rojek

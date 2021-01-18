@@ -1,0 +1,5 @@
+config BR2_PACKAGE_FLUIDLITE
+	bool "FluidLite"
+	depends on BR2_USE_MMU
+	help
+	  FluidLite is a very light version of FluidSynth.

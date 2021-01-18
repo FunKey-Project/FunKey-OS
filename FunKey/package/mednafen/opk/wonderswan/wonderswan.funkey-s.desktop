@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=WonderSwan
+Comment=WonderSwan/WonderSwan Color Emulator
+Icon=wonderswan
+Exec=/usr/games/launchers/wonderswan_launch.sh %f
+Terminal=false
+X-OD-NeedsDownscaling=true
+Categories=emulators;
+selectorbrowser=true
+SelectorDir=/mnt/WonderSwan
+SelectorFilter=zip,ZIP,wsc,WSC

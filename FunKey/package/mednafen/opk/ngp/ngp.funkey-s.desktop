@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Neo Geo
+Comment=Neo Geo Pocket Emulator
+Icon=ngp
+Exec=/usr/games/launchers/ngp_launch.sh %f
+Terminal=false
+X-OD-NeedsDownscaling=true
+Categories=emulators;
+selectorbrowser=true
+SelectorDir=/mnt/Neo Geo Pocket
+SelectorFilter=zip,ZIP,ngp,NGP

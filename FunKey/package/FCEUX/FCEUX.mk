@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-FCEUX_VERSION = fceux-FunKey-1.00
+FCEUX_VERSION = fceux-FunKey-1.1.0
 FCEUX_SITE_METHOD = git
 FCEUX_SITE = https://github.com/FunKey-Project/fceux.git
 FCEUX_LICENSE = GPL-2.0
@@ -12,25 +12,7 @@ FCEUX_LICENSE_FILES = COPYING
 
 FCEUX_DEPENDENCIES = sdl sdl_image sdl_mixer sdl_ttf zlib
 
-FCEUX_CFLAGS = $(TARGET_CFLAGS)
-
-ifeq ($(BR2_ARM_CPU_ARMV7A),y)
-FCEUX_CFLAGS += -march=armv7-a
-endif
-
-ifeq ($(BR2_GCC_TARGET_CPU),"cortex-a7")
-FCEUX_CFLAGS += -mtune=cortex-a7
-endif
-
-ifeq ($(BR2_GCC_TARGET_FLOAT_ABI),"hard")
-FCEUX_CFLAGS += -mfloat-abi=hard -ffast-math -funsafe-math-optimizations
-else ifeq ($(BR2_GCC_TARGET_FLOAT_ABI),"soft")
-FCEUX_CFLAGS += -mfloat-abi=soft -ffast-math -funsafe-math-optimizations
-endif
-
-ifeq ($(BR2_ARM_CPU_HAS_NEON),y)
-FCEUX_CFLAGS += -D__ARM_NEON__ -mfpu=neon -mvectorize-with-neon-quad
-endif
+FCEUX_CFLAGS = $(TARGET_CFLAGS) $(subst $\",,$(BR2_TARGET_OPTIMIZATION)) -mfloat-abi=hard -ffast-math -funsafe-math-optimizations
 
 FCEUX_CFLAGS += -ggdb -O3
 FCEUX_CFLAGS += -Wno-write-strings -Wno-sign-compare
@@ -65,5 +47,10 @@ define FCEUX_INSTALL_TARGET_CMDS
 	$(INSTALL) -m 0755 $(@D)/fceux/fceux $(TARGET_DIR)/usr/games/fceux
 endef
 
+define FCEUX_CREATE_OPK
+	$(INSTALL) -d -m 0755 $(TARGET_DIR)/usr/games/opk
+	$(HOST_DIR)/usr/bin/mksquashfs $(FCEUX_PKGDIR)/opk/nes $(TARGET_DIR)/usr/games/opk/nes_fceux_funkey-s.opk -all-root -noappend -no-exports -no-xattrs
+endef
+FCEUX_POST_INSTALL_TARGET_HOOKS += FCEUX_CREATE_OPK
 
 $(eval $(generic-package))

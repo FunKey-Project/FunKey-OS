@@ -18,6 +18,14 @@ alias l='ls $LS_OPTIONS -lA'
 # alias cp='cp -i'
 # alias mv='mv -i'
 
+# Relocate HOME into the r/w partition
+export HOME=/mnt/FunKey
+mkdir -p "${HOME}"
+export MEDNAFEN_HOME=$HOME/.mednafen
+mkdir -p "${MEDNAFEN_HOME}"
+export GMENU2X_HOME="$HOME/.gmenu2x"
+mkdir -p "${GMENU2X_HOME}"
+
 # Resize the console to the terminal dimensions
 resize() {
     if [[ -t 0 && $# -eq 0 ]]; then
@@ -37,11 +45,9 @@ resize() {
 }
 
 
-# Start ampli if necessary
-echo "Start audio amplifier if necessary"
-if [[ "$(volume_get)" -ne "0" ]]; then
-        start_audio_amp 1 >/dev/null 2>&1
-fi
+# Start ampli
+echo "Start audio amplifier"
+start_audio_amp 1 >/dev/null 2>&1
 
 # Force unmute sound card and reset volume
 echo "Force unmute sound card and reset volume"

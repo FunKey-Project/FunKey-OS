@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=GameBoy Col
+Comment=Game Boy Color Emulator
+Icon=gbc
+Exec=/usr/games/launchers/gb_launch.sh %f
+Terminal=false
+X-Od-NeedsDownscaling=true
+Categories=emulators;
+selectorbrowser=true
+SelectorDir=/mnt/Game Boy Color
+SelectorFilter=gbc,GBC

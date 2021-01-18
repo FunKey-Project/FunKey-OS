@@ -17,6 +17,14 @@ if [ $? -ne 0 ]; then
 	warn "$@"
 	exit $return_code
     }
+
+    die_notif () {
+    	local return_code=$1
+	shift
+	warn "$@"
+	notif "$@"
+	exit $return_code
+    }
 fi
 
 notif () {

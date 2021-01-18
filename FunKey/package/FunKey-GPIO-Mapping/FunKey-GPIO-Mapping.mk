@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-FUNKEY_GPIO_MAPPING_VERSION = FunKey-GPIO-Mapping-FunKey-1.00
+FUNKEY_GPIO_MAPPING_VERSION = FunKey-GPIO-Mapping-FunKey-1.1.0
 FUNKEY_GPIO_MAPPING_SITE_METHOD = git
 FUNKEY_GPIO_MAPPING_SITE = https://github.com/FunKey-Project/FunKey-GPIO-Mapping.git
 FUNKEY_GPIO_MAPPING_SITE_LICENSE = GPL-2.1+

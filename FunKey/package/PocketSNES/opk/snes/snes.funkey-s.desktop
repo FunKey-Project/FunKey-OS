@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=SNES
+Comment=SNES Emulator
+Icon=snes
+Exec=/usr/games/launchers/snes_launch.sh %f
+Terminal=false
+X-OD-NeedsDownscaling=true
+Categories=emulators;
+selectorbrowser=true
+SelectorDir=/mnt/SNES
+SelectorFilter=sfc,SFC,smc,SMC

@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-GPSP_VERSION = gpsp-FunKey-1.00
+GPSP_VERSION = gpsp-FunKey-1.1.0
 GPSP_SITE_METHOD = git
 GPSP_SITE = https://github.com/FunKey-Project/gpsp.git
 GPSP_LICENSE = GPL-2.0
@@ -12,25 +12,7 @@ GPSP_LICENSE_FILES = COPYING.DOC
 
 GPSP_DEPENDENCIES = sdl sdl_image sdl_mixer sdl_ttf zlib
 
-GPSP_CFLAGS = $(TARGET_CFLAGS)
-
-ifeq ($(BR2_ARM_CPU_ARMV7A),y)
-GPSP_CFLAGS += -march=armv7-a
-endif
-
-ifeq ($(BR2_GCC_TARGET_CPU),"cortex-a7")
-GPSP_CFLAGS += -mtune=cortex-a7
-endif
-
-ifeq ($(BR2_GCC_TARGET_FLOAT_ABI),"hard")
-GPSP_CFLAGS += -mfloat-abi=hard -ffast-math -funsafe-math-optimizations
-else ifeq ($(BR2_GCC_TARGET_FLOAT_ABI),"soft")
-GPSP_CFLAGS += -mfloat-abi=soft -ffast-math -funsafe-math-optimizations
-endif
-
-ifeq ($(BR2_ARM_CPU_HAS_NEON),y)
-GPSP_CFLAGS += -D__ARM_NEON__ -mfpu=neon -mvectorize-with-neon-quad
-endif
+GPSP_CFLAGS = $(TARGET_CFLAGS) $(subst $\",,$(BR2_TARGET_OPTIMIZATION)) -mfloat-abi=hard -ffast-math -funsafe-math-optimizations
 
 GPSP_SDL_CFLAGS += $(shell $(STAGING_DIR)/usr/bin/sdl-config --cflags)
 GPSP_SDL_LIBS += $(shell $(STAGING_DIR)/usr/bin/sdl-config --libs)
@@ -57,5 +39,11 @@ define GPSP_INSTALL_TARGET_CMDS
 	$(INSTALL) -m 0755 $(@D)/chip/gpsp $(TARGET_DIR)/usr/games/gpsp
 	$(INSTALL) -m 0644 $(@D)/game_config.txt $(TARGET_DIR)/usr/games/game_config.txt
 endef
+
+define GPSP_CREATE_OPK
+	$(INSTALL) -d -m 0755 $(TARGET_DIR)/usr/games/opk
+	$(HOST_DIR)/usr/bin/mksquashfs $(GPSP_PKGDIR)/opk/gba $(TARGET_DIR)/usr/games/opk/gba_gpsp_funkey-s.opk -all-root -noappend -no-exports -no-xattrs
+endef
+GPSP_POST_INSTALL_TARGET_HOOKS += GPSP_CREATE_OPK
 
 $(eval $(generic-package))

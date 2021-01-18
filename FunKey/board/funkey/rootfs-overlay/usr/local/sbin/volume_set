@@ -21,13 +21,6 @@ volume_scaled=$(echo "a = $volume_percent * (63 - $vol_mini) / 100 + $vol_mini +
 # Get current value
 current_volume=$(volume_get)
 
-# Turn on/off audio amplifier if necessary
-if [ ${current_volume} -eq 0 -a ${volume_percent} -ne 0 ]; then
-    start_audio_amp 1
-elif [ ${current_volume} -ne 0 -a ${volume_percent} -eq 0 ]; then
-    start_audio_amp 0
-fi
-
 # Set new volume
 amixer -q sset 'Headphone' ${volume_scaled} unmute
 
@@ -35,4 +28,12 @@ amixer -q sset 'Headphone' ${volume_scaled} unmute
 if [ ${?} -eq 0 -a ${current_volume} -ne ${volume_percent} ]; then
     fw_setenv volume ${volume_percent}
 fi
+
+# Turn on/off audio amplifier if necessary
+if [ ${current_volume} -eq 0 -a ${volume_percent} -ne 0 ]; then
+    start_audio_amp 1
+elif [ ${current_volume} -ne 0 -a ${volume_percent} -eq 0 ]; then
+    start_audio_amp 0
+fi
+
 exit 0

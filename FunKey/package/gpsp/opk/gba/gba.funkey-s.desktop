@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=GameBoy Adv
+Comment=Game Boy Advance Emulator
+Icon=gba
+Exec=/usr/games/launchers/gba_launch_gpsp.sh %f
+Terminal=false
+X-OD-NeedsDownscaling=true
+Categories=emulators;
+selectorbrowser=true
+SelectorDir=/mnt/Game Boy Advance
+SelectorFilter=gba,GBA

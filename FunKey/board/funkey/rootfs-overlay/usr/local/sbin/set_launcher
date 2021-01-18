@@ -1,0 +1,18 @@
+#!/bin/sh
+
+# Check number of args
+if [ ${#} -ne 1 ]; then
+    echo "Usage: $(basename ${0}) launcher"
+    exit 1
+fi
+
+# Launcher File
+LAUNCHER_FILE=$HOME/Launchers/launcher.txt
+mkdir -p "$(dirname "$LAUNCHER_FILE")"
+
+# Check Launcher
+NEW_LAUNCHER=${1}
+echo "Setting launcher: ${NEW_LAUNCHER}"
+echo ${NEW_LAUNCHER} > "$LAUNCHER_FILE"
+
+exit 0

@@ -1,7 +1,8 @@
 #!/bin/sh
 
-export HOME=/tmp/funkey
-mkdir -p ${HOME}
-cd ${HOME}
-fceux "$1"
-
+# Launch the process in background, record the PID into a file, wait
+# for the process to terminate and erase the recorded PID
+fceux "$1"&
+record_pid $!
+wait $!
+erase_pid

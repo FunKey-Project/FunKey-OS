@@ -12,7 +12,7 @@ fi
 brightness=$(fw_printenv -n brightness 2>/dev/null)
 if ! [ ! "${brightness}" -ne "${brightness}" ] 2> /dev/null; then
     brightness=${BRIGHTNESS_DEFAULT_VALUE}
-	fw_setenv brightness ${brightness}
+    fw_setenv brightness ${brightness}
 fi
 echo ${brightness}
 exit 0

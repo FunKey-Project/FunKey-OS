@@ -1,12 +1,12 @@
 NAME="FunKey-OS Recovery"
-VERSION="1.1.0 (Quacking Quagga)"
+VERSION="2.0.0 (Rowdy Rabbit)"
 ID=funkey-recovery
 ID_LIKE=buildroot
-PRETTY_NAME="FunKey-OS Recovery 1.1.0"
-VERSION_ID="1.1.0"
+PRETTY_NAME="FunKey-OS Recovery 2.0.0"
+VERSION_ID="2.0.0"
 HOME_URL="https://www.funkey-project.com/"
 SUPPORT_URL="https://www.funkey-project.com/"
 BUG_REPORT_URL="https://www.funkey-project.com/"
 PRIVACY_POLICY_URL="https://www.funkey-project.com"
-VERSION_CODENAME=Quacking
-UBUNTU_CODENAME=Quacking
+VERSION_CODENAME=Rowdy
+UBUNTU_CODENAME=Rowdy
