@@ -38,7 +38,7 @@ null::sysinit:/bin/ln -sf /proc/self/fd/2 /dev/stderr
 #::ctrlaltdel:/sbin/reboot
 
 # Stuff to do before rebooting
-#::shutdown:/etc/init.d/rcK
-#::shutdown:/sbin/swapoff -a
-#::shutdown:/bin/umount -r /
-#::shutdown:/bin/umount -r /mnt
+::shutdown:/etc/init.d/rcK
+::shutdown:/sbin/swapoff -a
+::shutdown:/bin/umount -r /
+::shutdown:/bin/umount -r /mnt

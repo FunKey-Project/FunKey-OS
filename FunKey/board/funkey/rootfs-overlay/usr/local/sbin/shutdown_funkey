@@ -16,8 +16,5 @@ start_audio_amp 0 >/dev/null 2>&1
 # Force Read Only 
 ro
 
-# Force unmount writeable partition
-umount -r /mnt
-
 # Poweroff
 poweroff
