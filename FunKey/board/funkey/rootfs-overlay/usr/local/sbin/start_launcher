@@ -5,6 +5,7 @@
 
 LOCK_FILE="/var/lock/launcher.lock"
 INSTANT_PLAY_FILE="/mnt/instant_play"
+RESUME_PLAY_FILE="/mnt/resume_play"
 PREVENT_LAUNCHER_FILE="/mnt/prevent_launcher"
 REBOOTING_FILE="/run/rebooting"
 
@@ -22,8 +23,10 @@ cp "/usr/games/lynxboot.img" "/usr/games/mednafen-09x.cfg" "${MEDNAFEN_HOME}/"
 # Launch Previous Game if any
 if [ -f "${INSTANT_PLAY_FILE}" ]; then
     echo "Found Instant Play file, restarting previous game with command: "$(head -n 1 "${INSTANT_PLAY_FILE}")
-    source "${INSTANT_PLAY_FILE}"
-    rm -f "${INSTANT_PLAY_FILE}"
+    rm -f "${RESUME_PLAY_FILE}"
+    mv "${INSTANT_PLAY_FILE}" "${RESUME_PLAY_FILE}"
+    source "${RESUME_PLAY_FILE}"
+    rm -f "${RESUME_PLAY_FILE}"
     termfix_all
 fi
 
