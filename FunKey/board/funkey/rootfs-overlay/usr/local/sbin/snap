@@ -19,7 +19,7 @@ touch "${LOCK_FILE}"
 
 # Increment name and save snapshot
 SNAPSHOT_EXT=PNG
-SNAPSHOT_DIR=$HOME/snapshots
+SNAPSHOT_DIR=/mnt/FunKey/snapshots
 mkdir -p "${SNAPSHOT_DIR}"
 last=$(cd ${SNAPSHOT_DIR}; ls IMG_*.${SNAPSHOT_EXT} 2> /dev/null | tail -1 | sed 's/^IMG_0*\([0-9]\+\)\.'${SNAPSHOT_EXT}'$/\1/')
 let last=${last}+1
