@@ -24,6 +24,8 @@ jobs:
         sudo rm -rf /var/lib/apt/lists/*
         sudo sed -i 's/# \(en_US.UTF-8\)/\1/' /etc/locale.gen
         sudo locale-gen --purge --lang en_US.UTF-8
+    - name: Build SDK
+      run: make sdk
     - name: Build FunKey-OS
       run: make
     - uses: actions/upload-artifact@v2
