@@ -61,7 +61,7 @@ sdk: buildroot SDK/output/.config
 	@$(call MESSAGE,"Making FunKey SDK")
 	@$(BRMAKE) BR2_EXTERNAL=../SDK O=../SDK/output prepare-sdk
 	@$(call MESSAGE,"Generating SDK tarball")
-	export LC_ALL=C; \
+	@export LC_ALL=C; \
 	SDK=FunKey-sdk-$(shell cat FunKey/board/funkey/rootfs-overlay/etc/sw-versions | cut -f 2); \
 	grep -lr "$(shell pwd)/SDK/output/host" SDK/output/host | while read -r FILE ; do \
 		if file -b --mime-type "$${FILE}" | grep -q '^text/'; then \

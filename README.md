@@ -92,7 +92,7 @@ $ cd FunKey-OS
 You may now build your FunKey with:
 
 ```bash
-$ make
+$ make sdk all
 ```
 This may take a while (~1h30), so consider getting yourself a cup, a glass or a bottle of your favorite beverage ;-)
 
