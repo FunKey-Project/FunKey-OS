@@ -3,7 +3,7 @@
 # gmenu2x
 #
 #############################################################
-GMENU2X_VERSION = gmenu2x-FunKey-1.0.0
+GMENU2X_VERSION = gmenu2x-FunKey-1.0.1
 GMENU2X_SITE_METHOD = git
 GMENU2X_SITE = https://github.com/FunKey-Project/gmenu2x.git
 GMENU2X_LICENSE = GPL-2.0
