@@ -44,9 +44,6 @@ function function_magnet_detected_ok {
 	## Kill scheduled shutdown
 	pkill sched_shutdown
 
-	## Kill the funkey_prod_screen binary
-	killall -s USR1 "${PROD_SCREEN_BIN} > /dev/null 2>&1
-
 	## Write magnet_detected file
 	if $test_failed; then
 		echo "1" > $MAGNET_DETECTED_FILE
@@ -67,7 +64,7 @@ function function_magnet_detected_ko {
 	echo "ERROR: Caught SIGUSR1 signal (magnet detected!)"
 
 	## Kill the funkey_prod_screen binary
-	killall -s USR1 "${PROD_SCREEN_BIN} > /dev/null 2>&1
+	killall -s USR1 "${PROD_SCREEN_BIN}" > /dev/null 2>&1
 	sync
 }
 
@@ -223,7 +220,7 @@ function launch_tests_up_until_magnet {
 	sync
 
 	# Catch SIGUSR1 events
-	trap function_magnet_detected_ok SIGUSR1
+	#trap function_magnet_detected_ok SIGUSR1
 
 	## Launch prod screen test magnet
 	echo "TEST MAGNET:"
@@ -231,8 +228,15 @@ function launch_tests_up_until_magnet {
 	$PROD_SCREEN_BIN MAGNET  2>&1
 	res="$?"
 	echo "	$res" 
+
+	## Register ourself back as the running FunKey task for receiving USR1
+	## signal for shutting down
+	echo $$ > "/var/run/funkey.pid"
+
+	# check magnet test result
 	if [[ "$res" == "0" ]]; then
 		echo "	OK" 
+		function_magnet_detected_ok
 	else
 		echo "	FAILED" 
 		test_failed=true
