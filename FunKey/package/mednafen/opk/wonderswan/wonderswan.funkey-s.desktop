@@ -9,4 +9,4 @@ X-OD-NeedsDownscaling=true
 Categories=emulators;
 selectorbrowser=true
 SelectorDir=/mnt/WonderSwan
-SelectorFilter=zip,ZIP,wsc,WSC
+SelectorFilter=zip,ZIP,wsc,WSC,ws,WS

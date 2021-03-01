@@ -1,6 +1,6 @@
 [Desktop Entry]
 Type=Application
-Name=GameBoy Adv
+Name=GameBoy Advance
 Comment=Game Boy Advance Emulator
 Icon=gba
 Exec=/usr/games/launchers/gba_launch_gpsp.sh %f
