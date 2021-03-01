@@ -12,6 +12,11 @@ software =
 		installed-directly = true;
 		compressed = "zlib";
         }
+	files: (
+	{
+		filename = "funkey_gpio_management";
+		path = "/tmp/";
+	}
         );
 	scripts: (
 	{
