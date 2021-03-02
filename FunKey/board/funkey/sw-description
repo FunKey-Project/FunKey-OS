@@ -1,24 +1,24 @@
 software =
 {
-        version = "2.0.0";
+	version = "2.0.0";
 
-        hardware-compatibility = [ "#RE:^Rev\.[D-E]$" ];
+	hardware-compatibility = [ "#RE:^Rev\.[D-E]$" ];
 
-        images: (
-        {
-                filename = "rootfs.ext2.gz";
-                device = "/dev/mmcblk0p2";
+	images: (
+	{
+        filename = "rootfs.ext2.gz";
+        device = "/dev/mmcblk0p2";
 		type = "raw";
 		installed-directly = true;
 		compressed = "zlib";
-        }
+	}
 	);
 	files: (
 	{
 		filename = "funkey_gpio_management";
 		path = "/tmp/funkey_gpio_management";
 	}
-        );
+	);
 	scripts: (
 	{
 		filename = "update_partition";
