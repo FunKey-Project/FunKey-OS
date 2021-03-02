@@ -28,20 +28,18 @@ do_postinst()
     fi
     notif " 4/5 COPY OPKS TO USB MOUNT^DO NOT TURN OFF THE CONSOLE"
     folder_opks_emulators=/mnt/Emulators
-    if [ ! -d "$folder_opks_emulators" ]; then
-    	mkdir -p "$folder_opks_emulators"
-    	mkdir -p ${root_mount}
-    	mount -t ext4 ${root_part} ${root_mount}
-    	if [ $? -ne 0 ]; then
-    	    notif "CANNOT MOUNT ROOT^FILESYSTEM"
-    	    exit 1
-    	fi
-    	cp -f ${root_mount}/usr/games/opk/*.opk "$folder_opks_emulators"
-    	umount ${root_mount}
-    	if [ $? -ne 0 ]; then
-    	    notif "CANNOT UNMOUNT ROOT^FILESYSTEM"
-    	    exit 1
-    	fi
+    mkdir -p "$folder_opks_emulators"
+    mkdir -p ${root_mount}
+    mount -t ext4 ${root_part} ${root_mount}
+    if [ $? -ne 0 ]; then
+    	notif "CANNOT MOUNT ROOT^FILESYSTEM"
+    	exit 1
+    fi
+    cp -f ${root_mount}/usr/games/opk/*.opk "$folder_opks_emulators"
+    umount ${root_mount}
+    if [ $? -ne 0 ]; then
+    	notif "CANNOT UNMOUNT ROOT^FILESYSTEM"
+    	exit 1
     fi
     for file in $(ls /mnt/FunKey-*.fwu); do
         notif " 5/5 ERASE UPDATE FILE^DO NOT TURN OFF THE CONSOLE"
