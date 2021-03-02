@@ -1,12 +1,12 @@
 NAME="FunKey-OS"
-VERSION="2.0.0 (Rowdy Rabbit)"
+VERSION="2.0.1 (Defiant Dog)"
 ID=funkey
 ID_LIKE=buildroot
-PRETTY_NAME="FunKey-OS 2.0.0"
-VERSION_ID="2.0.0.0"
+PRETTY_NAME="FunKey-OS 2.0.1"
+VERSION_ID="2.0.1"
 HOME_URL="https://www.funkey-project.com/"
 SUPPORT_URL="https://www.funkey-project.com/"
 BUG_REPORT_URL="https://www.funkey-project.com/"
 PRIVACY_POLICY_URL="https://www.funkey-project.com"
-VERSION_CODENAME=Rowdy
-UBUNTU_CODENAME=Rowdy
+VERSION_CODENAME=Defiant
+UBUNTU_CODENAME=Defiant

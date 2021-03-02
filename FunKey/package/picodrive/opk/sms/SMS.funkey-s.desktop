@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Sega Master System
+Comment=Sega Master System Emulator
+Icon=sms
+Exec=/usr/games/launchers/sms_launch.sh %f
+Terminal=false
+X-OD-NeedsDownscaling=true
+Categories=emulators;
+selectorbrowser=true
+SelectorDir=/mnt/Sega Master System
+SelectorFilter=zip,ZIP,sms,SMS,bin,BIN

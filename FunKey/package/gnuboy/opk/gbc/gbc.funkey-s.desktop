@@ -1,6 +1,6 @@
 [Desktop Entry]
 Type=Application
-Name=GameBoy Col
+Name=GameBoy Color
 Comment=Game Boy Color Emulator
 Icon=gbc
 Exec=/usr/games/launchers/gb_launch.sh %f
