@@ -1,0 +1,13 @@
+config BR2_PACKAGE_COMMANDER
+	bool "commander"
+	select BR2_PACKAGE_LIBPNG
+	select BR2_PACKAGE_SDL
+	select BR2_PACKAGE_SDL_TTF
+	select BR2_PACKAGE_SDL_GFX
+	help
+
+	  DinguxCommander is a file manager for RetroFW. It uses two
+	  vertical panels side by side, one being the source and the
+	  other the destination, like many 'commander-style' file
+	  managers such as Norton Commander or Midnight
+	  Commander.
