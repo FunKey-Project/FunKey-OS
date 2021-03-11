@@ -17,7 +17,7 @@ define COMMANDER_INSTALL_CMDS
 endef
 
 define COMMANDER_CREATE_OPK
-	$(INSTALL) -d -m 0755 $(TARGET_DIR)/usr/games/opk
+	$(INSTALL) -d -m 0755 $(TARGET_DIR)/usr/local/share/OPKs/Applications
 	cd $(@D); \
 	$(HOST_DIR)/usr/bin/mksquashfs \
 		opkg/default.funkey-s.desktop \
@@ -33,7 +33,7 @@ define COMMANDER_CREATE_OPK
 		res/Fiery_Turk.ttf \
 		res/FreeSans.ttf \
 		$(TARGET_DIR)/usr/bin/commander \
-		$(TARGET_DIR)/usr/games/opk/commander-funkey-s.opk \
+		$(TARGET_DIR)/usr/local/share/OPKs/Applications/commander-funkey-s.opk \
 		-all-root -noappend -no-exports -no-xattrs -noappend; \
 	rm -rf $(TARGET_DIR)/usr/bin/commander
 endef

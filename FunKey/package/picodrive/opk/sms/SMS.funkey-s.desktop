@@ -1,6 +1,6 @@
 [Desktop Entry]
 Type=Application
-Name=Sega Master System
+Name=Master System
 Comment=Sega Master System Emulator
 Icon=sms
 Exec=/usr/games/launchers/sms_launch.sh %f

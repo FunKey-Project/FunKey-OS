@@ -15,32 +15,53 @@ do_preinst()
 
 do_postinst()
 {
+    ################
+    # Fix recovery #
+    ################
     notif " 2/5 FIX RECOVERY GPIO MANAGER"
     rw
     cp -a /tmp/funkey_gpio_management /usr/local/sbin/
     chmod +x /usr/local/sbin/funkey_gpio_management
     ro
+    
+    #################
+    # Resize Rootfs #
+    #################
     notif " 3/5 RESIZE ROOT FILESYSTEM^DO NOT TURN OFF THE CONSOLE"
     resize2fs ${root_part}
     if [ $? -ne 0 ]; then
     	notif " CANNOT RESIZE ROOT^FILESYSTEM"
     	exit 1
     fi
+
+    #############
+    # Copy OPKs #
+    #############
     notif " 4/5 COPY OPKS TO USB MOUNT^DO NOT TURN OFF THE CONSOLE"
-    folder_opks_emulators=/mnt/Emulators
-    mkdir -p "$folder_opks_emulators"
+    
+    # Mount Rootfs
     mkdir -p ${root_mount}
     mount -t ext4 ${root_part} ${root_mount}
     if [ $? -ne 0 ]; then
     	notif "CANNOT MOUNT ROOT^FILESYSTEM"
     	exit 1
     fi
-    cp -f ${root_mount}/usr/games/opk/*.opk "$folder_opks_emulators"
+    
+    # Copy OPKs
+    shared_partition=/mnt/
+    mkdir -p "$shared_partition"
+    cp -r ${root_mount}/usr/local/share/OPKs/* "$shared_partition"
+
+    # Unmount Rootfs
     umount ${root_mount}
     if [ $? -ne 0 ]; then
     	notif "CANNOT UNMOUNT ROOT^FILESYSTEM"
     	exit 1
     fi
+
+    #####################
+    # Erase update file #
+    #####################
     for file in $(ls /mnt/FunKey-*.fwu); do
         notif " 5/5 ERASE UPDATE FILE^DO NOT TURN OFF THE CONSOLE"
     	rm -f "${file}"

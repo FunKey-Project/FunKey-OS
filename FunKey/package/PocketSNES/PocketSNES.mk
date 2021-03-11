@@ -54,8 +54,8 @@ define POCKETSNES_INSTALL_TARGET_CMDS
 endef
 
 define POCKETSNES_CREATE_OPK
-	$(INSTALL) -d -m 0755 $(TARGET_DIR)/usr/games/opk
-	$(HOST_DIR)/usr/bin/mksquashfs $(POCKETSNES_PKGDIR)/opk/snes $(TARGET_DIR)/usr/games/opk/snes_pocketsnes_funkey-s.opk -all-root -noappend -no-exports -no-xattrs
+	$(INSTALL) -d -m 0755 $(TARGET_DIR)/usr/local/share/OPKs/Emulators
+	$(HOST_DIR)/usr/bin/mksquashfs $(POCKETSNES_PKGDIR)/opk/snes $(TARGET_DIR)/usr/local/share/OPKs/Emulators/snes_pocketsnes_funkey-s.opk -all-root -noappend -no-exports -no-xattrs
 endef
 POCKETSNES_POST_INSTALL_TARGET_HOOKS += POCKETSNES_CREATE_OPK
 
