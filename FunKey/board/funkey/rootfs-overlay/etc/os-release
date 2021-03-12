@@ -1,12 +1,12 @@
 NAME="FunKey-OS"
-VERSION="2.0.1 (Defiant Dog)"
+VERSION="2.1.0 (Cruising Chicken)"
 ID=funkey
 ID_LIKE=buildroot
-PRETTY_NAME="FunKey-OS 2.0.1"
-VERSION_ID="2.0.1"
+PRETTY_NAME="FunKey-OS 2.1.0"
+VERSION_ID="2.1.0"
 HOME_URL="https://www.funkey-project.com/"
 SUPPORT_URL="https://www.funkey-project.com/"
 BUG_REPORT_URL="https://www.funkey-project.com/"
 PRIVACY_POLICY_URL="https://www.funkey-project.com"
-VERSION_CODENAME=Defiant
-UBUNTU_CODENAME=Defiant
+VERSION_CODENAME=Cruising
+UBUNTU_CODENAME=Cruising
