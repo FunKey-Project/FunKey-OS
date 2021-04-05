@@ -9,4 +9,4 @@ X-OD-NeedsDownscaling=true
 Categories=emulators;
 selectorbrowser=true
 SelectorDir=/mnt/NES
-SelectorFilter=nes,NES,fds,FDS
+SelectorFilter=nes,NES,fds,FDS,zip,ZIP

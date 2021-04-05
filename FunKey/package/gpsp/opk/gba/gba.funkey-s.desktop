@@ -9,4 +9,4 @@ X-OD-NeedsDownscaling=true
 Categories=emulators;
 selectorbrowser=true
 SelectorDir=/mnt/Game Boy Advance
-SelectorFilter=gba,GBA
+SelectorFilter=gba,GBA,zip,ZIP

@@ -9,4 +9,4 @@ X-OD-NeedsDownscaling=true
 Categories=emulators;
 selectorbrowser=true
 SelectorDir=/mnt/PCE-TurboGrafx
-SelectorFilter=zip,ZIP,pce,PCE,sgx,SGX
+SelectorFilter=zip,ZIP,pce,PCE,sgx,SGX,cue,CUE
