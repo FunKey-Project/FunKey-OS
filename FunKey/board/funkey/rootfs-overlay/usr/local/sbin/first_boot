@@ -201,11 +201,16 @@ copy_files_to_usb_partition () {
     if [ $? -ne 0 ]; then
 	mount /mnt/ || die_notif 16 "Cannot mount /mnt"
     fi
+
+    # Copy freware games
     unzip -q -o /usr/local/share/mnt_freware_games.zip -d /mnt/
-    mkdir -p /mnt/Emulators
+
+    # Copy OPKs
     set +f
-    cp -f /usr/games/opk/*.opk /mnt/Emulators/
+    cp -r /usr/local/share/OPKs/* /mnt
     set -f
+
+    # Unmount USB partition
     umount /mnt/ || die_notif 17 "Cannot unmount /mnt"
     return 0
 }
