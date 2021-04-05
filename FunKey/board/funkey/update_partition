@@ -52,6 +52,9 @@ do_postinst()
     mkdir -p "$shared_partition"
     cp -r ${root_mount}/usr/local/share/OPKs/* "$shared_partition"
 
+    # Fix PCE opk name if necessary
+    mv "$shared_partition"/Emulators/pce_mednaefn_funkey-s.opk "$shared_partition"/Emulators/pce_mednafen_funkey-s.opk 1>/dev/null 2>&1
+
     # Unmount Rootfs
     umount ${root_mount}
     if [ $? -ne 0 ]; then
