@@ -34,7 +34,7 @@ define MEDNAFEN_CREATE_OPK
 	$(HOST_DIR)/usr/bin/mksquashfs $(MEDNAFEN_PKGDIR)/opk/gamegear $(TARGET_DIR)/usr/local/share/OPKs/Emulators/gamegear_mednafen_funkey-s.opk -all-root -noappend -no-exports -no-xattrs
 	$(HOST_DIR)/usr/bin/mksquashfs $(MEDNAFEN_PKGDIR)/opk/lynx $(TARGET_DIR)/usr/local/share/OPKs/Emulators/lynx_mednafen_funkey-s.opk -all-root -noappend -no-exports -no-xattrs
 	$(HOST_DIR)/usr/bin/mksquashfs $(MEDNAFEN_PKGDIR)/opk/ngp $(TARGET_DIR)/usr/local/share/OPKs/Emulators/ngp_mednafen_funkey-s.opk -all-root -noappend -no-exports -no-xattrs
-	$(HOST_DIR)/usr/bin/mksquashfs $(MEDNAFEN_PKGDIR)/opk/pce $(TARGET_DIR)/usr/local/share/OPKs/Emulators/pce_mednaefn_funkey-s.opk -all-root -noappend -no-exports -no-xattrs
+	$(HOST_DIR)/usr/bin/mksquashfs $(MEDNAFEN_PKGDIR)/opk/pce $(TARGET_DIR)/usr/local/share/OPKs/Emulators/pce_mednafen_funkey-s.opk -all-root -noappend -no-exports -no-xattrs
 	$(HOST_DIR)/usr/bin/mksquashfs $(MEDNAFEN_PKGDIR)/opk/wonderswan $(TARGET_DIR)/usr/local/share/OPKs/Emulators/wonderswan_mednafen_funkey-s.opk -all-root -noappend -no-exports -no-xattrs
 endef
 MEDNAFEN_POST_INSTALL_TARGET_HOOKS += MEDNAFEN_CREATE_OPK
