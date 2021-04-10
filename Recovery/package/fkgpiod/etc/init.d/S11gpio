@@ -1,0 +1,35 @@
+#!/bin/sh
+#
+# Start/stop FunKey GPIO daemon
+#
+
+DAEMON=/usr/local/sbin/fkgpiod
+
+case "$1" in
+  start)
+	echo -n "Starting FunKey GPIO daemon: "
+	${DAEMON} -d /etc/fkgpiod.conf > /dev/null 2>&1
+	if [ ${?} -eq 0 ]; then
+	  echo "OK"
+	else
+	  echo "ERROR"
+	fi
+	;;
+  stop)
+	echo -n "Stopping FunKey GPIO daemon: "
+	${DAEMON} -k > /dev/null 2>&1
+	if [ ${?} -eq 0 ]; then
+	  echo "OK"
+	else
+	  echo "ERROR"
+	fi
+	;;
+  restart)
+	${0} stop
+	sleep 1 # Prevent race condition: ensure FunKey GPIO daemon stops before start.
+	${0} start
+	;;
+  *)
+	echo "Usage: ${0} {start|stop|restart}"
+	exit 1
+esac
