@@ -1,0 +1,5 @@
+config BR2_PACKAGE_FKGPIOD
+	bool "FunKey S GPIO daemon"
+	default y
+	help
+	  The FunKey GPIO mapping utility.
