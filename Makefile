@@ -121,13 +121,12 @@ update: fun
 	@mkdir -p tmp
 	@cp FunKey/board/funkey/sw-description tmp/
 	@cp FunKey/board/funkey/update_partition tmp/
-	@cp -a Recovery/output/target/usr/local/sbin/funkey_gpio_management tmp/
 	@cd FunKey/output/images && \
 	rm -f rootfs.ext2.gz && \
 	gzip -k rootfs.ext2 &&\
 	mv rootfs.ext2.gz ../../../tmp/
 	@cd tmp && \
-	echo sw-description rootfs.ext2.gz update_partition funkey_gpio_management | \
+	echo sw-description rootfs.ext2.gz update_partition | \
 	tr " " "\n" | \
 	cpio -o -H crc --quiet > ../images/FunKey-rootfs-$(shell cat FunKey/board/funkey/rootfs-overlay/etc/sw-versions | cut -f 2).fwu
 	@rm -rf tmp
