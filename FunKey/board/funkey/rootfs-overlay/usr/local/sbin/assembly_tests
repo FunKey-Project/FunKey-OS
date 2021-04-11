@@ -99,24 +99,17 @@ function launch_tests_up_until_magnet {
 	echo "	OK"
 	sync
 
-	## Check if battery present
-	if [[ $(cat /sys/class/power_supply/axp20x-battery/present) == "0" ]]; then
-
-		## Launch screen to wait for battery
-		echo "TEST BATTERY:" 
-		sync
-		$PROD_SCREEN_BIN WAIT_BATTERY  2>&1
-		res="$?"
-		echo "	$res" 
-		if [[ "$res" == "0" ]]; then
-			echo "	OK" 
-		else
-			echo "	FAIL" 
-			test_failed=true
-		fi
-	else
-		echo "TEST BATTERY:" 
+	## Battery tests
+	echo "TEST BATTERY:" 
+	sync
+	$PROD_SCREEN_BIN WAIT_BATTERY  2>&1
+	res="$?"
+	echo "	$res" 
+	if [[ "$res" == "0" ]]; then
 		echo "	OK" 
+	else
+		echo "	FAIL" 
+		test_failed=true
 	fi
 	sync
 
