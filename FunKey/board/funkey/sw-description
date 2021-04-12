@@ -13,12 +13,6 @@ software =
 		compressed = "zlib";
 	}
 	);
-	files: (
-	{
-		filename = "funkey_gpio_management";
-		path = "/tmp/funkey_gpio_management";
-	}
-	);
 	scripts: (
 	{
 		filename = "update_partition";

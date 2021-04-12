@@ -15,15 +15,7 @@ do_preinst()
 
 do_postinst()
 {
-    ################
-    # Fix recovery #
-    ################
-    notif " 2/5 FIX RECOVERY GPIO MANAGER"
-    rw
-    cp -a /tmp/funkey_gpio_management /usr/local/sbin/
-    chmod +x /usr/local/sbin/funkey_gpio_management
-    ro
-    
+
     #################
     # Resize Rootfs #
     #################
@@ -34,9 +26,9 @@ do_postinst()
     	exit 1
     fi
 
-    #############
-    # Copy OPKs #
-    #############
+    ##############################
+    # SHARED PARTITION PROCESSES #
+    ##############################
     notif " 4/5 COPY OPKS TO USB MOUNT^DO NOT TURN OFF THE CONSOLE"
     
     # Mount Rootfs
@@ -48,12 +40,10 @@ do_postinst()
     fi
     
     # Copy OPKs
-    shared_partition=/mnt/
-    mkdir -p "$shared_partition"
-    cp -r ${root_mount}/usr/local/share/OPKs/* "$shared_partition"
+    cp -r ${root_mount}/usr/local/share/OPKs/* /mnt
 
     # Fix PCE opk name if necessary
-    mv "$shared_partition"/Emulators/pce_mednaefn_funkey-s.opk "$shared_partition"/Emulators/pce_mednafen_funkey-s.opk 1>/dev/null 2>&1
+    mv /mnt/Emulators/pce_mednaefn_funkey-s.opk /mnt/Emulators/pce_mednafen_funkey-s.opk 1>/dev/null 2>&1
 
     # Unmount Rootfs
     umount ${root_mount}
@@ -61,6 +51,16 @@ do_postinst()
     	notif "CANNOT UNMOUNT ROOT^FILESYSTEM"
     	exit 1
     fi
+
+    # Change FunKey config files extension from .cfg to .fkcfg
+    SAVEIFS=$IFS
+    IFS=$(echo -en "\n\b")
+    for FOLDER in "Atari lynx" "Game Boy" "Game Boy Advance" "Game Boy Color" "Game Gear" "Neo Geo Pocket" "NES" "PCE-TurboGrafx" "PS1" "Sega Genesis" "Sega Master System" "SNES" "WonderSwan"; do
+        for FILE in $(ls /mnt/"${FOLDER}"/*.cfg 2>/dev/null); do
+            mv "$FILE" "${FILE%.cfg}.fkcfg"
+        done
+    done
+    IFS=$SAVEIFS
 
     #####################
     # Erase update file #
