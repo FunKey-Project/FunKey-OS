@@ -1,0 +1,14 @@
+#!/bin/sh
+
+# Check number of args
+if [ ${#} -ne 1 ]; then
+    echo "Usage: $(basename ${0}) keymap_file"
+    exit 1
+fi
+if [ "${1}" = "reset" ]; then
+    keymap_file="/etc/fkgpiod.conf"
+else
+    keymap_file="${1}"
+fi
+echo "LOAD ${keymap_file}" >/tmp/fkgpiod.fifo 2>/dev/null
+exit 0
