@@ -139,8 +139,10 @@ menu_run () {
 		    for file in $(ls /mnt/FunKey-*.fwu); do
 			swupdate -i "${file}"
 			if [ $? -ne 0 ]; then
-			    notif "${message}...^CANNOT UPDATE!"
-			    break
+			    notif_disp 10 "${message}...^         CORRUPTED^        UPDATE FILE"
+			    rm -f "${file}"
+			    notif "^^^^^^^^         RESTARTING...^^^^^^^^"
+			    normal_mode
 			fi
 		    done
 		    message=" USB MOUNT"
