@@ -9,25 +9,16 @@ root_mount=/tmp/rootfs
 
 do_preinst()
 {
-    notif " 1/5 EXTRACT FIRMWARE UPDATE..^DO NOT TURN OFF THE CONSOLE"
+    notif " 1/4 EXTRACT FIRMWARE UPDATE..^DO NOT TURN OFF THE CONSOLE"
     exit 0
 }
 
 do_postinst()
 {
-    ################
-    # Fix recovery #
-    ################
-    notif " 2/5 FIX RECOVERY GPIO MANAGER"
-    rw
-    cp -a /tmp/funkey_gpio_management /usr/local/sbin/
-    chmod +x /usr/local/sbin/funkey_gpio_management
-    ro
-    
     #################
     # Resize Rootfs #
     #################
-    notif " 3/5 RESIZE ROOT FILESYSTEM^DO NOT TURN OFF THE CONSOLE"
+    notif " 2/4 RESIZE ROOT FILESYSTEM^DO NOT TURN OFF THE CONSOLE"
     resize2fs ${root_part}
     if [ $? -ne 0 ]; then
     	notif " CANNOT RESIZE ROOT^FILESYSTEM"
@@ -37,7 +28,7 @@ do_postinst()
     #############
     # Copy OPKs #
     #############
-    notif " 4/5 COPY OPKS TO USB MOUNT^DO NOT TURN OFF THE CONSOLE"
+    notif " 3/4 COPY OPKS TO USB MOUNT^DO NOT TURN OFF THE CONSOLE"
     
     # Mount Rootfs
     mkdir -p ${root_mount}
@@ -66,7 +57,7 @@ do_postinst()
     # Erase update file #
     #####################
     for file in $(ls /mnt/FunKey-*.fwu); do
-        notif " 5/5 ERASE UPDATE FILE^DO NOT TURN OFF THE CONSOLE"
+        notif " 4/4 ERASE UPDATE FILE^DO NOT TURN OFF THE CONSOLE"
     	rm -f "${file}"
     done
     exit 0
