@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-GPSP_VERSION = gpsp-FunKey-1.2.0
+GPSP_VERSION = 31f430c
 GPSP_SITE_METHOD = git
 GPSP_SITE = https://github.com/FunKey-Project/gpsp.git
 GPSP_LICENSE = GPL-2.0
