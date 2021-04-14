@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-PICODRIVE_VERSION = 5a161d92
+PICODRIVE_VERSION = 009d007
 PICODRIVE_SITE_METHOD = git
 PICODRIVE_SITE = https://github.com/FunKey-Project/picodrive-irixxxx.git
 PICODRIVE_LICENSE = MAME
