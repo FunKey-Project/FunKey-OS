@@ -2,7 +2,7 @@ software =
 {
 	version = "2.1.0";
 
-	hardware-compatibility = [ "#RE:^Rev\.[D-E]$" ];
+	hardware-compatibility = [ "#RE:^Rev\.[D-F]$" ];
 
 	images: (
 	{
