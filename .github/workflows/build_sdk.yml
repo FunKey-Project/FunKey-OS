@@ -1,4 +1,4 @@
-name: FunKey-OS Build
+name: FunKey SDK Build
 
 on:
   workflow_dispatch:
