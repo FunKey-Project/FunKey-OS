@@ -9,35 +9,27 @@ root_mount=/tmp/rootfs
 
 do_preinst()
 {
-    notif " 1/5 EXTRACT FIRMWARE UPDATE..^DO NOT TURN OFF THE CONSOLE"
+    notif " 1/4 EXTRACT FIRMWARE UPDATE..^DO NOT TURN OFF THE CONSOLE"
     exit 0
 }
 
 do_postinst()
 {
-    ################
-    # Fix recovery #
-    ################
-    notif " 2/5 FIX RECOVERY GPIO MANAGER"
-    rw
-    cp -a /tmp/funkey_gpio_management /usr/local/sbin/
-    chmod +x /usr/local/sbin/funkey_gpio_management
-    ro
-    
+
     #################
     # Resize Rootfs #
     #################
-    notif " 3/5 RESIZE ROOT FILESYSTEM^DO NOT TURN OFF THE CONSOLE"
+    notif " 2/4 RESIZE ROOT FILESYSTEM^DO NOT TURN OFF THE CONSOLE"
     resize2fs ${root_part}
     if [ $? -ne 0 ]; then
     	notif " CANNOT RESIZE ROOT^FILESYSTEM"
     	exit 1
     fi
 
-    #############
-    # Copy OPKs #
-    #############
-    notif " 4/5 COPY OPKS TO USB MOUNT^DO NOT TURN OFF THE CONSOLE"
+    ##############################
+    # SHARED PARTITION PROCESSES #
+    ##############################
+    notif " 3/4 COPY OPKS TO USB MOUNT^DO NOT TURN OFF THE CONSOLE"
     
     # Mount Rootfs
     mkdir -p ${root_mount}
@@ -48,12 +40,10 @@ do_postinst()
     fi
     
     # Copy OPKs
-    shared_partition=/mnt/
-    mkdir -p "$shared_partition"
-    cp -r ${root_mount}/usr/local/share/OPKs/* "$shared_partition"
+    cp -r ${root_mount}/usr/local/share/OPKs/* /mnt
 
     # Fix PCE opk name if necessary
-    mv "$shared_partition"/Emulators/pce_mednaefn_funkey-s.opk "$shared_partition"/Emulators/pce_mednafen_funkey-s.opk 1>/dev/null 2>&1
+    mv /mnt/Emulators/pce_mednaefn_funkey-s.opk /mnt/Emulators/pce_mednafen_funkey-s.opk 1>/dev/null 2>&1
 
     # Unmount Rootfs
     umount ${root_mount}
@@ -62,11 +52,21 @@ do_postinst()
     	exit 1
     fi
 
+    # Change FunKey config files extension from .cfg to .fkcfg
+    SAVEIFS=$IFS
+    IFS=$(echo -en "\n\b")
+    for FOLDER in "Atari lynx" "Game Boy" "Game Boy Advance" "Game Boy Color" "Game Gear" "Neo Geo Pocket" "NES" "PCE-TurboGrafx" "PS1" "Sega Genesis" "Sega Master System" "SNES" "WonderSwan"; do
+        for FILE in $(ls /mnt/"${FOLDER}"/*.cfg 2>/dev/null); do
+            mv "$FILE" "${FILE%.cfg}.fkcfg"
+        done
+    done
+    IFS=$SAVEIFS
+
     #####################
     # Erase update file #
     #####################
     for file in $(ls /mnt/FunKey-*.fwu); do
-        notif " 5/5 ERASE UPDATE FILE^DO NOT TURN OFF THE CONSOLE"
+        notif " 4/4 ERASE UPDATE FILE^DO NOT TURN OFF THE CONSOLE"
     	rm -f "${file}"
     done
     exit 0

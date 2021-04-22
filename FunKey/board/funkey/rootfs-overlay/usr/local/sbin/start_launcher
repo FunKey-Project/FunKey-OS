@@ -60,8 +60,11 @@ while true; do
 		wait $!
 		erase_pid
 
-		# In case retrofe quits with errors, clear graphic VT
+		# In case retrofe/opkrun quits with errors, clear graphic VT
 		termfix_all
+
+		# In case retrofe/opkrun quits with errors, reset default key mapping
+		keymap reset
     fi
 
     # WD to prevent 100% CPU

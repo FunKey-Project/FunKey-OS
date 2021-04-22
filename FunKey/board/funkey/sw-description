@@ -1,8 +1,8 @@
 software =
 {
-	version = "2.1.0";
+	version = "2.2.0";
 
-	hardware-compatibility = [ "#RE:^Rev\.[D-E]$" ];
+	hardware-compatibility = [ "#RE:^Rev\.[D-F]$" ];
 
 	images: (
 	{
@@ -11,12 +11,6 @@ software =
 		type = "raw";
 		installed-directly = true;
 		compressed = "zlib";
-	}
-	);
-	files: (
-	{
-		filename = "funkey_gpio_management";
-		path = "/tmp/funkey_gpio_management";
 	}
 	);
 	scripts: (
