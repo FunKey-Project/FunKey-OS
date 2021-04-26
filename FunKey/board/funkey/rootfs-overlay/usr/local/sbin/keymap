@@ -84,6 +84,9 @@ case "${1}" in
 	fi
 	for desktop_file in $(ls /opk/*.desktop 2>/dev/null); do
 	    opk_keymap=$(grep FK-Keymap= "${desktop_file}" | cut -d '=' -f 2)
+	    if [ "${opk_keymap:0:1}" != "/" ]; then
+		opk_keymap="/opk/${opk_keymap}"
+	    fi
 	    if [ -f "${opk_keymap}" ]; then
 		log "rom: LOAD ${opk_keymap}"
 	       	write_fifo "LOAD ${opk_keymap}"
