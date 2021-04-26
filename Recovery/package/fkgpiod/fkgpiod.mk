@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-FKGPIOD_VERSION = e74f688
+FKGPIOD_VERSION = 20b1a37
 FKGPIOD_SITE_METHOD = git
 FKGPIOD_SITE = https://github.com/FunKey-Project/fkgpiod.git
 FKGPIOD_SITE_LICENSE = GPL-2.1+

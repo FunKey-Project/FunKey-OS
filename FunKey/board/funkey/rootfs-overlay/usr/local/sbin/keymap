@@ -1,14 +1,113 @@
 #!/bin/sh
 
-# Check number of args
-if [ ${#} -ne 1 ]; then
-    echo "Usage: $(basename ${0}) keymap_file"
+# Uncomment the following line to get debug info
+#set -x
+
+SELF=$(basename ${0})
+LAST_MAPPING="/mnt/FunKey/.last_mapping.key"
+FIFO="/tmp/fkgpiod.fifo"
+
+usage() {
+    echo "Usage: ${SELF} default"
+    echo "       ${SELF} load <config_file>"
+    echo "       ${SELF} resume"
+    echo "       ${SELF} rom <rom_path>"
+    echo "       ${SELF} save <config_file>"
     exit 1
+}
+
+log() {
+    logger -t "${SELF}[$$]" "$*"
+}
+
+write_fifo() {
+    echo "${1}" >"${FIFO}" 2>/dev/null
+}
+
+# Check number of args
+if [ ${#} -lt 1 ]; then
+    usage
 fi
-if [ "${1}" = "reset" ]; then
-    keymap_file="/etc/fkgpiod.conf"
-else
-    keymap_file="${1}"
+
+# Create FIFO it it does not exist yet
+if [ ! -p "${FIFO}" ]; then
+    rm -f "${FIFO}"
+    log "FIFO does not exist, create it"
+    mkfifo "${FIFO}"
+    chmod 0640 "${FIFO}"
 fi
-echo "LOAD ${keymap_file}" >/tmp/fkgpiod.fifo 2>/dev/null
+
+case "${1}" in
+    default)
+	if [ ${#} -ne 1 ]; then
+	    usage
+	fi
+	log "default: LOAD /etc/fkgpiod.conf"
+	write_fifo "LOAD /etc/fkgpiod.conf"
+	;;
+
+    load)
+	if [ ${#} -ne 2 ]; then
+	    usage
+	fi
+	config_file="${2}"
+	log "load: LOAD ${config_file}"
+	write_fifo "LOAD ${config_file}"
+	log "load: SAVE ${LAST_MAPPING}"
+	write_fifo "SAVE ${LAST_MAPPING}"
+	;;
+
+    resume)
+	if [ ${#} -ne 1 ]; then
+	    usage
+	fi
+	if [ -f "${LAST_MAPPING}" ]; then
+	    log "resume: LOAD ${LAST_MAPPING}"
+	    write_fifo "LOAD ${LAST_MAPPING}"
+	fi
+	;;
+
+    rom)
+	if [ ${#} -gt 2 ]; then
+	    usage
+	elif [ ${#} -eq 1 ]; then
+	    console_keymap=""
+	    rom_keymap=""
+	else
+	    rom_path="${2}"
+	    console_keymap="$(dirname "${rom_path}")/default_config.key"
+	    rom_keymap="${rom_path%.*}.key"
+	fi
+	if [ -f "${console_keymap}" ]; then
+	    log "rom: LOAD ${console_keymap}"
+	    write_fifo "LOAD ${console_keymap}"
+	fi
+	for desktop_file in $(ls /opk/*.desktop 2>/dev/null); do
+	    opk_keymap=$(grep FK-Keymap= "${desktop_file}" | cut -d '=' -f 2)
+	    if [ -f "${opk_keymap}" ]; then
+		log "rom: LOAD ${opk_keymap}"
+	       	write_fifo "LOAD ${opk_keymap}"
+	    fi
+	done
+	if [ -f "${rom_keymap}" ]; then
+	    log "rom: LOAD ${rom_keymap}"
+	    write_fifo "LOAD ${rom_keymap}"
+	fi
+	log "rom: SAVE ${LAST_MAPPING}"
+	write_fifo "SAVE ${LAST_MAPPING}"
+	;;
+
+    save)
+	if [ ${#} -ne 2 ]; then
+	    usage
+	fi
+	config_file="${2}"
+	log "save: SAVE ${config_file}"
+	write_fifo "SAVE ${config_file}"
+	;;
+
+    *)
+	usage
+	;;
+esac
 exit 0
