@@ -3,7 +3,7 @@
 # libopk
 #
 #############################################################
-LIBOPK_VERSION = 4ad3eb6
+LIBOPK_VERSION = 1396aaa
 LIBOPK_SITE_METHOD = git
 LIBOPK_SITE = https://github.com/FunKey-Project/libopk.git
 
