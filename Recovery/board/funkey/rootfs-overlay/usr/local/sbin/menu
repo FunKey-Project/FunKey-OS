@@ -46,9 +46,9 @@ menu_display () {
 
 	    # Network enable/disable
 	    if [ -e /mnt/usbnet ]; then
-		message=" NETWORK DISABLE"
+		message=" NETWORK: ENABLED"
 	    else
-		message=" NETWORK ENABLE"
+		message=" NETWORK: DISABLED"
 	    fi
 	    ;;
 
@@ -63,9 +63,9 @@ menu_display () {
 	    # Factory tests enable/disable
 	    RUN_ENV_VAR=$(fw_printenv -n assembly_tests 2>/dev/null)
 	    if [ "x${RUN_ENV_VAR}" == "x1" ]; then
-		message=" FACTORY TESTS DISABLE"
+		message=" FACTORY TESTS: ENABLED"
 	    else
-		message=" FACTORY TESTS ENABLE"
+		message=" FACTORY TESTS: DISABLED"
 	    fi
 	    ;;
 
@@ -74,9 +74,9 @@ menu_display () {
 	    # First boot enable/disable
 	    FIRST_BOOT_OK_ENV_VAR=$(fw_printenv -n first_boot_ok 2>/dev/null)
 	    if [ "x${FIRST_BOOT_OK_ENV_VAR}" == "x1" ]; then
-		message=" FIRST BOOT DISABLE"
+		message=" FIRST BOOT: DISABLED"
 	    else
-		message=" FACTORY TESTS ENABLE"
+		message=" FIRST BOOT: ENABLED"
 	    fi
 	    ;;
 
@@ -217,10 +217,10 @@ menu_run () {
 	    if [ $? -eq 0 ]; then
 		if [ -e /mnt/usbnet ]; then
 		    rm -f /mnt/usbnet
-		    message=" NETWORK ENABLE"
+		    message=" NETWORK: DISABLED"
 		else
 		    touch /mnt/usbnet
-		    message=" NETWORK DISABLE"
+		    message=" NETWORK: ENABLED"
 		fi
 		notif "${message}"
 	    else
@@ -241,10 +241,10 @@ menu_run () {
 	    RUN_ENV_VAR=$(fw_printenv -n assembly_tests 2>/dev/null)
 	    if [ "x${RUN_ENV_VAR}" == "x1" ]; then
 		fw_setenv assembly_tests 0
-		message=" FACTORY TESTS ENABLE"
+		message=" FACTORY TESTS: DISABLED"
 	    else
 		fw_setenv assembly_tests 1
-		message=" FACTORY TESTS DISABLE"
+		message=" FACTORY TESTS: ENABLED"
 	    fi
 	    notif "${message}"
 	    ;;
@@ -255,10 +255,10 @@ menu_run () {
 	    FIRST_BOOT_OK_ENV_VAR=$(fw_printenv -n first_boot_ok 2>/dev/null)
 	    if [ "x${FIRST_BOOT_OK_ENV_VAR}" == "x1" ]; then
 		fw_setenv first_boot_ok
-		message=" FIRST BOOT ENABLE"
+		message=" FIRST BOOT: ENABLED"
 	    else
 		fw_setenv first_boot_ok 1
-		message=" FIRST BOOT DISABLE"
+		message=" FIRST BOOT: DISABLED"
 	    fi
 	    notif "${message}"
 	    ;;
