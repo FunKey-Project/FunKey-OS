@@ -1,0 +1,122 @@
+#!/bin/sh
+
+# Uncomment the following line to get debug info
+#set -x
+
+SELF="$(basename ${0})"
+SYSTEM_BRIGHTNESS="/sys/class/backlight/backlight/brightness"
+DEFAULT_BRIGHTNESS_VALUE=100
+BRIGHTNESS_STEP=10
+NOTIF_DURATION=2
+
+usage() {
+    >&2 echo "Usage: ${SELF} get"
+    >&2 echo "       ${SELF} set  new_brightness_percentage"
+    exit 1
+}
+
+increase_brightness() {
+
+    # Get current value
+    local current_brightness=$(get_brightness)
+
+    # Compute new brightness value
+    local new_brightness=0
+    let new_brightness=${current_brightness}+${BRIGHTNESS_STEP}
+    if [ ${new_brightness} -gt 100 ]; then
+	new_brightness=100
+    fi
+
+    # Change brightness
+    if [ ${new_brightness} -ne ${current_brightness} ]; then
+	set_brightness ${new_brightness}
+    fi
+
+    # Notif
+    notif_set ${NOTIF_DURATION} "       BRIGHTNESS: ${new_brightness}%%"
+}
+
+decrease_brightness() {
+
+    # Get current value
+    local current_brightness=$(get_brightness)
+
+    # Compute new brightness value
+    local new_brightness=0
+    if [ ${current_brightness} -gt ${BRIGHTNESS_STEP} ]; then
+	let new_brightness=${current_brightness}-${BRIGHTNESS_STEP}
+    fi
+
+    # Change brightness
+    if [ ${new_brightness} -ne ${current_brightness} ]; then
+	set_brightness ${new_brightness}
+    fi
+
+    # Notif
+    notif_set ${NOTIF_DURATION} "       BRIGHTNESS: ${new_brightness}%%"
+}
+
+get_brightness() {
+    local brightness=$(fw_printenv -n brightness 2>/dev/null)
+    if ! [ ! "${brightness}" -ne "${brightness}" ] 2> /dev/null; then
+	brightness=${DEFAULT_BRIGHTNESS_VALUE}
+	fw_setenv brightness ${brightness}
+    fi
+    echo ${brightness}
+}
+
+set_brightness() {
+
+    # Set the new brightness percentage in the kernel driver
+    local brightness=${1}
+    local kernel_brightness
+    let kernel_brightness=${brightness}+10
+    let kernel_brightness/=10
+    echo ${kernel_brightness} > "${SYSTEM_BRIGHTNESS}"
+
+    # Set the new brightness value in a bootloader variable
+    if [ ${?} -eq 0 -a $(get_brightness) -ne ${brightness} ]; then
+	fw_setenv brightness ${brightness}
+    fi
+}
+
+# Check number of arguments
+if [ ${#} -lt 1 -o ${#} -gt 2 ]; then
+    usage
+fi
+
+case ${1} in
+    up)
+	increase_brightness
+	;;
+
+    down)
+	decrease_brightness
+	;;
+
+    get)
+	if [ ${#} -ne 1 ]; then
+	    usage
+	fi
+	get_brightness
+    ;;
+
+    set)
+	if [ ${#} -ne 2 ]; then
+	    usage
+	fi
+
+	# Make sure the argument is a positive number <= 100
+	if [ -n "${2}" ] && [ "${2}" -eq "${2}" ] 2>/dev/null && \
+	       [ "${2}" -ge 0 ] && [ "${2}" -le 100 ]; then
+	    set_brightness "${2}"
+	else
+	    usage
+	fi
+    ;;
+
+    *)
+	usage
+	;;
+esac
+exit 0

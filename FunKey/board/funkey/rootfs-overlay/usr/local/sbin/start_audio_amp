@@ -1,37 +1,45 @@
 #!/bin/sh
 
+SELF="$(basename ${0})"
+SYSTEM_GPIO="/sys/class/gpio"
+
+# Power Audio Amplifier enable GPIO
+GPIO_PF6=166
+
+usage() {
+    >2& echo "Usage: ${SELF} [1 for on, 0 for off]"
+    exit 1
+}
+
 # Check number of args
 if [ ${#} -ne 1 ]; then
-    echo "Usage: $(basename ${0}) [1 for on, 0 for off]"
-    exit 1
+    usage
 fi
 
 # Check enable arg
 enable=${1}
-if [ ${enable} -eq 1 ]; then
+if [ "${enable}" -eq 1 -o "${enable}" = "on" ]; then
 
-	# Turn ON only if volume is not null
-	if [ "$(volume_get)" -ne "0" ]; then
+    # Turn ON only if volume is not null
+    if [ "$(volume get)" -ne "0" ]; then
     	echo "Turning audio amplifier ON"
     else
     	exit 0
-	fi
-elif [ ${enable} -eq 0 ]; then
+    fi
+    enable=1
+elif [ "${enable}" -eq 0 -o "${enable}" = "off" ]; then
     echo "Turning audio amplifier OFF"
+    enable=0
 else
-    echo "Usage: $(basename ${0}) [1 for on, 0 for off]"
-    exit 1
+    usage
 fi
 
-# PA enable GPIO
-GPIO_PF6=166
-
-# Export GPIO
-if [ ! -d /sys/class/gpio/gpio${GPIO_PF6} ]; then
-    echo ${GPIO_PF6} > /sys/class/gpio/export
+# Export the GPIO if necessary
+if [ ! -d "${SYSTEM_GPIO}/gpio${GPIO_PF6}" ]; then
+    echo ${GPIO_PF6} > "${SYSTEM_GPIO}/export"
 fi
 
-# Enable/disable cmd
-echo "out" > /sys/class/gpio/gpio${GPIO_PF6}/direction
-echo ${enable} > /sys/class/gpio/gpio${GPIO_PF6}/value
+# Enable/disable the pwoer audio amplifier
+echo "out" > "${SYSTEM_GPIO}/gpio${GPIO_PF6}/direction"
+echo ${enable} > "${SYSTEM_GPIO}/gpio${GPIO_PF6}/value"
 exit 0

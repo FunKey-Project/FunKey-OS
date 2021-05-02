@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-FCEUX_VERSION = f492414
+FCEUX_VERSION = eacbc9b
 FCEUX_SITE_METHOD = git
 FCEUX_SITE = https://github.com/FunKey-Project/fceux.git
 FCEUX_LICENSE = GPL-2.0
