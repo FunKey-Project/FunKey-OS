@@ -82,9 +82,9 @@ set_volume() {
 
     # Turn on/off audio amplifier if necessary
     if [ ${current_volume} -eq 0 -a ${new_volume} -ne 0 ]; then
-	start_audio_amp 1
+	audio_amp on
     elif [ ${current_volume} -ne 0 -a ${new_volume} -eq 0 ]; then
-	start_audio_amp 0
+	audio_amp off
     fi
 }
 

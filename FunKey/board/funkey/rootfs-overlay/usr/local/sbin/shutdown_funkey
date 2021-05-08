@@ -11,7 +11,7 @@ REBOOTING_FILE="/run/rebooting"
 touch $REBOOTING_FILE
 
 # Shutdown amp
-start_audio_amp 0 >/dev/null 2>&1
+audio_amp off >/dev/null 2>&1
 
 # Force Read Only 
 ro

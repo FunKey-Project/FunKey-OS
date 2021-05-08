@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-POCKETSNES_VERSION = cd83988
+POCKETSNES_VERSION = 033eb1c
 POCKETSNES_SITE_METHOD = git
 POCKETSNES_SITE = https://github.com/FunKey-Project/PocketSNES.git
 POCKETSNES_LICENSE = GPL-2.0
