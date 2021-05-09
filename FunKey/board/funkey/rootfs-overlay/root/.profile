@@ -23,6 +23,7 @@ export HOME=/mnt/FunKey
 mkdir -p "${HOME}"
 export MEDNAFEN_HOME=$HOME/.mednafen
 mkdir -p "${MEDNAFEN_HOME}"
+cp -n "/usr/games/lynxboot.img" "/usr/games/mednafen-09x.cfg" "${MEDNAFEN_HOME}/"
 export GMENU2X_HOME="$HOME/.gmenu2x"
 mkdir -p "${GMENU2X_HOME}"
 
@@ -54,6 +55,9 @@ brightness set $(brightness get) >/dev/null 2>&1
 
 # Start Assembly tests (blocking process)
 assembly_tests >/dev/null 2>&1
+
+# Restart saved application/game if any
+instant_play load
 
 # Start launcher
 echo "Start launcher"

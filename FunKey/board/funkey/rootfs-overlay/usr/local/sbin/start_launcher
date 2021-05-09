@@ -4,8 +4,6 @@
 #set -x
 
 LOCK_FILE="/var/lock/launcher.lock"
-INSTANT_PLAY_FILE="/mnt/instant_play"
-RESUME_PLAY_FILE="/mnt/resume_play"
 PREVENT_LAUNCHER_FILE="/mnt/prevent_launcher"
 REBOOTING_FILE="/run/rebooting"
 
@@ -15,22 +13,6 @@ if [ -f "${LOCK_FILE}" ]; then
     exit 1
 fi
 touch "${LOCK_FILE}"
-
-# Sanity cmd: in case these files do not exist
-mkdir -p "${MEDNAFEN_HOME}"
-cp "/usr/games/lynxboot.img" "/usr/games/mednafen-09x.cfg" "${MEDNAFEN_HOME}/"
-
-# Launch Previous Game if any
-if [ -f "${INSTANT_PLAY_FILE}" ]; then
-    keymap resume
-    echo "Found Instant Play file, restarting previous game with command: "$(head -n 1 "${INSTANT_PLAY_FILE}")
-    rm -f "${RESUME_PLAY_FILE}"
-    mv "${INSTANT_PLAY_FILE}" "${RESUME_PLAY_FILE}"
-    source "${RESUME_PLAY_FILE}"
-    rm -f "${RESUME_PLAY_FILE}"
-    keymap default
-    termfix_all
-fi
 
 # Then loop to launch the launcher indefinitely
 while true; do

@@ -3,35 +3,71 @@
 # Uncomment the following line to get debug info
 #set -x
 
-# Check args
-if [ ${#} -eq 0 ]; then
-    echo "Usage: $(basename ${0}) args..."
+SELF="$(basename ${0})"
+INSTANT_PLAY_FILE="/mnt/instant_play"
+RESUME_PLAY_FILE="/mnt/resume_play"
+
+usage() {
+    >&2 echo "Usage: ${SELF} load"
+    >&2 echo "       ${SELF} save application args..."
     exit 1
+}
+
+# Check number of arguments
+if [ ${#} -lt 1 ]; then
+    usage
 fi
 
-INSTANT_PLAY_FILE="/mnt/instant_play"
+case ${1} in
+    load)
+	if [ ${#} -ne 1 ]; then
+	    usage
+	fi
 
-# Write quick load file args
-echo -n "" > "${INSTANT_PLAY_FILE}"
-for arg in "$@"; do
-    if $(echo "${arg}" | egrep -q '[[:space:]]'); then
+	# Launch Previous Game if any
+	if [ -f "${INSTANT_PLAY_FILE}" ]; then
+	    keymap resume
+	    echo -n "Found Instant Play file, restarting previous game with command: "
+	    echo $(head -n 1 "${INSTANT_PLAY_FILE}")
+	    rm -f "${RESUME_PLAY_FILE}"
+	    mv "${INSTANT_PLAY_FILE}" "${RESUME_PLAY_FILE}"
+	    source "${RESUME_PLAY_FILE}"
+	    rm -f "${RESUME_PLAY_FILE}"
+	    keymap default
+	    termfix_all
+	fi
+	;;
 
-	# Add quotes around arguments containing spaces
-        echo -n "\"${arg}\" " >> "${INSTANT_PLAY_FILE}"
-    else
-	echo -n "${arg} "  >> "${INSTANT_PLAY_FILE}"
-    fi
-done
+    save)
+	if [ ${#} -lt 2 ]; then
+	    usage
+	fi
+	shift
 
-# Add the magic sauce to launch the process in background, record the
-# PID into a file, wait for the process to terminate and erase the
-# recorded PID
-cat << EOF >> "${INSTANT_PLAY_FILE}"
+	# Write quick load file args
+	echo -n "" > "${INSTANT_PLAY_FILE}"
+	for arg in "$@"; do
+
+	    # Add quotes around all arguments
+	    echo -n "'${arg}' " >> "${INSTANT_PLAY_FILE}"
+	done
+
+	# Add the magic sauce to launch the process in background,
+	# record the PID into a file, wait for the process to
+	# terminate and erase the recorded PID
+	cat << EOF >> "${INSTANT_PLAY_FILE}"
 &
 record_pid \$!
 wait \$!
 erase_pid
 EOF
 
-# Now terminate gracefully
-exec shutdown_funkey
+	# Now terminate gracefully
+	exec shutdown_funkey
+	;;
+
+    *)
+	usage
+	;;
+esac
+exit 0
