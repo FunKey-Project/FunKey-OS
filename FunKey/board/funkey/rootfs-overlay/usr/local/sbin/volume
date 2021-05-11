@@ -93,12 +93,18 @@ if [ ${#} -lt 1 -o ${#} -gt 2 ]; then
     usage
 fi
 
-case ${1} in
+case "${1}" in
     up)
+	if [ ${#} -ne 1 ]; then
+	    usage
+	fi
 	increase_volume
 	;;
 
     down)
+	if [ ${#} -ne 1 ]; then
+	    usage
+	fi
 	decrease_volume
 	;;
 
