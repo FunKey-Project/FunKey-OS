@@ -28,12 +28,12 @@ case "${1}" in
 	else
     	    exit 0
 	fi
-	enable=1
+	new_state=1
 	;;
 
     0|off|OFF|Off)
 	echo "Turning audio amplifier OFF"
-	enable=0
+	new_state=0
 	;;
 
     *)
@@ -46,7 +46,14 @@ if [ ! -d "${SYSTEM_GPIO}/gpio${GPIO_PF6}" ]; then
     echo ${GPIO_PF6} > "${SYSTEM_GPIO}/export"
 fi
 
-# Enable/disable the pwoer audio amplifier
+# Set the power audio amplifier GPIO as output
 echo "out" > "${SYSTEM_GPIO}/gpio${GPIO_PF6}/direction"
-echo ${enable} > "${SYSTEM_GPIO}/gpio${GPIO_PF6}/value"
+
+# Read the current power audio amplifier state
+current_state=$(cat "${SYSTEM_GPIO}/gpio${GPIO_PF6}/value")
+
+# Enable/disable the power audio amplifier if necessary
+if [ ${current_state} -ne ${new_state} ]; then
+    echo ${new_state} > "${SYSTEM_GPIO}/gpio${GPIO_PF6}/value"
+fi
 exit 0

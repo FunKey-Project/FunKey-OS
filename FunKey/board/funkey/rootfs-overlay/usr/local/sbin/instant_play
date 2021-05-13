@@ -26,7 +26,6 @@ case ${1} in
 
 	# Launch Previous Game if any
 	if [ -f "${INSTANT_PLAY_FILE}" ]; then
-	    audio_amp on
 	    keymap resume
 	    echo -n "Found Instant Play file, restarting previous game with command: "
 	    echo $(head -n 1 "${INSTANT_PLAY_FILE}")

@@ -81,10 +81,10 @@ set_volume() {
     fi
 
     # Turn on/off audio amplifier if necessary
-    if [ ${current_volume} -eq 0 -a ${new_volume} -ne 0 ]; then
-	audio_amp on
-    elif [ ${current_volume} -ne 0 -a ${new_volume} -eq 0 ]; then
+    if [ ${new_volume} -eq 0 ]; then
 	audio_amp off
+    else
+	audio_amp on
     fi
 }
 
