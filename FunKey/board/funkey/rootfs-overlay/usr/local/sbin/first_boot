@@ -216,29 +216,29 @@ copy_files_to_usb_partition () {
 }
 
 check_root_id
-notif " FIRST BOOT DETECTED"
+notif set 0 " FIRST BOOT DETECTED"
 
-notif " 1/6 RESIZE ROOT PARTITION"
+notif set 0 " 1/6 RESIZE ROOT PARTITION"
 resize_rootfs_partition
 
-notif " 2/6 RESIZE ROOT FILESYSTEM"
+notif set 0 " 2/6 RESIZE ROOT FILESYSTEM"
 resize_rootfs_filesystem
 
-notif " 3/6 CREATE SWAP"
+notif set 0 " 3/6 CREATE SWAP"
 create_swap
 
-notif " 4/6 CREATE USB PARTITION"
+notif set 0 " 4/6 CREATE USB PARTITION"
 create_usb_partition
 
-notif " 5/6 FORMAT USB PARTITION"
+notif set 0 " 5/6 FORMAT USB PARTITION"
 format_usb_partition
 
-notif " 6/6 COPY FILES TO ^    USB PARTITION"
+notif set 0 " 6/6 COPY FILES TO ^    USB PARTITION"
 copy_files_to_usb_partition
 
-notif " FIRST BOOT SETUP FINISHED!"
+notif set 0 " FIRST BOOT SETUP FINISHED!"
 
 fw_setenv first_boot_ok 1
 
 sleep 1
-clear_notif
+notif clear

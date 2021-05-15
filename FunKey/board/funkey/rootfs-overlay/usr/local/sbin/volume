@@ -33,7 +33,7 @@ increase_volume() {
     fi
 
     # Notif
-    notif_set ${NOTIF_DURATION} "       VOLUME: ${new_volume}%%"
+    notif set ${NOTIF_DURATION} "       VOLUME: ${new_volume}%%"
 }
 
 decrease_volume() {
@@ -53,7 +53,7 @@ decrease_volume() {
     fi
 
     # Notif
-    notif_set ${NOTIF_DURATION} "       VOLUME: ${new_volume}%%"
+    notif set ${NOTIF_DURATION} "       VOLUME: ${new_volume}%%"
 }
 
 get_volume() {

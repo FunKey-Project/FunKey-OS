@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Notif fullscreen "Shutting down"
-notif_set 0 "^^^^^^^^      SHUTTING DOWN...^^^^^^^^"
+notif set 0 "^^^^^^^^      SHUTTING DOWN...^^^^^^^^"
 
 # Kill Emulators
 #kill_emulators >/dev/null 2>&1

@@ -78,7 +78,7 @@ function launch_tests_up_until_magnet {
 	termfix_all > /dev/null
 
 	## Clear all notifs
-	notif_clear
+	notif clear
 
 	## Test if log file aleady exists
 	if [[ -f $LOG_FILE ]]; then
@@ -158,7 +158,7 @@ function launch_tests_up_until_magnet {
 
 	## Play 1kHz sine wave
 	echo "	Play 2kHz sine wave"
-	notif_set 0 "^^^     PLAYING SINE WAVE...^^^    ......          ^  ...    ...^ ..        ..^..          .^.            .             .^              .           ..^              ..         ..^               ...     ...^                 .......^^"
+	notif set 0 "^^^     PLAYING SINE WAVE...^^^    ......          ^  ...    ...^ ..        ..^..          .^.            .             .^              .           ..^              ..         ..^               ...     ...^                 .......^^"
 	speaker-test -t sine -s 1 -f 2000 >/dev/null 2>&1
 	if [ $? -ne 0 ]; then
         echo "	ERROR: SPEAKER SINE"
@@ -166,7 +166,7 @@ function launch_tests_up_until_magnet {
 		return
     fi
 	sync
-	notif_clear
+	notif clear
 
 	## Launch prod screen test speaker
 	$PROD_SCREEN_BIN SPEAKER  2>&1
@@ -248,7 +248,7 @@ function launch_tests_after_magnet {
 	#termfix_all > /dev/null
 
 	## Clear all notifs
-	#notif_clear
+	#notif clear
 
 	# Log from magnet file
 	echo "	Found file: " $MAGNET_DETECTED_FILE

@@ -54,7 +54,7 @@ mount_share () {
     # Check if there is a firmware update file
     if [ -f /mnt/FunKey-*.fwu ]; then
 	warn "found a firmware update file, going into recovery mode"
-	notif "^^^^^^^^        UPDATING...^^^^^^^^"
+	notif set 0 "^^^^^^^^        UPDATING...^^^^^^^^"
 	recovery_mode
     fi
 

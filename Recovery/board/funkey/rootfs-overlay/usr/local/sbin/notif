@@ -1,0 +1,78 @@
+#!/bin/sh
+
+# Uncomment the following line to get debug info
+#set -x
+
+SELF="$(basename ${0})"
+NOTIFICATION_DISPLAY=/sys/class/graphics/fb0/notification
+
+usage() { 
+    >&2 echo "Usage: ${SELF} set duration message"
+    >&2 echo "       ${SELF} display duration message"
+    >&2 echo "       ${SELF} clear"
+    exit 1
+} 
+ 
+notif_clear() {
+
+    echo -n "clear" > "${NOTIFICATION_DISPLAY}"
+}
+
+notif_display() {
+    local duration="${1}"
+    local message="${*:2}"
+    if ! [ ! "${duration}" -ne "${duration}" ] 2> /dev/null; then
+	>&2 echo "error: ${duration} is not a number"
+	exit 3
+    fi
+    echo -n "${message}" > "${NOTIFICATION_DISPLAY}"
+    if [ ${duration} -ne 0 ]; then
+	sleep ${duration}
+	notif_clear
+    fi
+}
+
+notif_set() {
+    local duration="${1}"
+    local message="${*:2}"
+    if ! [ ! "${duration}" -ne "${duration}" ]; then
+	>&2 echo "error: ${duration} is not a number"
+	exit 2
+    fi
+
+    # Kill previous notif disp process
+    pkill -f "notif display" 2> /dev/null
+
+    # Print new notif
+    notif display "${duration}" "${message}" &
+}
+
+case "${1}" in
+    set)
+	if [ ${#} -ne 3 ]; then
+	    usage
+	fi
+	shift
+	notif_set "${1}" "${2}"
+    ;;
+
+    clear)
+	if [ ${#} -ne 1 ]; then
+	    usage
+	fi
+	notif_clear
+	;;
+
+    display)
+	if [ ${#} -ne 3 ]; then
+	    usage
+	fi
+	shift
+	notif_display "${1}" "${2}"
+	;;
+
+    *)
+	usage
+	;;
+esac
+exit 0

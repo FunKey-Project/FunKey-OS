@@ -4,7 +4,7 @@
 sync
 
 # Notif fullscreen "Shutting down"
-notif_set 0 "^^^^^^^^      SHUTTING DOWN...^^^^^^^^"
+notif set 0 "^^^^^^^^      SHUTTING DOWN...^^^^^^^^"
 
 # Notify system, reboot in progress
 REBOOTING_FILE="/run/rebooting"
