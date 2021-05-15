@@ -3,6 +3,6 @@
 # Launch the process in background, record the PID into a file, wait
 # for the process to terminate and erase the recorded PID
 gpsp "$1"&
-record_pid $!
+pid record $!
 wait $!
-erase_pid
+pid erase

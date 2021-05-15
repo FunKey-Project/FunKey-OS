@@ -94,9 +94,9 @@ init_frontend() {
 
 	    # Record the PID into a file, wait for the process to
 	    # terminate and erase the recorded PID
-	    record_pid $!
+	    pid record $!
 	    wait $!
-	    erase_pid
+	    pid erase
 
 	    # In case retrofe/opkrun quits with errors, clear graphic VT
 	    termfix_all

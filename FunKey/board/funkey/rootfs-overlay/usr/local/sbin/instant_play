@@ -57,9 +57,9 @@ case ${1} in
 	# terminate and erase the recorded PID
 	cat << EOF >> "${INSTANT_PLAY_FILE}"
 &
-record_pid \$!
+pid record \$!
 wait \$!
-erase_pid
+pid erase
 EOF
 
 	# Now terminate gracefully
