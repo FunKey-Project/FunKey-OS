@@ -9,7 +9,7 @@ root_mount=/tmp/rootfs
 
 do_preinst()
 {
-    notif " 1/4 EXTRACT FIRMWARE UPDATE..^DO NOT TURN OFF THE CONSOLE"
+    notif set 0 " 1/4 EXTRACT FIRMWARE UPDATE..^DO NOT TURN OFF THE CONSOLE"
     exit 0
 }
 
@@ -19,23 +19,23 @@ do_postinst()
     #################
     # Resize Rootfs #
     #################
-    notif " 2/4 RESIZE ROOT FILESYSTEM^DO NOT TURN OFF THE CONSOLE"
+    notif set 0 " 2/4 RESIZE ROOT FILESYSTEM^DO NOT TURN OFF THE CONSOLE"
     resize2fs ${root_part}
     if [ $? -ne 0 ]; then
-    	notif " CANNOT RESIZE ROOT^FILESYSTEM"
+    	notif set 0 " CANNOT RESIZE ROOT^FILESYSTEM"
     	exit 1
     fi
 
     ##############################
     # SHARED PARTITION PROCESSES #
     ##############################
-    notif " 3/4 COPY OPKS TO USB MOUNT^DO NOT TURN OFF THE CONSOLE"
+    notif set 0 " 3/4 COPY OPKS TO USB MOUNT^DO NOT TURN OFF THE CONSOLE"
     
     # Mount Rootfs
     mkdir -p ${root_mount}
     mount -t ext4 ${root_part} ${root_mount}
     if [ $? -ne 0 ]; then
-    	notif "CANNOT MOUNT ROOT^FILESYSTEM"
+    	notif set 0 "CANNOT MOUNT ROOT^FILESYSTEM"
     	exit 1
     fi
     
@@ -48,7 +48,7 @@ do_postinst()
     # Unmount Rootfs
     umount ${root_mount}
     if [ $? -ne 0 ]; then
-    	notif "CANNOT UNMOUNT ROOT^FILESYSTEM"
+    	notif set 0 "CANNOT UNMOUNT ROOT^FILESYSTEM"
     	exit 1
     fi
 
@@ -66,7 +66,7 @@ do_postinst()
     # Erase update file #
     #####################
     for file in $(ls /mnt/FunKey-*.fwu); do
-        notif " 4/4 ERASE UPDATE FILE^DO NOT TURN OFF THE CONSOLE"
+        notif set 0 " 4/4 ERASE UPDATE FILE^DO NOT TURN OFF THE CONSOLE"
     	rm -f "${file}"
     done
     exit 0
