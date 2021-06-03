@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-MEDNAFEN_VERSION = 2d9ca9d
+MEDNAFEN_VERSION = cbcdbd8
 MEDNAFEN_SITE_METHOD = git
 MEDNAFEN_SITE = https://github.com/FunKey-Project/mednafen-git.git
 MEDNAFEN_LICENSE = GPL-2.0+

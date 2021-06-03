@@ -1,0 +1,84 @@
+#!/bin/sh
+
+# Uncomment the following line to get debug info
+#set -x
+
+SELF="$(basename ${0})"
+PID_FILE="/var/run/funkey.pid"
+REBOOTING_FILE="/run/rebooting"
+
+usage() {
+    >&2 echo "Usage: ${SELF} schedule delay"
+    >&2 echo "       ${SELF} handle"
+    >&2 echo "       ${SELF} now"
+    exit 1
+}
+
+schedule_powerdown() {
+
+    # Send USR1 signal to the running FunKey process to warn about
+    # impending shutdown
+    pkill -USR1 -F "${PID_FILE}" > /dev/null 2>&1
+
+    # Delay for the given grace period seconds to catch signal USR2.
+    # If the signal is caught, then it means the running FunKey
+    # process canceled this shutdown and will handle it by itself.
+    sleep ${1}
+
+    # Delay expired, initiate final powerdown
+    powerdown_now
+}
+
+handle_powerdown() {
+    pkill -f "powerdown schedule"
+}
+
+powerdown_now() {
+
+    # Sync before all else
+    sync
+
+    # Notif fullscreen "Shutting down"
+    notif set 0 "^^^^^^^^      SHUTTING DOWN...^^^^^^^^"
+
+    # Notify system, reboot in progress
+    touch "${REBOOTING_FILE}"
+
+    # Shutdown amp
+    audio_amp off >/dev/null 2>&1
+
+    # Force Read Only 
+    ro
+
+    # Poweroff
+    poweroff
+}
+
+action="${1:-now}"
+case "${action}" in
+    schedule)
+	if [ ${#} != 2 -o "${2}" -eq 0 ]; then
+	    usage
+	fi
+	schedule_powerdown
+	;;
+
+    handle)
+	if [ ${#} -ne 1 ]; then
+	    usage
+	fi
+	handle_powerdown
+	;;
+
+    now)
+	if [ ${#} -gt 1 ]; then
+	    usage
+	fi
+	powerdown_now
+    ;;
+
+    *)
+	usage
+	;;
+esac
+exit 0

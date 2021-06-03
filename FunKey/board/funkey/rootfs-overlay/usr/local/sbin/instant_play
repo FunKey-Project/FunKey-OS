@@ -63,7 +63,7 @@ pid erase
 EOF
 
 	# Now terminate gracefully
-	exec shutdown_funkey
+	exec powerdown now
 	;;
 
     *)

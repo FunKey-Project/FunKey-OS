@@ -3,30 +3,28 @@
 # General constants declaration
 THRESHOLD_PERCENT_LOW_BAT=5
 THRESHOLD_PERCENT_EXTREMELY_LOW_BAT=2
-MAX_EXTREMELY_LOW_BAT_BEFORE_SHUTDOWN=5
+MAX_LOW_BAT_COUNT=5
 SLEEP_SECS=2
 RESCALE_MAX_PERCENTAGE=120
 
 # Blink Low bat constants declaration
 BLINK_ICON=0
-LOW_BAT_SECS_DISPLAYED=5
-LOW_BAT_SECS_NOT_DISPLAYED=5
+LOW_BAT_DISPLAY_TIMEOUT=5
 
 # Files and commands declaration
-USB_PRESENT_FILE=/sys/class/power_supply/axp20x-usb/present
+USB_PRESENT_FILE="/sys/class/power_supply/axp20x-usb/present"
 
 # Cheat for no USB present simulation when debugging
-#USB_PRESENT_FILE=/sys/class/power_supply/axp20x-ac/present
-BAT_PRESENT_FILE=/sys/class/power_supply/axp20x-battery/present
-BAT_PERCENT_FILE=/sys/class/power_supply/axp20x-battery/capacity
-BAT_PERCENT_RESCALED_FILE=/tmp/current_battery_percentage
-LOW_BAT_ICON=/sys/class/graphics/fb0/low_battery
+BAT_PRESENT_FILE="/sys/class/power_supply/axp20x-battery/present"
+BAT_PERCENT_FILE="/sys/class/power_supply/axp20x-battery/capacity"
+BAT_PERCENT_RESCALED_FILE="/tmp/current_battery_percentage"
+LOW_BAT_ICON="/sys/class/graphics/fb0/low_battery"
 
 # Variables declaration
 low_bat_status=0
 low_bat_displayed=0
 cur_secs_disp=0
-cur_nb_extremely_low_bat_before_shutdown=0
+low_bat_count=0
 
 # Default: Hide Low Bat Icon
 echo 0 > ${LOW_BAT_ICON}
@@ -71,7 +69,7 @@ while true; do
 
 		# Reset status
 		low_bat_status=0
-		cur_nb_extremely_low_bat_before_shutdown=0
+		low_bat_count=0
 		echo 0 > ${LOW_BAT_ICON}
 	    fi
 	fi
@@ -80,7 +78,7 @@ while true; do
 
 	    # Reset status
 	    low_bat_status=0
-	    cur_nb_extremely_low_bat_before_shutdown=0
+	    low_bat_count=0
 	    echo 0 > ${LOW_BAT_ICON}
 	fi
     fi
@@ -90,24 +88,24 @@ while true; do
 
 	# Check extremely low bat for clean shutdown
 	if [ ${cur_bat_percent} -le ${THRESHOLD_PERCENT_EXTREMELY_LOW_BAT} ]; then
-	    let cur_nb_extremely_low_bat_before_shutdown++
-	    echo "cur_nb_extremely_low_bat_before_shutdown = ${cur_nb_extremely_low_bat_before_shutdown}"
+	    let low_bat_count++
+	    echo "low_bat_count = ${low_bat_count}"
 
 	    # Clean shutdown
-	    if [ ${cur_nb_extremely_low_bat_before_shutdown} -ge  ${MAX_EXTREMELY_LOW_BAT_BEFORE_SHUTDOWN} ]; then
+	    if [ ${low_bat_count} -ge  ${MAX_LOW_BAT_COUNT} ]; then
 		echo "Battery extremely low, shutting down now..."
-		sched_shutdown 1 & signal_usr1_to_emulators
+		powerdown schedule 1
 		exit 0
 	    fi
 	fi
 
 	# Blinking process
 	if [ ${BLINK_ICON} -eq 1 ]; then
-	    if [ ${low_bat_displayed} -eq 1 -a ${cur_secs_disp} -ge ${LOW_BAT_SECS_DISPLAYED} ]; then
+	    if [ ${low_bat_displayed} -eq 1 -a ${cur_secs_disp} -ge ${LOW_BAT_DISPLAY_TIMEOUT} ]; then
 		low_bat_displayed=0
 		cur_secs_disp=0
 		echo 0 > ${LOW_BAT_ICON}
-	    elif [ ${low_bat_displayed} -eq 0 -a ${cur_secs_disp} -ge ${LOW_BAT_SECS_NOT_DISPLAYED} ]; then
+	    elif [ ${low_bat_displayed} -eq 0 -a ${cur_secs_disp} -ge ${LOW_BAT_DISPLAY_TIMEOUT} ]; then
 		low_bat_displayed=1
 		cur_secs_disp=0
 		echo 1 > ${LOW_BAT_ICON}

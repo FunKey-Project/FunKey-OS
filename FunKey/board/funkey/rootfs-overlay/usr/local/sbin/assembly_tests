@@ -42,7 +42,7 @@ QR_CODE_IMG="/root/logs/assembly_tests/qrcode.png"
 ## Function called when SIGURS1 is caught while waiting for it
 function function_magnet_detected_ok {
 	## Kill scheduled shutdown
-	pkill sched_shutdown
+	pkill -f "powerdown schedule"
 
 	## Write magnet_detected file
 	if $test_failed; then
@@ -55,7 +55,7 @@ function function_magnet_detected_ok {
 	## Clean shutdown
 	echo "	Caught SIGUSR1 signal: magnet detected"
 	echo "	Rebooting now..."
-	shutdown_funkey
+	powerdown now
 	exit 0
 }
 
@@ -370,6 +370,6 @@ if ! $test_failed; then
 	exit 0
 else
 	## Shutdown
-	shutdown_funkey &
+	powerdown now &
 	exit 1
 fi
