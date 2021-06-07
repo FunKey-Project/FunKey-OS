@@ -7,9 +7,14 @@ root_part_num=2
 root_part=/dev/mmcblk0p${root_part_num}
 root_mount=/tmp/rootfs
 
+# Compatibility issue with older Recovery notifications
+if [ -x /usr/local/sbin/notif ]; then
+    alias notif_set="notif set"
+fi
+
 do_preinst()
 {
-    notif set 0 " 1/4 EXTRACT FIRMWARE UPDATE..^DO NOT TURN OFF THE CONSOLE"
+    notif_set 0 " 1/4 EXTRACT FIRMWARE UPDATE..^DO NOT TURN OFF THE CONSOLE"
     exit 0
 }
 
@@ -19,24 +24,24 @@ do_postinst()
     #################
     # Resize Rootfs #
     #################
-    notif set 0 " 2/4 RESIZE ROOT FILESYSTEM^DO NOT TURN OFF THE CONSOLE"
+    notif_set 0 " 2/4 RESIZE ROOT FILESYSTEM^DO NOT TURN OFF THE CONSOLE"
     resize2fs ${root_part}
     if [ $? -ne 0 ]; then
-    	notif set 0 " CANNOT RESIZE ROOT^FILESYSTEM"
-    	exit 1
+        notif_set 0 " CANNOT RESIZE ROOT^FILESYSTEM"
+        exit 1
     fi
 
     ##############################
     # SHARED PARTITION PROCESSES #
     ##############################
-    notif set 0 " 3/4 COPY OPKS TO USB MOUNT^DO NOT TURN OFF THE CONSOLE"
+    notif_set 0 " 3/4 COPY OPKS TO USB MOUNT^DO NOT TURN OFF THE CONSOLE"
     
     # Mount Rootfs
     mkdir -p ${root_mount}
     mount -t ext4 ${root_part} ${root_mount}
     if [ $? -ne 0 ]; then
-    	notif set 0 "CANNOT MOUNT ROOT^FILESYSTEM"
-    	exit 1
+        notif_set 0 "CANNOT MOUNT ROOT^FILESYSTEM"
+        exit 1
     fi
     
     # Copy OPKs
@@ -48,8 +53,8 @@ do_postinst()
     # Unmount Rootfs
     umount ${root_mount}
     if [ $? -ne 0 ]; then
-    	notif set 0 "CANNOT UNMOUNT ROOT^FILESYSTEM"
-    	exit 1
+        notif_set 0 "CANNOT UNMOUNT ROOT^FILESYSTEM"
+        exit 1
     fi
 
     # Change FunKey config files extension from .cfg to .fkcfg
@@ -66,8 +71,8 @@ do_postinst()
     # Erase update file #
     #####################
     for file in $(ls /mnt/FunKey-*.fwu); do
-        notif set 0 " 4/4 ERASE UPDATE FILE^DO NOT TURN OFF THE CONSOLE"
-    	rm -f "${file}"
+        notif_set 0 " 4/4 ERASE UPDATE FILE^DO NOT TURN OFF THE CONSOLE"
+        rm -f "${file}"
     done
     exit 0
 }
