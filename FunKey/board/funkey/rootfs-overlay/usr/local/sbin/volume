@@ -24,12 +24,12 @@ increase_volume() {
     local new_volume=0
     let new_volume=${current_volume}+${VOLUME_STEP}
     if [ ${new_volume} -gt 100 ]; then
-	new_volume=100
+	   new_volume=100
     fi
 
     # Change volume
     if [ ${new_volume} -ne ${current_volume} ]; then
-	set_volume ${new_volume}
+	   set_volume ${new_volume}
     fi
 
     # Notif
@@ -44,12 +44,12 @@ decrease_volume() {
     # Compute new volume value
     local new_volume=0
     if [ ${current_volume} -gt ${VOLUME_STEP} ]; then
-	let new_volume=${current_volume}-${VOLUME_STEP}
+	   let new_volume=${current_volume}-${VOLUME_STEP}
     fi
 
     # Change volume
     if [ ${new_volume} -ne ${current_volume} ]; then
-	set_volume ${new_volume}
+	   set_volume ${new_volume}
     fi
 
     # Notif
@@ -77,14 +77,14 @@ set_volume() {
 
     # Set the new volume value in a bootloader variable
     if [ ${?} -eq 0 -a ${current_volume} -ne ${new_volume} ]; then
-	fw_setenv volume ${new_volume}
+	   fw_setenv volume ${new_volume}
     fi
 
     # Turn on/off audio amplifier if necessary
     if [ ${new_volume} -eq 0 ]; then
-	audio_amp off
+	   audio_amp off
     else
-	audio_amp on
+	   audio_amp on
     fi
 }
 

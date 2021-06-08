@@ -20,7 +20,7 @@ if [ ${#} -lt 1 ]; then
 fi
 
 case ${1} in
-    load)
+load)
 	if [ ${#} -ne 1 ]; then
 	    usage
 	fi
@@ -52,7 +52,7 @@ case ${1} in
 	fi
 	;;
 
-    save)
+save)
 	if [ ${#} -lt 2 ]; then
 	    usage
 	fi
@@ -80,7 +80,7 @@ EOF
 	exec powerdown now
 	;;
 
-    *)
+*)
 	usage
 	;;
 esac

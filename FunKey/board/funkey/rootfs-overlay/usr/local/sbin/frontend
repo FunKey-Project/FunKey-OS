@@ -21,7 +21,7 @@ fi
 
 # Convert old prevent launcher file to new frontend disable file
 if [ -f "${PREVENT_LAUNCHER_FILE}" ]; then
-    mv "${PREVENT_LAUNCHER_FILE}" "{DISABLE_FRONTEND_FILE}"
+    mv "${PREVENT_LAUNCHER_FILE}" "${DISABLE_FRONTEND_FILE}"
 fi
 
 usage() {
@@ -37,12 +37,12 @@ set_frontend() {
     local new_frontend="${1}"
     echo "Setting frontend: ${new_frontend}"
     if [ "${new_frontend}" = "none" ]; then
-	touch "${DISABLE_FRONTEND_FILE}"
+		touch "${DISABLE_FRONTEND_FILE}"
     else
-	rm -f "${DISABLE_FRONTEND_FILE}"
+		rm -f "${DISABLE_FRONTEND_FILE}"
     fi
     if [ "${frontend}" != "none" ]; then
-	pkill "${frontend}"
+		pkill "${frontend}"
     fi
     echo "${new_frontend}" > "${FRONTEND_FILE}"
 }
@@ -52,8 +52,8 @@ get_frontend() {
 
     # Check if not empty
     if [ "x${frontend}" = "x" ]; then
-	frontend="${DEFAULT_FRONTEND}"
-	echo "${frontend}" > "${FRONTEND_FILE}"
+		frontend="${DEFAULT_FRONTEND}"
+		echo "${frontend}" > "${FRONTEND_FILE}"
     fi
 
     # Return frontend name
@@ -62,62 +62,63 @@ get_frontend() {
 
 init_frontend() {
     if [ -f "${LOCK_FILE}" ]; then
-	>&2 echo "${LOCK_FILE} already exists"
-	exit 1
+		>&2 echo "${LOCK_FILE} already exists"
+		exit 1
     fi
     touch "${LOCK_FILE}"
 
     # Then loop to launch the frontend indefinitely
     while true; do
 	
-	# Check if frontend disable file is present
-	if [ -f "${DISBALE_FRONTEND_FILE}" ]; then
-	    echo "${DISABLE_FRONTEND_FILE} file found, not starting frontend" 
-	    sleep 5
-	else
-
-	    # Umount any remaining OPK, if any
-	    umount /opk >/dev/null 2>&1
-	    rm -f "${LAST_OPK_FILE}"
-
-    	    local frontend="$(get_frontend)"
-	    case "${frontend}" in
-		gmenu2x|retrofe)
-		    "${frontend}"&
-		    ;;
-
-		none)
-		    echo "no frontend" 
+		# Check if frontend disable file is present
+		if [ -f "${DISABLE_FRONTEND_FILE}" ]; then
+		    echo "${DISABLE_FRONTEND_FILE} file found, not starting frontend" 
 		    sleep 5
-		    ;;
+		else
 
-		*)
-		    DEFAULT_FRONTEND=retrofe
-		    echo "Unrecognized frontend: $frontend, setting $DEFAULT_FRONTEND"
-		    set_frontend "${DEFAULT_FRONTEND}"
-		    ;;
-	    esac
+		    # Umount any remaining OPK, if any
+		    umount /opk >/dev/null 2>&1
+		    rm -f "${LAST_OPK_FILE}"
 
-	    # Record the PID into a file, wait for the process to
-	    # terminate and erase the recorded PID
-	    pid record $!
-	    wait $!
-	    pid erase
+		    # Launch selected frontend
+	    	local frontend="$(get_frontend)"
+		    case "${frontend}" in
+			gmenu2x|retrofe)
+			    "${frontend}"&
+			    ;;
 
-	    # In case retrofe/opkrun quits with errors, clear graphic VT
-	    termfix_all
+			none)
+			    echo "no frontend" 
+			    sleep 5
+			    ;;
 
-	    # In case retrofe/opkrun quits with errors, reset default key mapping
-	    keymap default
-	fi
+			*)
+			    DEFAULT_FRONTEND=retrofe
+			    echo "Unrecognized frontend: $frontend, setting $DEFAULT_FRONTEND"
+			    set_frontend "${DEFAULT_FRONTEND}"
+			    ;;
+		    esac
 
-	# Prevent 100% CPU usage
-	sleep 0.5
+		    # Record the PID into a file, wait for the process to
+		    # terminate and erase the recorded PID
+		    pid record $!
+		    wait $!
+		    pid erase
 
-	# Exit if console rebooting
-	if [ -f "${REBOOTING_FILE}" ]; then
-    	    break
-	fi
+		    # In case retrofe/opkrun quits with errors, clear graphic VT
+		    termfix_all
+
+		    # In case retrofe/opkrun quits with errors, reset default key mapping
+		    keymap default
+		fi
+
+		# Prevent 100% CPU usage
+		sleep 0.5
+
+		# Exit if console rebooting
+		if [ -f "${REBOOTING_FILE}" ]; then
+	    	break
+		fi
     done
 
     # Remove lock file and exit
