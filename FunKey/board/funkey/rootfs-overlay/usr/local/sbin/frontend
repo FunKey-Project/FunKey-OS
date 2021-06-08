@@ -11,6 +11,7 @@ DISABLE_FRONTEND_FILE="/mnt/disable_frontend"
 DEFAULT_FRONTEND=retrofe
 LOCK_FILE="/var/lock/frontend.lock"
 REBOOTING_FILE="/run/rebooting"
+LAST_OPK_FILE="/mnt/last_opk"
 
 # Convert old launcher file to new frontend
 if [ -f "${LAUNCHER_FILE}" ]; then
@@ -74,6 +75,11 @@ init_frontend() {
 	    echo "${DISABLE_FRONTEND_FILE} file found, not starting frontend" 
 	    sleep 5
 	else
+
+	    # Umount any remaining OPK, if any
+	    umount /opk >/dev/null 2>&1
+	    rm -f "${LAST_OPK_FILE}"
+
     	    local frontend="$(get_frontend)"
 	    case "${frontend}" in
 		gmenu2x|retrofe)

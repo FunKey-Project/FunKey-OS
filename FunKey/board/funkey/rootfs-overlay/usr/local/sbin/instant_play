@@ -6,6 +6,7 @@
 SELF="$(basename ${0})"
 INSTANT_PLAY_FILE="/mnt/instant_play"
 RESUME_PLAY_FILE="/mnt/resume_play"
+LAST_OPK_FILE="/mnt/last_opk"
 
 usage() {
     >&2 echo "Usage: ${SELF} load"
@@ -24,6 +25,15 @@ case ${1} in
 	    usage
 	fi
 
+	# Umount any remaining OPK, if any
+	umount /opk >/dev/null 2>&1
+
+	# Mount last OPK, if any
+	if [ -r "${LAST_OPK_FILE}" ]; then
+	    last_opk=$(cat "${LAST_OPK_FILE}")
+	    mount -t squashfs "${last_opk}" /opk
+	fi
+
 	# Launch Previous Game if any
 	if [ -f "${INSTANT_PLAY_FILE}" ]; then
 	    keymap resume
@@ -33,6 +43,10 @@ case ${1} in
 	    mv "${INSTANT_PLAY_FILE}" "${RESUME_PLAY_FILE}"
 	    source "${RESUME_PLAY_FILE}"
 	    rm -f "${RESUME_PLAY_FILE}"
+	    if [ -r "${LAST_OPK_FILE}" ]; then
+		umount /opk
+		rm "${LAST_OPK_FILE}"
+	    fi
 	    keymap default
 	    termfix_all
 	fi
