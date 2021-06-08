@@ -18,6 +18,35 @@ alias l='ls $LS_OPTIONS -lA'
 # alias cp='cp -i'
 # alias mv='mv -i'
 
+# Alias functions for compatibility
+volume_get() {
+    volume get "$@"
+}
+
+volume_set() {
+    volume set "$@"
+}
+
+brightness_get() {
+    brightness get "$@"
+}
+
+brightness_set() {
+    brightness set "$@"
+}
+
+notif_set() {
+    notif set "$@"
+}
+
+start_audio_amp() {
+    audio_amp "$@"
+}
+
+cancel_sched_powerdown() {
+    powerdown handle
+}
+
 # Relocate HOME into the r/w partition
 export HOME=/mnt/FunKey
 mkdir -p "${HOME}"
