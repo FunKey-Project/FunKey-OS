@@ -60,11 +60,15 @@ save)
 
 	# Write quick load file args
 	echo -n "" > "${INSTANT_PLAY_FILE}"
-	for arg in "$@"; do
-
-	    # Add quotes around all arguments
-	    echo -n "'${arg}' " >> "${INSTANT_PLAY_FILE}"
+	while :
+	do
+            printf "'" >> "${INSTANT_PLAY_FILE}"
+            printf %s "$1" | sed "s/'/'\\\\''/g" >> "${INSTANT_PLAY_FILE}"
+            shift
+            case $# in 0) break; esac
+            printf "' " >> "${INSTANT_PLAY_FILE}"
 	done
+	printf "'\n" >> "${INSTANT_PLAY_FILE}"
 
 	# Add the magic sauce to launch the process in background,
 	# record the PID into a file, wait for the process to
