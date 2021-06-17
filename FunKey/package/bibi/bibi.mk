@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-BIBI_VERSION = 36a2f57
+BIBI_VERSION = 6a7ac42
 BIBI_SITE_METHOD = git
 BIBI_SITE = https://github.com/FunKey-Project/Bibi.git
 BIBI_SITE_LICENSE = GPL-2.1+
