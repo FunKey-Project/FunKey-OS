@@ -1,0 +1,5 @@
+config BR2_PACKAGE_BIBI
+	bool "FunKey S - bibi"
+	default y
+	help
+	  Bomberman game in c with SDL, readapted for the FunKey S.
