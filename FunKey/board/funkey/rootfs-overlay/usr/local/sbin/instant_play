@@ -70,7 +70,6 @@ save)
 	bin_path="$(pwd)"/"$(basename "$bin_name")"
 	echo -n "$bin_path" >> "${INSTANT_PLAY_FILE}"
     shift
-    case $# in 0) break; esac
     printf "' " >> "${INSTANT_PLAY_FILE}"
 
 	while :
