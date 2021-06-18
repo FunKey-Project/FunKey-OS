@@ -1,9 +1,9 @@
 NAME="FunKey-OS"
-VERSION="2.2.1 (Zen Zebu)"
+VERSION="2.3.0 (Zen Zebu)"
 ID=funkey
 ID_LIKE=buildroot
-PRETTY_NAME="FunKey-OS 2.2.1"
-VERSION_ID="2.2.1"
+PRETTY_NAME="FunKey-OS 2.3.0"
+VERSION_ID="2.3.0"
 HOME_URL="https://www.funkey-project.com/"
 SUPPORT_URL="https://www.funkey-project.com/"
 BUG_REPORT_URL="https://www.funkey-project.com/"
