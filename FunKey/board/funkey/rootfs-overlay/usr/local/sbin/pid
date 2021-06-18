@@ -9,6 +9,7 @@ PID_FILE="/var/run/funkey.pid"
 usage() {
     >&2 echo "Usage: ${SELF} record pid"
     >&2 echo "       ${SELF} erase"
+    >&2 echo "       ${SELF} print"
     exit 1
 }
 
@@ -38,6 +39,10 @@ case "${1}" in
 	    usage
 	fi
 	erase_pid
+	;;
+
+	print)
+	cat "${PID_FILE}"
 	;;
 
     *)

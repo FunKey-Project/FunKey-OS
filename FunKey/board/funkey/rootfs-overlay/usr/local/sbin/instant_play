@@ -7,6 +7,8 @@ SELF="$(basename ${0})"
 INSTANT_PLAY_FILE="/mnt/instant_play"
 RESUME_PLAY_FILE="/mnt/resume_play"
 LAST_OPK_FILE="/mnt/last_opk"
+PID_PATH="/var/run/pid_path"
+REBOOTING_FILE="/run/rebooting"
 
 usage() {
     >&2 echo "Usage: ${SELF} load"
@@ -50,7 +52,7 @@ load)
 	fi
 
 	# Unmount last OPK, if any
-    if [ -r "${LAST_OPK_FILE}" ]; then
+    if [ -r "${LAST_OPK_FILE}" -a ! -f "${REBOOTING_FILE}" ]; then
 		umount /opk
 		rm "${LAST_OPK_FILE}"
     fi
@@ -64,23 +66,22 @@ save)
 
 	# Write quick load file args
 	echo -n "" > "${INSTANT_PLAY_FILE}"
-	# First arg is prog name, forcing real path
 	printf "'" >> "${INSTANT_PLAY_FILE}"
-    bin_name=$(printf %s "$1" | sed "s/'/'\\\\''/g")
-	bin_path="$(pwd)"/"$(basename "$bin_name")"
+	# First arg is prog name, forcing real path
+	bin=$(printf %s "$1" | sed "s/'/'\\\\''/g")
+    bin_name=$(basename "$bin")
+    bin_path="$(cat $PID_PATH)"/"$bin_name"
 	echo -n "$bin_path" >> "${INSTANT_PLAY_FILE}"
-    shift
     printf "' " >> "${INSTANT_PLAY_FILE}"
+    shift
 
-	while :
+	while [ "$#" != "0" ]
 	do
         printf "'" >> "${INSTANT_PLAY_FILE}"
         printf %s "$1" | sed "s/'/'\\\\''/g" >> "${INSTANT_PLAY_FILE}"
-        shift
-        case $# in 0) break; esac
         printf "' " >> "${INSTANT_PLAY_FILE}"
+        shift
 	done
-	printf "'\n" >> "${INSTANT_PLAY_FILE}"
 
 	# Add the magic sauce to launch the process in background,
 	# record the PID into a file, wait for the process to
