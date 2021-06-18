@@ -71,14 +71,16 @@ init_frontend() {
     while true; do
 	
 		# Check if frontend disable file is present
-		if [ -f "${DISABLE_FRONTEND_FILE}" ]; then
+		if [ -f "${DISABLE_FRONTEND_FILE}" -o -f "${REBOOTING_FILE}" ]; then
 		    echo "${DISABLE_FRONTEND_FILE} file found, not starting frontend" 
 		    sleep 5
 		else
 
 		    # Umount any remaining OPK, if any
 		    umount /opk >/dev/null 2>&1
-		    rm -f "${LAST_OPK_FILE}"
+		    if [ -r "${LAST_OPK_FILE}" -a ! -f "${REBOOTING_FILE}" ]; then
+				rm "${LAST_OPK_FILE}"
+		    fi
 
 		    # Launch selected frontend
 	    	local frontend="$(get_frontend)"
