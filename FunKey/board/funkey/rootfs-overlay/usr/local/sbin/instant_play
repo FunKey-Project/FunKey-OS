@@ -34,22 +34,26 @@ load)
 	    mount -t squashfs "${last_opk}" /opk
 	fi
 
+	# Remove unnecessary files
+	rm -f "${RESUME_PLAY_FILE}"
+
 	# Launch Previous Game if any
 	if [ -f "${INSTANT_PLAY_FILE}" ]; then
 	    keymap resume
 	    echo -n "Found Instant Play file, restarting previous game with command: "
-	    echo $(head -n 1 "${INSTANT_PLAY_FILE}")
-	    rm -f "${RESUME_PLAY_FILE}"
+	    cat "${INSTANT_PLAY_FILE}"
 	    mv "${INSTANT_PLAY_FILE}" "${RESUME_PLAY_FILE}"
 	    source "${RESUME_PLAY_FILE}"
 	    rm -f "${RESUME_PLAY_FILE}"
-	    if [ -r "${LAST_OPK_FILE}" ]; then
-		umount /opk
-		rm "${LAST_OPK_FILE}"
-	    fi
 	    keymap default
 	    termfix_all
 	fi
+
+	# Unmount last OPK, if any
+    if [ -r "${LAST_OPK_FILE}" ]; then
+		umount /opk
+		rm "${LAST_OPK_FILE}"
+    fi
 	;;
 
 save)
@@ -60,13 +64,22 @@ save)
 
 	# Write quick load file args
 	echo -n "" > "${INSTANT_PLAY_FILE}"
+	# First arg is prog name, forcing real path
+	printf "'" >> "${INSTANT_PLAY_FILE}"
+    bin_name=$(printf %s "$1" | sed "s/'/'\\\\''/g")
+	bin_path="$(pwd)"/"$(basename "$bin_name")"
+	echo -n "$bin_path" >> "${INSTANT_PLAY_FILE}"
+    shift
+    case $# in 0) break; esac
+    printf "' " >> "${INSTANT_PLAY_FILE}"
+
 	while :
 	do
-            printf "'" >> "${INSTANT_PLAY_FILE}"
-            printf %s "$1" | sed "s/'/'\\\\''/g" >> "${INSTANT_PLAY_FILE}"
-            shift
-            case $# in 0) break; esac
-            printf "' " >> "${INSTANT_PLAY_FILE}"
+        printf "'" >> "${INSTANT_PLAY_FILE}"
+        printf %s "$1" | sed "s/'/'\\\\''/g" >> "${INSTANT_PLAY_FILE}"
+        shift
+        case $# in 0) break; esac
+        printf "' " >> "${INSTANT_PLAY_FILE}"
 	done
 	printf "'\n" >> "${INSTANT_PLAY_FILE}"
 
@@ -89,3 +102,4 @@ EOF
 	;;
 esac
 exit 0
+

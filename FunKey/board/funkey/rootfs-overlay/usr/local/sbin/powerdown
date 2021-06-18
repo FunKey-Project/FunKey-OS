@@ -57,10 +57,10 @@ powerdown_now() {
 action="${1:-now}"
 case "${action}" in
     schedule)
-	if [ ${#} != 2 -o "${2}" -eq 0 ]; then
+	if [ ${#} != 2 -o "${2}" == "0" ]; then
 	    usage
 	fi
-	schedule_powerdown
+	schedule_powerdown ${2}
 	;;
 
     handle)
