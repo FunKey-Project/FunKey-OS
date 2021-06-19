@@ -23,46 +23,46 @@ fi
 
 case ${1} in
 load)
-	if [ ${#} -ne 1 ]; then
-	    usage
-	fi
-
-	# Umount any remaining OPK, if any
-	umount /opk >/dev/null 2>&1
-
-	# Mount last OPK, if any
-	if [ -r "${LAST_OPK_FILE}" ]; then
-	    last_opk=$(cat "${LAST_OPK_FILE}")
-	    mount -t squashfs "${last_opk}" /opk
-	fi
-
-	# Remove unnecessary files
-	rm -f "${RESUME_PLAY_FILE}"
-
-	# Launch Previous Game if any
-	if [ -f "${INSTANT_PLAY_FILE}" ]; then
-	    keymap resume
-	    echo -n "Found Instant Play file, restarting previous game with command: "
-	    cat "${INSTANT_PLAY_FILE}"
-	    mv "${INSTANT_PLAY_FILE}" "${RESUME_PLAY_FILE}"
-	    source "${RESUME_PLAY_FILE}"
-	    rm -f "${RESUME_PLAY_FILE}"
-	    keymap default
-	    termfix_all
-	fi
-
-	# Unmount last OPK, if any
-    if [ -r "${LAST_OPK_FILE}" -a ! -f "${REBOOTING_FILE}" ]; then
-		umount /opk
-		rm "${LAST_OPK_FILE}"
+    if [ ${#} -ne 1 ]; then
+	usage
     fi
-	;;
+
+    # Umount any remaining OPK, if any
+    umount /opk >/dev/null 2>&1
+
+    # Mount last OPK, if any
+    if [ -r "${LAST_OPK_FILE}" ]; then
+	last_opk=$(cat "${LAST_OPK_FILE}")
+	mount -t squashfs "${last_opk}" /opk
+    fi
+
+    # Remove unnecessary files
+    rm -f "${RESUME_PLAY_FILE}"
+
+    # Launch Previous Game if any
+    if [ -f "${INSTANT_PLAY_FILE}" ]; then
+	keymap resume
+	echo -n "Found Instant Play file, restarting previous game with command: "
+	cat "${INSTANT_PLAY_FILE}"
+	mv "${INSTANT_PLAY_FILE}" "${RESUME_PLAY_FILE}"
+	source "${RESUME_PLAY_FILE}"
+	rm -f "${RESUME_PLAY_FILE}"
+	keymap default
+	termfix_all
+    fi
+
+    # Unmount last OPK, if any
+    if [ -r "${LAST_OPK_FILE}" -a ! -f "${REBOOTING_FILE}" ]; then
+	umount /opk
+	rm "${LAST_OPK_FILE}"
+    fi
+    ;;
 
 save)
-	if [ ${#} -lt 2 ]; then
-	    usage
-	fi
-	shift
+    if [ ${#} -lt 2 ]; then
+	usage
+    fi
+    shift
 
 	# Get curent binary real path
 	bin=$(printf %s "$1" | sed "s/'/'\\\\''/g")
@@ -76,31 +76,30 @@ save)
     printf "' " >> "${INSTANT_PLAY_FILE}"
     shift
 
-	while [ "$#" != "0" ]
-	do
+    while [ "$#" != "0" ]
+    do
         printf "'" >> "${INSTANT_PLAY_FILE}"
         printf %s "$1" | sed "s/'/'\\\\''/g" >> "${INSTANT_PLAY_FILE}"
         printf "' " >> "${INSTANT_PLAY_FILE}"
         shift
-	done
+    done
 
-	# Add the magic sauce to launch the process in background,
-	# record the PID into a file, wait for the process to
-	# terminate and erase the recorded PID
-	cat << EOF >> "${INSTANT_PLAY_FILE}"
+    # Add the magic sauce to launch the process in background,
+    # record the PID into a file, wait for the process to
+    # terminate and erase the recorded PID
+    cat << EOF >> "${INSTANT_PLAY_FILE}"
 &
 pid record \$!
 wait \$!
 pid erase
 EOF
 
-	# Now terminate gracefully
-	exec powerdown now
-	;;
+    # Now terminate gracefully
+    exec powerdown now
+    ;;
 
 *)
-	usage
-	;;
+    usage
+    ;;
 esac
 exit 0
-

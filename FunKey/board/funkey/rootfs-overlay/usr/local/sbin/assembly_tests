@@ -18,7 +18,7 @@ touch ${LOCK_FILE}
 
 ## Register ourself as the running FunKey task for receiving USR1
 ## signal for shutting down
-echo $$ > "/var/run/funkey.pid"
+pid record $$
 
 ## Binaries
 PROD_SCREEN_BIN="/usr/local/sbin/funkey_prod_screens"
@@ -224,7 +224,7 @@ function launch_tests_up_until_magnet {
 
 	## Register ourself back as the running FunKey task for receiving USR1
 	## signal for shutting down
-	echo $$ > "/var/run/funkey.pid"
+	pid record $$
 
 	# check magnet test result
 	if [[ "$res" == "0" ]]; then
