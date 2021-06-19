@@ -4,7 +4,6 @@
 #set -x
 
 SELF="$(basename ${0})"
-PID_FILE="/var/run/funkey.pid"
 PID_PATH="/var/run/pid_path"
 REBOOTING_FILE="/run/rebooting"
 
@@ -19,12 +18,12 @@ schedule_powerdown() {
 
     # Save current pid path before closing bin 
     # (won't work if bin is already closed)
-    pid_path=$(dirname $(readlink /proc/$(pid print)/exe))
-    echo -n "$pid_path" > "$PID_PATH"
+    local pid_path=$(dirname $(readlink /proc/$(pid print)/exe))
+    echo -n "${pid_path}" > "${PID_PATH}"
 
     # Send USR1 signal to the running FunKey process to warn about
     # impending shutdown
-    pkill -USR1 -F "${PID_FILE}" > /dev/null 2>&1
+    pkill -USR1 "$(pid print)" > /dev/null 2>&1
 
     # Delay for the given grace period seconds to catch signal USR2.
     # If the signal is caught, then it means the running FunKey
