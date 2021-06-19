@@ -17,7 +17,7 @@ schedule_powerdown() {
 
     # Send USR1 signal to the running FunKey process to warn about
     # impending shutdown
-    pkill -USR1 "$(pid print)" > /dev/null 2>&1
+    kill -USR1 "$(pid print)" > /dev/null 2>&1
 
     # Delay for the given grace period seconds to catch signal USR2.
     # If the signal is caught, then it means the running FunKey
