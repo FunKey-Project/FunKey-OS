@@ -41,7 +41,7 @@ case "${1}" in
 	erase_pid
 	;;
 
-	print)
+    print)
 	cat "${PID_FILE}"
 	;;
 
