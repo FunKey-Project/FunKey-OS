@@ -64,13 +64,14 @@ save)
 	fi
 	shift
 
-	# Write quick load file args
-	echo -n "" > "${INSTANT_PLAY_FILE}"
-	printf "'" >> "${INSTANT_PLAY_FILE}"
-	# First arg is prog name, forcing real path
+	# Get curent binary real path
 	bin=$(printf %s "$1" | sed "s/'/'\\\\''/g")
     bin_name=$(basename "$bin")
     bin_path="$(cat $PID_PATH)"/"$bin_name"
+
+	# Write quick load file args
+	echo -n "" > "${INSTANT_PLAY_FILE}"
+	printf "'" >> "${INSTANT_PLAY_FILE}"
 	echo -n "$bin_path" >> "${INSTANT_PLAY_FILE}"
     printf "' " >> "${INSTANT_PLAY_FILE}"
     shift

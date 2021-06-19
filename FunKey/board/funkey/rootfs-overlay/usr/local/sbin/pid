@@ -5,6 +5,7 @@
 
 SELF="$(basename ${0})"
 PID_FILE="/var/run/funkey.pid"
+PID_PATH="/var/run/pid_path"
 
 usage() {
     >&2 echo "Usage: ${SELF} record pid"
@@ -16,10 +17,16 @@ usage() {
 record_pid() {
     local pid="${1}"
     if ! [ ! "${pid}" -ne "${pid}" ]; then
-	>&2 echo "error: ${pid} is not a number"
-	exit 2
+		>&2 echo "error: ${pid} is not a number"
+		exit 2
     fi
+
+    # Save PID
     echo "${1}" > "${PID_FILE}"
+
+    # Save current pid path
+    pid_path=$(dirname $(readlink /proc/${pid}/exe))
+    echo -n "$pid_path" > "$PID_PATH"
 }
 
 erase_pid() {
