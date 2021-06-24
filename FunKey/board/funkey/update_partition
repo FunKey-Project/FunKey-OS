@@ -34,7 +34,7 @@ do_postinst()
     ##############################
     # SHARED PARTITION PROCESSES #
     ##############################
-    notif_set 0 " 3/4 COPY OPKS TO USB MOUNT^DO NOT TURN OFF THE CONSOLE"
+    notif_set 0 " 3/4 COPY FILES TO USB MOUNT^DO NOT TURN OFF THE CONSOLE"
     
     # Mount Rootfs
     mkdir -p ${root_mount}
@@ -47,8 +47,11 @@ do_postinst()
     # Copy OPKs
     cp -r ${root_mount}/usr/local/share/OPKs/* /mnt
 
+    # Copy freware games and other necessary mnt files
+    unzip -q -o ${root_mount}/usr/local/share/mnt_files.zip -d /mnt/
+
     # Fix PCE opk name if necessary
-    mv /mnt/Emulators/pce_mednaefn_funkey-s.opk /mnt/Emulators/pce_mednafen_funkey-s.opk 1>/dev/null 2>&1
+    #mv /mnt/Emulators/pce_mednaefn_funkey-s.opk /mnt/Emulators/pce_mednafen_funkey-s.opk 1>/dev/null 2>&1
 
     # Unmount Rootfs
     umount ${root_mount}
@@ -58,14 +61,14 @@ do_postinst()
     fi
 
     # Change FunKey config files extension from .cfg to .fkcfg
-    SAVEIFS=$IFS
-    IFS=$(echo -en "\n\b")
-    for FOLDER in "Atari lynx" "Game Boy" "Game Boy Advance" "Game Boy Color" "Game Gear" "Neo Geo Pocket" "NES" "PCE-TurboGrafx" "PS1" "Sega Genesis" "Sega Master System" "SNES" "WonderSwan"; do
-        for FILE in $(ls /mnt/"${FOLDER}"/*.cfg 2>/dev/null); do
-            mv "$FILE" "${FILE%.cfg}.fkcfg"
-        done
-    done
-    IFS=$SAVEIFS
+    #SAVEIFS=$IFS
+    #IFS=$(echo -en "\n\b")
+    #for FOLDER in "Atari lynx" "Game Boy" "Game Boy Advance" "Game Boy Color" "Game Gear" "Neo Geo Pocket" "NES" "PCE-TurboGrafx" "PS1" "Sega Genesis" "Sega Master System" "SNES" "WonderSwan"; do
+    #    for FILE in $(ls /mnt/"${FOLDER}"/*.cfg 2>/dev/null); do
+    #        mv "$FILE" "${FILE%.cfg}.fkcfg"
+    #    done
+    #done
+    #IFS=$SAVEIFS
 
     #####################
     # Erase update file #

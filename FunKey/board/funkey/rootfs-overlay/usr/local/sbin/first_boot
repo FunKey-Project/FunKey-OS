@@ -202,8 +202,8 @@ copy_files_to_usb_partition () {
 	mount /mnt/ || die_notif 16 "Cannot mount /mnt"
     fi
 
-    # Copy freware games
-    unzip -q -o /usr/local/share/mnt_freware_games.zip -d /mnt/
+    # Copy freware games and other necessary mnt files
+    unzip -q -o /usr/local/share/mnt_files.zip -d /mnt/
 
     # Copy OPKs
     set +f
