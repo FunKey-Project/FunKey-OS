@@ -7,9 +7,14 @@ root_part_num=2
 root_part=/dev/mmcblk0p${root_part_num}
 root_mount=/tmp/rootfs
 
+# Compatibility issue with older Recovery notifications
+if [ -x /usr/local/sbin/notif ]; then
+    alias notif_set="notif set"
+fi
+
 do_preinst()
 {
-    notif " 1/4 EXTRACT FIRMWARE UPDATE..^DO NOT TURN OFF THE CONSOLE"
+    notif_set 0 " 1/4 EXTRACT FIRMWARE UPDATE..^DO NOT TURN OFF THE CONSOLE"
     exit 0
 }
 
@@ -19,55 +24,58 @@ do_postinst()
     #################
     # Resize Rootfs #
     #################
-    notif " 2/4 RESIZE ROOT FILESYSTEM^DO NOT TURN OFF THE CONSOLE"
+    notif_set 0 " 2/4 RESIZE ROOT FILESYSTEM^DO NOT TURN OFF THE CONSOLE"
     resize2fs ${root_part}
     if [ $? -ne 0 ]; then
-    	notif " CANNOT RESIZE ROOT^FILESYSTEM"
-    	exit 1
+        notif_set 0 " CANNOT RESIZE ROOT^FILESYSTEM"
+        exit 1
     fi
 
     ##############################
     # SHARED PARTITION PROCESSES #
     ##############################
-    notif " 3/4 COPY OPKS TO USB MOUNT^DO NOT TURN OFF THE CONSOLE"
+    notif_set 0 " 3/4 COPY FILES TO USB MOUNT^DO NOT TURN OFF THE CONSOLE"
     
     # Mount Rootfs
     mkdir -p ${root_mount}
     mount -t ext4 ${root_part} ${root_mount}
     if [ $? -ne 0 ]; then
-    	notif "CANNOT MOUNT ROOT^FILESYSTEM"
-    	exit 1
+        notif_set 0 "CANNOT MOUNT ROOT^FILESYSTEM"
+        exit 1
     fi
     
     # Copy OPKs
     cp -r ${root_mount}/usr/local/share/OPKs/* /mnt
 
+    # Copy freware games and other necessary mnt files
+    unzip -q -o ${root_mount}/usr/local/share/mnt_files.zip -d /mnt/
+
     # Fix PCE opk name if necessary
-    mv /mnt/Emulators/pce_mednaefn_funkey-s.opk /mnt/Emulators/pce_mednafen_funkey-s.opk 1>/dev/null 2>&1
+    #mv /mnt/Emulators/pce_mednaefn_funkey-s.opk /mnt/Emulators/pce_mednafen_funkey-s.opk 1>/dev/null 2>&1
 
     # Unmount Rootfs
     umount ${root_mount}
     if [ $? -ne 0 ]; then
-    	notif "CANNOT UNMOUNT ROOT^FILESYSTEM"
-    	exit 1
+        notif_set 0 "CANNOT UNMOUNT ROOT^FILESYSTEM"
+        exit 1
     fi
 
     # Change FunKey config files extension from .cfg to .fkcfg
-    SAVEIFS=$IFS
-    IFS=$(echo -en "\n\b")
-    for FOLDER in "Atari lynx" "Game Boy" "Game Boy Advance" "Game Boy Color" "Game Gear" "Neo Geo Pocket" "NES" "PCE-TurboGrafx" "PS1" "Sega Genesis" "Sega Master System" "SNES" "WonderSwan"; do
-        for FILE in $(ls /mnt/"${FOLDER}"/*.cfg 2>/dev/null); do
-            mv "$FILE" "${FILE%.cfg}.fkcfg"
-        done
-    done
-    IFS=$SAVEIFS
+    #SAVEIFS=$IFS
+    #IFS=$(echo -en "\n\b")
+    #for FOLDER in "Atari lynx" "Game Boy" "Game Boy Advance" "Game Boy Color" "Game Gear" "Neo Geo Pocket" "NES" "PCE-TurboGrafx" "PS1" "Sega Genesis" "Sega Master System" "SNES" "WonderSwan"; do
+    #    for FILE in $(ls /mnt/"${FOLDER}"/*.cfg 2>/dev/null); do
+    #        mv "$FILE" "${FILE%.cfg}.fkcfg"
+    #    done
+    #done
+    #IFS=$SAVEIFS
 
     #####################
     # Erase update file #
     #####################
     for file in $(ls /mnt/FunKey-*.fwu); do
-        notif " 4/4 ERASE UPDATE FILE^DO NOT TURN OFF THE CONSOLE"
-    	rm -f "${file}"
+        notif_set 0 " 4/4 ERASE UPDATE FILE^DO NOT TURN OFF THE CONSOLE"
+        rm -f "${file}"
     done
     exit 0
 }

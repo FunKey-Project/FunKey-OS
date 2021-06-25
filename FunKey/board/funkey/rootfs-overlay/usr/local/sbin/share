@@ -54,7 +54,7 @@ mount_share () {
     # Check if there is a firmware update file
     if [ -f /mnt/FunKey-*.fwu ]; then
 	warn "found a firmware update file, going into recovery mode"
-	notif "^^^^^^^^        UPDATING...^^^^^^^^"
+	notif set 0 "^^^^^^^^        UPDATING...^^^^^^^^"
 	recovery_mode
     fi
 
@@ -127,6 +127,25 @@ is_share_started () {
     return $res
 }
 
+is_usb_data_connected () {
+
+    # Get USB state
+    local usb_present=$(cat /sys/class/power_supply/axp20x-usb/present)
+
+    # Get udc state
+    local udc_state=$(cat /sys/class/udc/musb-hdrc.1.auto/state)
+
+    if [ "x${udc_state}" = "xconfigured" -a "${usb_present}" -eq 1 ]; then
+
+	# Connected succesfully to a host
+	echo "yes"
+	return 0
+    else
+	echo "no"
+	return 1
+    fi
+}
+
 case "$1" in
 
     init)
@@ -145,6 +164,9 @@ case "$1" in
         is_share_started
         ;;
 
+    is_usb_data_connected)
+	is_usb_data_connected
+	;;
 
     *)
 	die 15 "Usage $0 {init|start|stop|is_sharing}"

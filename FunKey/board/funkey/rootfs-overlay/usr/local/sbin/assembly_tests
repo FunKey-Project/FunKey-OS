@@ -18,7 +18,7 @@ touch ${LOCK_FILE}
 
 ## Register ourself as the running FunKey task for receiving USR1
 ## signal for shutting down
-echo $$ > "/var/run/funkey.pid"
+pid record $$
 
 ## Binaries
 PROD_SCREEN_BIN="/usr/local/sbin/funkey_prod_screens"
@@ -42,7 +42,7 @@ QR_CODE_IMG="/root/logs/assembly_tests/qrcode.png"
 ## Function called when SIGURS1 is caught while waiting for it
 function function_magnet_detected_ok {
 	## Kill scheduled shutdown
-	pkill sched_shutdown
+	pkill -f "powerdown schedule"
 
 	## Write magnet_detected file
 	if $test_failed; then
@@ -55,7 +55,7 @@ function function_magnet_detected_ok {
 	## Clean shutdown
 	echo "	Caught SIGUSR1 signal: magnet detected"
 	echo "	Rebooting now..."
-	shutdown_funkey
+	powerdown now
 	exit 0
 }
 
@@ -78,7 +78,7 @@ function launch_tests_up_until_magnet {
 	termfix_all > /dev/null
 
 	## Clear all notifs
-	notif_clear
+	notif clear
 
 	## Test if log file aleady exists
 	if [[ -f $LOG_FILE ]]; then
@@ -158,7 +158,7 @@ function launch_tests_up_until_magnet {
 
 	## Play 1kHz sine wave
 	echo "	Play 2kHz sine wave"
-	notif_set 0 "^^^     PLAYING SINE WAVE...^^^    ......          ^  ...    ...^ ..        ..^..          .^.            .             .^              .           ..^              ..         ..^               ...     ...^                 .......^^"
+	notif set 0 "^^^     PLAYING SINE WAVE...^^^    ......          ^  ...    ...^ ..        ..^..          .^.            .             .^              .           ..^              ..         ..^               ...     ...^                 .......^^"
 	speaker-test -t sine -s 1 -f 2000 >/dev/null 2>&1
 	if [ $? -ne 0 ]; then
         echo "	ERROR: SPEAKER SINE"
@@ -166,7 +166,7 @@ function launch_tests_up_until_magnet {
 		return
     fi
 	sync
-	notif_clear
+	notif clear
 
 	## Launch prod screen test speaker
 	$PROD_SCREEN_BIN SPEAKER  2>&1
@@ -224,7 +224,7 @@ function launch_tests_up_until_magnet {
 
 	## Register ourself back as the running FunKey task for receiving USR1
 	## signal for shutting down
-	echo $$ > "/var/run/funkey.pid"
+	pid record $$
 
 	# check magnet test result
 	if [[ "$res" == "0" ]]; then
@@ -248,7 +248,7 @@ function launch_tests_after_magnet {
 	#termfix_all > /dev/null
 
 	## Clear all notifs
-	#notif_clear
+	#notif clear
 
 	# Log from magnet file
 	echo "	Found file: " $MAGNET_DETECTED_FILE
@@ -370,6 +370,6 @@ if ! $test_failed; then
 	exit 0
 else
 	## Shutdown
-	shutdown_funkey &
+	powerdown now &
 	exit 1
 fi

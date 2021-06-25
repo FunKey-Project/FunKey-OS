@@ -1,0 +1,59 @@
+#!/bin/sh
+
+# Uncomment the following line to get debug info
+#set -x
+
+SELF="$(basename ${0})"
+PID_FILE="/var/run/funkey.pid"
+PID_PATH="/var/run/pid_path"
+
+usage() {
+    >&2 echo "Usage: ${SELF} record pid"
+    >&2 echo "       ${SELF} erase"
+    >&2 echo "       ${SELF} print"
+    exit 1
+}
+
+record_pid() {
+    local pid="${1}"
+    if ! [ ! "${pid}" -ne "${pid}" ]; then
+		>&2 echo "error: ${pid} is not a number"
+		exit 2
+    fi
+
+    # Save PID
+    echo "${1}" > "${PID_FILE}"
+
+    # Save current pid path
+    pid_path=$(dirname $(readlink /proc/${pid}/exe))
+    echo -n "$pid_path" > "$PID_PATH"
+}
+
+erase_pid() {
+    rm -f "${PID_FILE}"
+}
+
+case "${1}" in
+    record)
+	if [ ${#} -ne 2 ]; then
+	    usage
+	fi
+	record_pid "${2}"
+	;;
+
+    erase)
+	if [ ${#} -ne 1 ]; then
+	    usage
+	fi
+	erase_pid
+	;;
+
+    print)
+	cat "${PID_FILE}"
+	;;
+
+    *)
+	usage
+	;;
+esac
+exit 0

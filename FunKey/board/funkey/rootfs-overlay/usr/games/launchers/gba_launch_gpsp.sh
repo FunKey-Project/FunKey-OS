@@ -4,7 +4,7 @@
 # for the process to terminate and erase the recorded PID
 cd ${HOME}
 gpsp "$1"&
-record_pid $!
+pid record $!
 wait $!
-erase_pid
+pid erase
 

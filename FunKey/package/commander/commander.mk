@@ -3,7 +3,7 @@
 # commander
 #
 #############################################################
-COMMANDER_VERSION = commander-FunKey-1.1.0
+COMMANDER_VERSION = commander-FunKey-1.1.1
 COMMANDER_SITE_METHOD = git
 COMMANDER_SITE = https://github.com/FunKey-Project/commander.git
 COMMANDER_LICENSE = GPL-2.0

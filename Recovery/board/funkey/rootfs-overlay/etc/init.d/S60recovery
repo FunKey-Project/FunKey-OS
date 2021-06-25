@@ -10,7 +10,7 @@ case "$1" in
 	if [ "${keys}" != "0xF83F" ]; then
 
 	    # Automatic firmware update requested
-	    updates=$(ls /mnt/FunKey-*.fwu)
+	    updates=$(ls /mnt/FunKey-*.fwu 2>/dev/null)
 	    if [ "x${updates}" = "x" ]; then
 		menu &
 		exit 1
@@ -18,11 +18,11 @@ case "$1" in
 	    for file in ${updates} ; do
 		swupdate -i "${file}"
 		if [ $? -ne 0 ]; then
-	            notif_disp 10 "         CORRUPTED^        UPDATE FILE"
+	            notif display 10 "         CORRUPTED^        UPDATE FILE"
 		    rm -f "${file}"
 		fi
 	    done
-	    notif "^^^^^^^^      RESTARTING...^^^^^^^^"
+	    notif set 0 "^^^^^^^^      RESTARTING...^^^^^^^^"
 	    normal_mode
 	else
 

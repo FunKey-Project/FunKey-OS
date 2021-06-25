@@ -36,6 +36,6 @@ resize() {
     fi
 }
 
-# Reset saved brightness
-echo "Reset saved brightness"
-brightness_set $(brightness_get) >/dev/null 2>&1
+# Restore saved brightness
+echo "Restore saved brightness"
+brightness set $(brightness get) >/dev/null 2>&1

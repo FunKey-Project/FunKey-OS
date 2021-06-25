@@ -3,35 +3,103 @@
 # Uncomment the following line to get debug info
 #set -x
 
-# Check args
-if [ ${#} -eq 0 ]; then
-    echo "Usage: $(basename ${0}) args..."
+SELF="$(basename ${0})"
+INSTANT_PLAY_FILE="/mnt/instant_play"
+RESUME_PLAY_FILE="/mnt/resume_play"
+LAST_OPK_FILE="/mnt/last_opk"
+PID_PATH="/var/run/pid_path"
+REBOOTING_FILE="/run/rebooting"
+
+usage() {
+    >&2 echo "Usage: ${SELF} load"
+    >&2 echo "       ${SELF} save application args..."
     exit 1
+}
+
+# Check number of arguments
+if [ ${#} -lt 1 ]; then
+    usage
 fi
 
-INSTANT_PLAY_FILE="/mnt/instant_play"
-
-# Write quick load file args
-echo -n "" > "${INSTANT_PLAY_FILE}"
-for arg in "$@"; do
-    if $(echo "${arg}" | egrep -q '[[:space:]]'); then
-
-	# Add quotes around arguments containing spaces
-        echo -n "\"${arg}\" " >> "${INSTANT_PLAY_FILE}"
-    else
-	echo -n "${arg} "  >> "${INSTANT_PLAY_FILE}"
+case ${1} in
+load)
+    if [ ${#} -ne 1 ]; then
+	usage
     fi
-done
 
-# Add the magic sauce to launch the process in background, record the
-# PID into a file, wait for the process to terminate and erase the
-# recorded PID
-cat << EOF >> "${INSTANT_PLAY_FILE}"
+    # Umount any remaining OPK, if any
+    umount /opk >/dev/null 2>&1
+
+    # Mount last OPK, if any
+    if [ -r "${LAST_OPK_FILE}" ]; then
+	last_opk=$(cat "${LAST_OPK_FILE}")
+	mount -t squashfs "${last_opk}" /opk
+    fi
+
+    # Remove unnecessary files
+    rm -f "${RESUME_PLAY_FILE}"
+
+    # Launch Previous Game if any
+    if [ -f "${INSTANT_PLAY_FILE}" ]; then
+	keymap resume
+	echo -n "Found Instant Play file, restarting previous game with command: "
+	cat "${INSTANT_PLAY_FILE}"
+	mv "${INSTANT_PLAY_FILE}" "${RESUME_PLAY_FILE}"
+	source "${RESUME_PLAY_FILE}"
+	rm -f "${RESUME_PLAY_FILE}"
+	keymap default
+	termfix_all
+    fi
+
+    # Unmount last OPK, if any
+    if [ -r "${LAST_OPK_FILE}" -a ! -f "${REBOOTING_FILE}" ]; then
+	umount /opk
+	rm "${LAST_OPK_FILE}"
+    fi
+    ;;
+
+save)
+    if [ ${#} -lt 2 ]; then
+	usage
+    fi
+    shift
+
+	# Get curent binary real path
+	bin=$(printf %s "$1" | sed "s/'/'\\\\''/g")
+    bin_name=$(basename "$bin")
+    bin_path="$(cat $PID_PATH)"/"$bin_name"
+
+	# Write quick load file args
+	echo -n "" > "${INSTANT_PLAY_FILE}"
+	printf "'" >> "${INSTANT_PLAY_FILE}"
+	echo -n "$bin_path" >> "${INSTANT_PLAY_FILE}"
+    printf "' " >> "${INSTANT_PLAY_FILE}"
+    shift
+
+    while [ "$#" != "0" ]
+    do
+        printf "'" >> "${INSTANT_PLAY_FILE}"
+        printf %s "$1" | sed "s/'/'\\\\''/g" >> "${INSTANT_PLAY_FILE}"
+        printf "' " >> "${INSTANT_PLAY_FILE}"
+        shift
+    done
+
+    # Add the magic sauce to launch the process in background,
+    # record the PID into a file, wait for the process to
+    # terminate and erase the recorded PID
+    cat << EOF >> "${INSTANT_PLAY_FILE}"
 &
-record_pid \$!
+pid record \$!
 wait \$!
-erase_pid
+pid erase
 EOF
 
-# Now terminate gracefully
-exec shutdown_funkey
+    # Now terminate gracefully
+    exec powerdown now
+    ;;
+
+*)
+    usage
+    ;;
+esac
+exit 0

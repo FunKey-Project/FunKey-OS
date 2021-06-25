@@ -1,0 +1,136 @@
+#!/bin/sh
+
+# Uncomment the following line to get debug info
+#set -x
+
+SELF="$(basename ${0})"
+DEFAULT_VOLUME_VALUE=50
+MINIMUM_VOLUME=16
+VOLUME_STEP=10
+NOTIF_DURATION=2
+
+usage() {
+    >&2 echo "Usage: ${SELF} get"
+    >&2 echo "       ${SELF} set  new_volume_percentage"
+    exit 1
+}
+
+increase_volume() {
+
+    # Get current value
+    local current_volume=$(get_volume)
+
+    # Compute new volume value
+    local new_volume=0
+    let new_volume=${current_volume}+${VOLUME_STEP}
+    if [ ${new_volume} -gt 100 ]; then
+	   new_volume=100
+    fi
+
+    # Change volume
+    if [ ${new_volume} -ne ${current_volume} ]; then
+	   set_volume ${new_volume}
+    fi
+
+    # Notif
+    notif set ${NOTIF_DURATION} "         VOLUME: ${new_volume}%%"
+}
+
+decrease_volume() {
+
+    # Get current value
+    local current_volume=$(get_volume)
+
+    # Compute new volume value
+    local new_volume=0
+    if [ ${current_volume} -gt ${VOLUME_STEP} ]; then
+	   let new_volume=${current_volume}-${VOLUME_STEP}
+    fi
+
+    # Change volume
+    if [ ${new_volume} -ne ${current_volume} ]; then
+	   set_volume ${new_volume}
+    fi
+
+    # Notif
+    notif set ${NOTIF_DURATION} "         VOLUME: ${new_volume}%%"
+}
+
+get_volume() {
+    local volume=$(fw_printenv -n volume 2>/dev/null)
+    if ! [ ! "${volume}" -ne "${volume}" ] 2> /dev/null; then
+	volume=${DEFAULT_VOLUME_VALUE}
+	fw_setenv volume ${volume}
+    fi
+    echo ${volume}
+}
+
+set_volume() {
+
+    local current_volume=$(get_volume)
+
+    # Set the new volume value (from 0 to 63) into ALSA
+    local new_volume=${1}
+    local alsa_volume=$(echo "a = $new_volume * (63 - $MINIMUM_VOLUME) / 100 + \
+        $MINIMUM_VOLUME + 0.5; scale = 0; a / 1" | bc -l)
+    amixer -q sset 'Headphone' ${alsa_volume} unmute
+
+    # Set the new volume value in a bootloader variable
+    if [ ${?} -eq 0 -a ${current_volume} -ne ${new_volume} ]; then
+	   fw_setenv volume ${new_volume}
+    fi
+
+    # Turn on/off audio amplifier if necessary
+    if [ ${new_volume} -eq 0 ]; then
+	   audio_amp off
+    else
+	   audio_amp on
+    fi
+}
+
+# Check number of arguments
+if [ ${#} -lt 1 -o ${#} -gt 2 ]; then
+    usage
+fi
+
+case "${1}" in
+    up)
+	if [ ${#} -ne 1 ]; then
+	    usage
+	fi
+	increase_volume
+	;;
+
+    down)
+	if [ ${#} -ne 1 ]; then
+	    usage
+	fi
+	decrease_volume
+	;;
+
+    get)
+	if [ ${#} -ne 1 ]; then
+	    usage
+	fi
+	get_volume
+    ;;
+
+    set)
+	if [ ${#} -ne 2 ]; then
+	    usage
+	fi
+
+	# Make sure the argument is a positive number <= 100
+	if [ -n "${2}" ] && [ "${2}" -eq "${2}" ] 2>/dev/null && \
+	       [ "${2}" -ge 0 ] && [ "${2}" -le 100 ]; then
+	    set_volume "${2}"
+	else
+	    usage
+	fi
+    ;;
+
+    *)
+	usage
+	;;
+esac
+exit 0

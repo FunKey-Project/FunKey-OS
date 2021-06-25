@@ -1,12 +1,12 @@
 NAME="FunKey-OS"
-VERSION="2.2.0 (Pyromaniac Penguin)"
+VERSION="2.3.0 (Zen Zebu)"
 ID=funkey
 ID_LIKE=buildroot
-PRETTY_NAME="FunKey-OS 2.2.0"
-VERSION_ID="2.2.0"
+PRETTY_NAME="FunKey-OS 2.3.0"
+VERSION_ID="2.3.0"
 HOME_URL="https://www.funkey-project.com/"
 SUPPORT_URL="https://www.funkey-project.com/"
 BUG_REPORT_URL="https://www.funkey-project.com/"
 PRIVACY_POLICY_URL="https://www.funkey-project.com"
-VERSION_CODENAME=Pyromaniac
-UBUNTU_CODENAME=Pyromaniac
+VERSION_CODENAME=Zen
+UBUNTU_CODENAME=Zen

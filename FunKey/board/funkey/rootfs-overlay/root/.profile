@@ -18,13 +18,46 @@ alias l='ls $LS_OPTIONS -lA'
 # alias cp='cp -i'
 # alias mv='mv -i'
 
+# Alias functions for compatibility
+volume_get() {
+    volume get "$@"
+}
+
+volume_set() {
+    volume set "$@"
+}
+
+brightness_get() {
+    brightness get "$@"
+}
+
+brightness_set() {
+    brightness set "$@"
+}
+
+notif_set() {
+    notif set "$@"
+}
+
+start_audio_amp() {
+    audio_amp "$@"
+}
+
+cancel_sched_powerdown() {
+    powerdown handle
+}
+
 # Relocate HOME into the r/w partition
 export HOME=/mnt/FunKey
 mkdir -p "${HOME}"
 export MEDNAFEN_HOME=$HOME/.mednafen
 mkdir -p "${MEDNAFEN_HOME}"
+cp "/usr/games/lynxboot.img" "/usr/games/mednafen-09x.cfg" "${MEDNAFEN_HOME}/"
 export GMENU2X_HOME="$HOME/.gmenu2x"
 mkdir -p "${GMENU2X_HOME}"
+export RETROFE_HOME="$HOME/.retrofe"
+mkdir -p "${RETROFE_HOME}"
+mkdir -p "${RETROFE_HOME}/layouts"
 
 # Resize the console to the terminal dimensions
 resize() {
@@ -44,22 +77,20 @@ resize() {
     fi
 }
 
+# Restore saved volume
+echo "Restore saved volume"
+volume set $(volume get) >/dev/null 2>&1
 
-# Start ampli
-echo "Start audio amplifier"
-start_audio_amp 1 >/dev/null 2>&1
-
-# Force unmute sound card and reset volume
-echo "Force unmute sound card and reset volume"
-volume_set $(volume_get) >/dev/null 2>&1
-
-# Reset saved brightness
-echo "Reset saved brightness"
-brightness_set $(brightness_get) >/dev/null 2>&1
+# Restore saved brightness
+echo "Restore saved brightness"
+brightness set $(brightness get) >/dev/null 2>&1
 
 # Start Assembly tests (blocking process)
 assembly_tests >/dev/null 2>&1
 
-# Start launcher
-echo "Start launcher"
-start_launcher >/dev/null 2>&1 &
+# Restart saved application/game if any
+instant_play load
+
+# Start frontend
+echo "Start frontend"
+frontend init >/dev/null 2>&1 &

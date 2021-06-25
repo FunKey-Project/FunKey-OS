@@ -1,6 +1,24 @@
 #!/bin/sh
 
+# Uncomment the following line to get debug info
+#set -x
+
+SELF="$(basename ${0})"
 UPDATE_PERIOD=2 #seconds
+
+usage() {
+    >2& echo "Usage: ${SELF} [toggle]"
+    exit 1
+}
+
+# Check number of arguments
+if [ ${#} -eq 1 -a "${1}" = "toggle" ]; then
+    notif set 0 " Getting system stats..."
+    killall -s USR1 "${SELF}"
+    exit 0
+elif [ ${#} -ne 0 ]; then
+    usage
+fi
 
 notif_dirty=0
 perform=0
@@ -10,7 +28,7 @@ function toggle_perform()
 {
     let perform=1-${perform}
     if [ ${perform} -eq 0 ]; then
-    	notif_clear
+    	notif clear
         notif_dirty=1
     fi
 }
@@ -27,13 +45,13 @@ while true; do
 
 	# Notif
 	if [ ${notif_dirty} -eq 1 ]; then
-	    notif_clear
+	    notif clear
 	    notif_dirty=0
 	else
 	    if [ "x${ip_addr}" != "x" ]; then
-		notif_set 0 " CPU:${cpu}%% RAM:${ram_mem}%% SWAP:${ram_swap}%%^IP:${ip_addr}"
+		notif set 0 " CPU:${cpu}%% RAM:${ram_mem}%% SWAP:${ram_swap}%%^IP:${ip_addr}"
 	    else
-		notif_set 0 " CPU:${cpu}%% RAM:${ram_mem}%% SWAP:${ram_swap}%%"
+		notif set 0 " CPU:${cpu}%% RAM:${ram_mem}%% SWAP:${ram_swap}%%"
 	    fi
 	fi
     else

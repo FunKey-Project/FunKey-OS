@@ -4,9 +4,9 @@
 #
 ################################################################################
 
-PICODRIVE_VERSION = picodrive-FunKey-1.2.2
+PICODRIVE_VERSION = picodrive-FunKey-1.3.1
 PICODRIVE_SITE_METHOD = git
-PICODRIVE_SITE = https://github.com/FunKey-Project/picodrive.git
+PICODRIVE_SITE = https://github.com/FunKey-Project/picodrive-irixxxx.git
 PICODRIVE_LICENSE = MAME
 PICODRIVE_LICENSE_FILES = COPYING
 

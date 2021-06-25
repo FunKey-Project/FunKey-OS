@@ -1,0 +1,59 @@
+#!/bin/sh
+
+# Uncomment the following line to get debug info
+#set -x
+
+SELF="$(basename ${0})"
+SYSTEM_GPIO="/sys/class/gpio"
+
+# Power Audio Amplifier enable GPIO (('F' - 'A') * 32 + 6 = 166)
+GPIO_PF6=166
+
+usage() {
+    >2& echo "Usage: ${SELF} [1|on|ON|On for ON, 0|off|OFF|Off for OFF]"
+    exit 1
+}
+
+# Check number of arguments
+if [ ${#} -ne 1 ]; then
+    usage
+fi
+
+case "${1}" in
+    1|on|ON|On)
+
+	# Turn ON only if volume is not null
+	if [ "$(volume get)" -ne "0" ]; then
+    	    echo "Turning audio amplifier ON"
+	else
+    	    exit 0
+	fi
+	new_state=1
+	;;
+
+    0|off|OFF|Off)
+	echo "Turning audio amplifier OFF"
+	new_state=0
+	;;
+
+    *)
+	usage
+	;;
+esac
+
+# Export the GPIO if necessary
+if [ ! -d "${SYSTEM_GPIO}/gpio${GPIO_PF6}" ]; then
+    echo ${GPIO_PF6} > "${SYSTEM_GPIO}/export"
+fi
+
+# Set the power audio amplifier GPIO as output
+echo "out" > "${SYSTEM_GPIO}/gpio${GPIO_PF6}/direction"
+
+# Read the current power audio amplifier state
+current_state=$(cat "${SYSTEM_GPIO}/gpio${GPIO_PF6}/value")
+
+# Enable/disable the power audio amplifier if necessary
+if [ ${current_state} -ne ${new_state} ]; then
+    echo ${new_state} > "${SYSTEM_GPIO}/gpio${GPIO_PF6}/value"
+fi
+exit 0

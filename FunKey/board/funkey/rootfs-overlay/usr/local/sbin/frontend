@@ -1,0 +1,161 @@
+#!/bin/sh
+
+# Uncomment the following line to get debug info
+#set -x
+
+SELF="$(basename ${0})"
+LAUNCHER_FILE="$HOME/Launchers/launcher.txt"
+FRONTEND_FILE="$HOME/.frontend"
+PREVENT_LAUNCHER_FILE="/mnt/prevent_launcher"
+DISABLE_FRONTEND_FILE="/mnt/disable_frontend"
+DEFAULT_FRONTEND=retrofe
+LOCK_FILE="/var/lock/frontend.lock"
+REBOOTING_FILE="/run/rebooting"
+LAST_OPK_FILE="/mnt/last_opk"
+
+# Convert old launcher file to new frontend
+if [ -f "${LAUNCHER_FILE}" ]; then
+    mv "${LAUNCHER_FILE}" "${FRONTEND_FILE}"
+    rm -rf $(dirname "${LAUNCHER_FILE}") 2>/dev/null
+fi
+
+# Convert old prevent launcher file to new frontend disable file
+if [ -f "${PREVENT_LAUNCHER_FILE}" ]; then
+    mv "${PREVENT_LAUNCHER_FILE}" "${DISABLE_FRONTEND_FILE}"
+fi
+
+usage() {
+    >&2 echo "Usage: ${SELF} init"
+    >&2 echo "       ${SELF} get"
+    >&2 echo "       ${SELF} set gmenu2x|retrofe|none"
+    exit 1
+}
+
+set_frontend() {
+    mkdir -p "$(dirname "$FRONTEND_FILE")"
+    local frontend=$(get_frontend)
+    local new_frontend="${1}"
+    echo "Setting frontend: ${new_frontend}"
+    if [ "${new_frontend}" = "none" ]; then
+		touch "${DISABLE_FRONTEND_FILE}"
+    else
+		rm -f "${DISABLE_FRONTEND_FILE}"
+    fi
+    if [ "${frontend}" != "none" ]; then
+		pkill "${frontend}"
+    fi
+    echo "${new_frontend}" > "${FRONTEND_FILE}"
+}
+
+get_frontend() {
+    local frontend=$(cat "${FRONTEND_FILE}" 2>/dev/null | head -1)
+
+    # Check if not empty
+    if [ "x${frontend}" = "x" ]; then
+		frontend="${DEFAULT_FRONTEND}"
+		echo "${frontend}" > "${FRONTEND_FILE}"
+    fi
+
+    # Return frontend name
+    echo "${frontend}"
+}
+
+init_frontend() {
+    if [ -f "${LOCK_FILE}" ]; then
+		>&2 echo "${LOCK_FILE} already exists"
+		exit 1
+    fi
+    touch "${LOCK_FILE}"
+
+    # Then loop to launch the frontend indefinitely
+    while true; do
+	
+		# Check if frontend disable file is present
+		if [ -f "${DISABLE_FRONTEND_FILE}" -o -f "${REBOOTING_FILE}" ]; then
+		    echo "${DISABLE_FRONTEND_FILE} file found, not starting frontend" 
+		    sleep 5
+		else
+
+		    # Umount any remaining OPK, if any
+		    umount /opk >/dev/null 2>&1
+		    if [ -r "${LAST_OPK_FILE}" -a ! -f "${REBOOTING_FILE}" ]; then
+				rm "${LAST_OPK_FILE}"
+		    fi
+
+		    # Launch selected frontend
+	    	local frontend="$(get_frontend)"
+		    case "${frontend}" in
+			gmenu2x|retrofe)
+			    "${frontend}"&
+			    ;;
+
+			none)
+			    echo "no frontend" 
+			    sleep 5
+			    ;;
+
+			*)
+			    DEFAULT_FRONTEND=retrofe
+			    echo "Unrecognized frontend: $frontend, setting $DEFAULT_FRONTEND"
+			    set_frontend "${DEFAULT_FRONTEND}"
+			    ;;
+		    esac
+
+		    # Record the PID into a file, wait for the process to
+		    # terminate and erase the recorded PID
+		    pid record $!
+		    wait $!
+		    pid erase
+
+		    # In case retrofe/opkrun quits with errors, clear graphic VT
+		    termfix_all
+
+		    # In case retrofe/opkrun quits with errors, reset default key mapping
+		    keymap default
+		fi
+
+		# Prevent 100% CPU usage
+		sleep 0.5
+
+		# Exit if console rebooting
+		if [ -f "${REBOOTING_FILE}" ]; then
+	    	break
+		fi
+    done
+
+    # Remove lock file and exit
+    rm "${LOCK_FILE}"
+}
+
+# Check number of arguments
+if [ ${#} -lt 1 -o ${#} -gt 2 ]; then
+    usage
+fi
+
+case "${1}" in
+    set)
+	if [ ${#} -ne 2 ]; then
+	    usage
+	fi
+	set_frontend "${2}"
+	;;
+
+    get)
+	if [ ${#} -ne 1 ]; then
+	    usage
+	fi
+	get_frontend
+	;;
+
+    init)
+	if [ ${#} -ne 1 ]; then
+	    usage
+	fi
+	init_frontend
+	;;
+
+    *)
+	usage
+	;;
+esac
+exit 0

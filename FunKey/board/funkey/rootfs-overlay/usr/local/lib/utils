@@ -22,16 +22,7 @@ if [ $? -ne 0 ]; then
     	local return_code=$1
 	shift
 	warn "$@"
-	notif "$@"
+	notif set 0 "$@"
 	exit $return_code
     }
 fi
-
-notif () {
-    info "$@"
-    printf "$@" > /sys/class/graphics/fb0/notification
-}
-
-clear_notif () {
-    printf "clear" > /sys/class/graphics/fb0/notification
-}

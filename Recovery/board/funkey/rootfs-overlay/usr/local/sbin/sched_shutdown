@@ -1,5 +1,0 @@
-#!/bin/sh
-
-# No waiting period in Recovery
-
-shutdown_funkey
