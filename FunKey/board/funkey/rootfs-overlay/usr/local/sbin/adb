@@ -1,0 +1,154 @@
+#!/bin/sh
+
+#set -xv
+
+SELF=${SELF:-$(basename $0)}
+
+source /usr/local/lib/utils
+source usb_gadget
+
+# The composite gadget directory
+GADGET=/sys/kernel/config/usb_gadget/FunKey
+
+# USB VID for Intel
+ID_VENDOR="0x8087"
+
+# USB PID for Multifunction Composite Gadget
+ID_PRODUCT="0x011e"
+
+# Get the CPU serial number
+SERIAL="$(grep Serial /proc/cpuinfo | sed 's/Serial\s*: \(\w*\)/\1/')"
+
+# Initialize the ADB
+init_adb() {
+
+    # Don't proceed if existing gadget is present
+    if [ -e ${GADGET} ]; then
+	return 0
+    fi
+
+    # Get the legacy drivers out of the way
+    modprobe -r g_ether
+    modprobe -r g_mass_storage
+
+    # Load the libcomposite USB driver, configfs and various other drivers
+    modprobe libcomposite
+    modprobe usb_f_serial
+    modprobe usb_f_fs
+    modprobe usb_f_acm
+
+    # USB Device Controller Driver
+    local udc_driver=$(ls /sys/class/udc | cut -f1 | head -n 1)
+
+    # Create our gadget directory
+    mkdir ${GADGET}
+    mkdir ${GADGET}/strings/0x409
+    mkdir ${GADGET}/configs/FunKey.1
+    mkdir ${GADGET}/configs/FunKey.1/strings/0x409
+    mkdir ${GADGET}/functions/acm.GS0
+    mkdir ${GADGET}/functions/ffs.adb
+    
+    # USB VID and PID
+    echo ${ID_VENDOR} > ${GADGET}/idVendor
+    echo ${ID_PRODUCT} > ${GADGET}/idProduct
+
+    # Device String Descriptiors
+    echo "Intel" > ${GADGET}/strings/0x409/manufacturer
+    echo "FunKey S" > ${GADGET}/strings/0x409/product
+    echo ${SERIAL} > ${GADGET}/strings/0x409/serialnumber
+
+    # Configuration
+
+    # Maximum power is 120 mA
+    echo 120 > ${GADGET}/configs/FunKey.1/MaxPower
+
+    # Configuration String Descriptors
+    echo "ADB+CDC" > ${GADGET}/configs/FunKey.1/strings/0x409/configuration
+
+    # Add the ACM function to the FunKey.1 configuration
+    ln -s ${GADGET}/functions/acm.GS0 ${GADGET}/configs/FunKey.1
+
+    # Add the FunctionFS function to the FunKey.1 configuration
+    ln -s ${GADGET}/functions/ffs.adb ${GADGET}/configs/FunKey.1
+
+    # Create the function filesystem
+    mkdir /dev/usb-ffs
+    mkdir /dev/usb-ffs/adb
+
+    # Mount the ADB function filesystem
+    mount -t functionfs adb /dev/usb-ffs/adb
+
+    # Bring up the loopback network
+    ifup lo
+
+    # Launch the ADB daemon
+    adbd >/dev/null &
+
+    # Sleeping is required to wait for the UDC to come up
+    sleep 5
+
+    # Bind the USB Gadget
+    echo ${udc_driver} > ${GADGET}/UDC
+    return 0
+}
+
+# Deinitialize the ADB
+deinit_adb() {
+
+    # Unbind the device
+    echo > ${GADGET}/UDC
+
+    # Kill the ADB daemon
+    killall adbd
+
+    # Bring down the local network
+    ifdown lo
+
+    # Unmount the ADB function filesystem
+    umount /dev/usb-ffs/adb
+
+    # Delete the function filesystem
+    rmdir /dev/usb-ffs/adb
+    rmdir /dev/usb-ffs
+
+    # Remove functions from configurations
+    rm ${GADGET}/configs/FunKey.1/acm.GS0
+    rm ${GADGET}/configs/FunKey.1/ffs.adb
+
+    # Remove string directories in configurations
+    rmdir ${GADGET}/configs/FunKey.1/strings/0x409
+
+    # Remove configurations
+    rmdir ${GADGET}/configs/FunKey.1
+
+    # Remove functions
+    rmdir ${GADGET}/functions/acm.GS0
+    rmdir ${GADGET}/functions/ffs.adb
+
+    # Remove strings
+    rmdir ${GADGET}/strings/0x409
+
+    # Finallyy remove the gadget
+    rmdir ${GADGET}
+
+    # Unload the kernel modules
+    modprobe -r usb_f_serial usb_f_fs usb_f_acm
+}
+
+case "$1" in
+
+    start)
+	deinit_usb_gadget
+	init_adb
+	;;
+    
+    stop)
+	deinit_adb
+	init_usb_gadget
+	;;
+
+    *)
+	die 15 "Usage $0 {start|stop}"
+	;;
+esac
+exit $?

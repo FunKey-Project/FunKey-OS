@@ -6,7 +6,7 @@ SELF=${SELF:-$(basename $0)}
 
 source /usr/local/lib/utils
 
-# The composite gadget directory
+# The composite gadget directory
 GADGET=/sys/kernel/config/usb_gadget/FunKey
 
 # Check if Ethernet over USB network is requested
@@ -166,4 +166,49 @@ init_usb_gadget() {
     # Bind the USB Gadget as a Mass Storage device
     echo ${udc_driver} > ${GADGET}/UDC
     return 0
+}
+
+# Deinitialize the USB gadget
+deinit_usb_gadget() {
+
+    # Unbind the device
+    echo > ${GADGET}/UDC
+
+    # Remove functions from configurations
+    rm ${GADGET}/configs/FunKey.1/mass_storage.mmcblk0p4
+    if [ ${USBNET} -eq 1 ]; then
+	rm ${GADGET}/configs/FunKey.1/rndis.usb0
+    fi
+
+    # Remove string directories in configurations
+    rmdir ${GADGET}/configs/FunKey.1/strings/0x409
+
+    # Remove configurations from OS descriptors
+    if [ ${USBNET} -eq 1 ]; then
+	rm ${GADGET}/os_desc/FunKey.1
+    fi
+
+    # Remove configurations
+    rmdir ${GADGET}/configs/FunKey.1
+
+    # Remove extended properties from OS descriptors
+    if [ ${USBNET} -eq 1 ]; then
+	rmdir ${GADGET}/functions/rndis.usb0/os_desc/interface.rndis/Icons
+	rmdir ${GADGET}/functions/rndis.usb0/os_desc/interface.rndis/Label
+    fi
+
+    # Remove functions
+    rmdir ${GADGET}/functions/mass_storage.mmcblk0p4
+    if [ ${USBNET} -eq 1 ]; then
+	rmdir ${GADGET}/functions/rndis.usb0
+    fi
+
+    # Remove strings
+    rmdir ${GADGET}/strings/0x409
+
+    # Finallyy remove the gadget
+    rmdir ${GADGET}
+
+    # Unload the kernel modules
+    modprobe -r usb_f_mass_storage usb_f_rndis
 }
