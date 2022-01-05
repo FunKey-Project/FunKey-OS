@@ -13,6 +13,10 @@ GADGET=/sys/kernel/config/usb_gadget/FunKey
 [ ! -f /mnt/usbnet ]
 USBNET=${?}
 
+# Check if Android Debug Bridge is requested
+[ ! -f /mnt/adb ]
+ADB=${?}
+
 # USB VID for Linux Foundation
 ID_VENDOR="0x1d6b"
 
@@ -34,6 +38,12 @@ init_usb_gadget() {
 
     # Don't proceed if existing gadget is present
     if [ -e ${GADGET} ]; then
+	return 0
+    fi
+
+    # ADB has precedence over USB Mass Storage / Ethernet over USB
+    if [ ${ADB} -eq 1 ]; then
+	adb start
 	return 0
     fi
 
