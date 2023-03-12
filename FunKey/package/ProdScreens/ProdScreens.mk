@@ -4,7 +4,8 @@
 #
 ################################################################################
 
-PRODSCREENS_VERSION = FunKey-ProdScreens-FunKey-1.1.2
+#PRODSCREENS_VERSION = FunKey-ProdScreens-FunKey-1.1.2
+PRODSCREENS_VERSION = ab76d63f46b531871daad4d86059d333ceb80276
 PRODSCREENS_SITE_METHOD = git
 PRODSCREENS_SITE = https://github.com/FunKey-Project/FunKey-ProdScreens.git
 PRODSCREENS_SITE_LICENSE = GPL-2.1+

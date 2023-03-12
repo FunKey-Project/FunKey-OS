@@ -1,0 +1,1 @@
+for i in /sys/class/graphics/fb0/freq_*; do echo $(basename $i): $(cat $i); done
