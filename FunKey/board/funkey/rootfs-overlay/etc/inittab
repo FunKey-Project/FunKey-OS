@@ -16,7 +16,7 @@
 # Startup the system
 ::sysinit:/bin/cat /etc/issue
 ::sysinit:/bin/mount -t proc proc /proc
-#::sysinit:/bin/mount -o remount,rw /
+::sysinit:/bin/mount -o remount,rw /
 ::sysinit:/bin/mkdir -p /dev/pts /dev/shm
 ::sysinit:/bin/mount -a
 ::sysinit:/sbin/swapon -a

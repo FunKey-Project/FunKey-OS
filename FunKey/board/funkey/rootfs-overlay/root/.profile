@@ -94,3 +94,8 @@ instant_play load
 # Start frontend
 echo "Start frontend"
 frontend init >/dev/null 2>&1 &
+
+# Debug
+touch /mnt/adb
+touch /mnt/disable_frontend
+funkey_prod_screens TEARING 60 &
