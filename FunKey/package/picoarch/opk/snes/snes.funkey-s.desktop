@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Super NES
+Comment=Super NES emulator
+Icon=snes
+Exec=/usr/games/launchers/snes_launch.sh %f
+Categories=emulators
+SelectorDir=/mnt/SNES
+SelectorFilter=smc,fig,sfc,gd3,gd7,dx2,bsx,swc,zip

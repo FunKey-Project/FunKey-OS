@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=GBA
+Comment=Game Boy Advance emulator
+Icon=gba
+Exec=/usr/games/launchers/gba_launch_gpsp.sh %f
+Categories=emulators
+SelectorDir=/mnt/Game Boy Advance
+SelectorFilter=gba,bin,agb,gbz,u1,zip

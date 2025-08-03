@@ -7,4 +7,4 @@ tmpfs           /tmp            tmpfs   mode=1777       0       0
 tmpfs           /run            tmpfs   mode=0755,nosuid,nodev  0       0
 sysfs           /sys            sysfs   defaults        0       0
 configfs	/sys/kernel/config	configfs	rw,relatime	0	0
-/dev/mmcblk0p4	/mnt	vfat	rw,relatime,fmask=0022,dmask=0022,iocharset=iso8859-1,shortname=mixed,errors=remount-ro	0	0
+/dev/mmcblk0p4	/mnt	vfat	rw,relatime,fmask=0022,dmask=0022,iocharset=utf8,shortname=mixed,errors=remount-ro	0	0

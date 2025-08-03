@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=PC-Engine
+Comment=PC-Engine CD-ROM/SuperGrafX emulator
+Icon=pce
+Exec=/usr/games/launchers/pce_launch.sh %f
+Categories=emulators
+SelectorDir=/mnt/PCE-TurboGrafx
+SelectorFilter=pce,sgx,cue,ccd,chd,toc,m3u,zip

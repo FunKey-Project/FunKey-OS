@@ -87,12 +87,27 @@ save)
     # Add the magic sauce to launch the process in background,
     # record the PID into a file, wait for the process to
     # terminate and erase the recorded PID
+    # Do not use /etc/asound.conf for gpSP as it does not like
+    # mono downmix (sound was saturated)
+    if grep -q "gpsp" /mnt/instant_play; then
+    cat << EOF >> "${INSTANT_PLAY_FILE}"
+&
+rw
+mv -f /etc/asound.conf /etc/asound.conf.BAK
+pid record \$!
+wait \$!
+pid erase
+mv -f /etc/asound.conf.BAK /etc/asound.conf
+ro
+EOF
+    else
     cat << EOF >> "${INSTANT_PLAY_FILE}"
 &
 pid record \$!
 wait \$!
 pid erase
 EOF
+    fi
 
     # Now terminate gracefully
     exec powerdown now

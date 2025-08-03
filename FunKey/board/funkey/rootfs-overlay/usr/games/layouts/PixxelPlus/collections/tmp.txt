@@ -1,0 +1,14 @@
+./Game Gear/system_artwork/device.png
+./Sega Master System/system_artwork/device.png
+./Game Boy Advance/system_artwork/device.png
+./PS1/system_artwork/device.png
+./Game Boy/system_artwork/device.png
+./NES/system_artwork/device.png
+./Atari lynx/system_artwork/device.png
+./Sega Genesis/system_artwork/device.png
+./SNES/system_artwork/device.png
+./WonderSwan/system_artwork/device.png
+./Neo Geo Pocket/system_artwork/device.png
+./PICO-8/system_artwork/device.png
+./Libretro/system_artwork/device.png
+./Native games/system_artwork/device.png

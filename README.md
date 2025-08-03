@@ -1,28 +1,28 @@
-<!-- ![FunKey-OS Build](https://github.com/FunKey-Project/FunKey-OS/workflows/FunKey-OS%20Build/badge.svg) -->
-# FunKey-OS
+<!-- ![FunKey OS Build](https://github.com/FunKey-Project/FunKey-OS/workflows/FunKey-OS%20Build/badge.svg) -->
+# FunKey OS
 
 ## Intro
-This repository contains all the sources required to build FunKey-OS, the Open-Source firmware at the heart of the [FunKey S retro-gaming console](https://www.funkey-project.com/).
+This repository contains all the sources required to build FunKey OS, the Open-Source firmware at the heart of the [FunKey S retro-gaming console](https://www.funkey-project.com/).
 
 As the FunKey-S console is based on a sophisticated [Allwinner V3s ARM Cortex-A7 1.2GHz CPU](http://www.allwinnertech.com/index.php?c=product&a=index&id=38), an Operating System is mandatory in order to access all the hardware resources without re-inventing the wheel.
 
-FunKey-OS is based on Linux, and is built from scratch using the [buildroot](http://nightly.buildroot.org/) tool that simplifies and automates the process of building a complete Linux system for an embedded system like this.
+FunKey OS is based on Linux, and is built from scratch using the [buildroot](http://nightly.buildroot.org/) tool that simplifies and automates the process of building a complete Linux system for an embedded system like this.
 
-Technically, Funkey-OS is a [buildroot (v2) based external tree](https://buildroot.org/downloads/manual/manual.html#outside-br-custom) for building the bootloader, the Linux kernel and user utilities, as well as the optimized retro-game launcher and console emulators.
+Technically, Funkey OS is a [buildroot (v2) based external tree](https://buildroot.org/downloads/manual/manual.html#outside-br-custom) for building the bootloader, the Linux kernel and user utilities, as well as the optimized retro-game launcher and console emulators.
 
 ## Build host requirements
 Even if the resulting disk image and firmware update files are relatively small (202 MB and 55MB, respectively), the size of the corresponding sources and the compilation by-products tend to be rather large, such that an available disk space of at least 12GB is required during the build.
 
-And even if the resulting FunKey-OS boots in less than 5s, it still requires a considerable amount of time to compile: please account for 1 1/2 hour on a modern multi-core CPU with SSD drives and a decent Internet bandwidth.
+And even if the resulting FunKey OS boots in less than 5s, it still requires a considerable amount of time to compile: please account for 1 1/2 hour on a modern multi-core CPU with SSD drives and a decent Internet bandwidth.
 
 As the target CPU is probably different from the one running on your build host machine, a process known as [_cross-compilation_](https://en.wikipedia.org/wiki/Cross_compiler) is required for the build, and as the target system will eventually be Linux, this is much better handled on hosts running a Linux-based operating system too.
 
-As a matter of fact, the FunKey-OS is meant to be built on a native Ubuntu or Debian Linux host machine (Ubuntu 20.04 LTS in our case, but this should also work with other versions, too). And with only a few changes to the prerequisites, it can certainly be adapted to build on other common Linux distros.
+As a matter of fact, the FunKey OS is meant to be built on a native Ubuntu or Debian Linux host machine (Ubuntu 20.04 LTS in our case, but this should also work with other versions, too). And with only a few changes to the prerequisites, it can certainly be adapted to build on other common Linux distros.
 
 However, if your development machine does not match this setup, there are still several available solutions:
  -  use a lightweight container system such as [Docker](https://www.docker.com/) and run an Ubuntu or Debian Linux container in it
  - use a VM (Virtual Machine) , such as provided by [VirtualBox](https://www.virtualbox.org/) and run an Ubuntu or Debian Linux in it
- - for Windows 10 users, use the [WSL2](https://docs.microsoft.com/en-us/windows/wsl/install-win10) (Windows System for Linux 2) subsystem and run an Ubuntu Linux distro in it
+ - for Windows 10/11 users, use the [WSL2](https://learn.microsoft.com/en-us/windows/wsl/install) (Windows System for Linux 2) subsystem and run an Ubuntu Linux distro in it
 
 In order to install one of these virtualized environments on your machine, please refer to the corresponding documentation.
 
@@ -79,7 +79,7 @@ $ sudo apt install bash bc binutils build-essential bzip2 ca-certificates cpio c
 When using either physical or virtual Linux machines, you must clone the FunKey OS repository from Github (here we place it into a `FunKey-OS` directory):
 
 ```bash
-$ git clone https://github.com/FunKey-Project/FunKey-OS.git FunKey-OS
+$ git clone https://github.com/DrUm78/FunKey-OS.git FunKey-OS
 ```
 
 Then enter into the created directory:
@@ -107,27 +107,27 @@ After building, you should obtain the SD Card image `FunKey-sdcard-X.Y.Z.img` an
 When using a Docker container, all the prerequisites are automatically installed.
 
 ### How to get the sources
-When using a Docker container, you must first create a new directory (here we create a `FunKey-OS` directory) and get the FunKey-OS [Dockerfile](https://github.com/FunKey-Project/FunKey-OS/blob/master/docker/Dockerfile):
+When using a Docker container, you must first create a new directory (here we create a `FunKey-OS` directory) and get the FunKey OS [Dockerfile](https://github.com/DrUm78/FunKey-OS/blob/master/docker/Dockerfile):
 ```bash
 $ mkdir FunKey-OS
 $ cd FunKey-OS
-$ wget https://raw.githubusercontent.com/FunKey-Project/FunKey-OS/master/docker/Dockerfile -o Dockerfile
+$ wget https://raw.githubusercontent.com/DrUm78/FunKey-OS/master/docker/Dockerfile -o Dockerfile
 ```
 
 You must then build the docker image (don't forget the final dot!):
 ```bash
-$ docker build -t funkeyproject/funkey-os .
+$ docker build -t DrUm78/funkey-os .
 ```
 
 ### Build the disk image & firmware update files
 You may now build your FunKey with:
 ```bash
-$ docker run --name funkey-os funkeyproject/funkey-os
+$ docker run --name funkey-os DrUm78/funkey-os
 ```
 
 Or alternatively, you can run it in the background with:
 ```bash
-$ docker run -d --name funkey-os funkeyproject/funkey-os
+$ docker run -d --name funkey-os DrUm78/funkey-os
 ```
 
 If you launch it in the background, you can still follow what is going on with either:

@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=Clock
+Comment=Set time and date
+Exec=/usr/bin/clock
+Icon=clock
+Categories=settings

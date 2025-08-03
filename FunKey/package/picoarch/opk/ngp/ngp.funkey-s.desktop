@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Neo-Geo
+Comment=Neo-Geo Pocket emulator
+Icon=ngp
+Exec=/usr/games/launchers/ngp_launch.sh %f
+Categories=emulators
+SelectorDir=/mnt/Neo Geo Pocket
+SelectorFilter=ngp,ngc,ngpc,npc,zip

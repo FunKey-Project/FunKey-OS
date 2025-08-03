@@ -1,0 +1,613 @@
+<layout width="240" height="240" font="markpro-bold.ttf" loadFontSize="14" fontColor="ffffff">
+
+
+    <!-- ------------------------------------------------ -->
+    <!-- ---------------Generic components--------------- -->
+    <!-- ------------------------------------------------ -->
+
+    <!-- Sounds -->
+    <sound type="load"      src="sounds/load.wav"/>
+    <sound type="unload"    src="sounds/unload.wav"/>
+    <sound type="highlight" src="sounds/highlight.wav"/>
+    <sound type="select"    src="sounds/select.wav"/>
+
+
+    <!-- Battery -->
+    <battery reloadPeriod="0" fontColor="ffffff" alpha="1" x="right" xOrigin="right" xOffset="-5" y="top" yOrigin="center" yOffset="13" layer="14" ></battery>
+
+
+
+    <!-- ----------------------------------------------- -->
+    <!-- ---------------Main menu section--------------- -->
+    <!-- ----------------------------------------------- -->
+
+
+    <!--Main Menu - Index 0-->
+    <!-- This is the main menu itself. 
+        It is horizontal and set to show the game logo image named "system" 
+        in the currently selected collection's folder instead of text -->
+
+
+
+        <reloadableImage mode="layout" type="bg" alpha="0" x="center" y="center" yOrigin="center" xOrigin="center" layer="2" dithering="true">
+            <onEnter><set duration=".1"><animate type="alpha" to="1" algorithm="easeinquadratic"/></set></onEnter>
+            <onExit><set duration=".1"><animate type="alpha" to="0.5" algorithm="easeinquadratic"/></set></onExit>
+            <onMenuEnter menuIndex="0"><set duration=".1"><animate type="alpha" to="1" algorithm="easeinquadratic"/></set></onMenuEnter>
+            <onMenuExit menuIndex="0"><set duration=".1"><animate type="alpha" to="1" algorithm="easeinquadratic"/></set></onMenuExit>
+            <onHighlightEnter menuIndex="0"><set duration=".1"><animate type="alpha" to="1" algorithm="easeinquadratic"/></set></onHighlightEnter>
+            <onMenuScroll menuIndex="0">
+                <set duration=".02">
+                    <animate type="alpha" to="0.8" algorithm="easeinquadratic"/>
+                </set>
+            </onMenuScroll>
+        </reloadableImage>
+
+    <menu type="custom" mode="layout" imageType="device_W240" scrollTime=".24" scrollAcceleration=".04" orientation="horizontal" x="0" y="center" yOffset="0" algorithm="easeincircular" >
+
+        <!-- itemDefaults allow you to set default attributes for all items in a menu list An item may still have its own attributes that override the defaults -->
+        <!-- Notice that xOrigin and yOrigin are set to center. This puts a pin in the very center of the image (or item). Normally it is in the top left corner of the image. From that pin we will put the coordinates of where we wish the image to be. In this case the the center of the screen x="center" and y="center". Now yOffset="0" leaves the image in the center but could be used to offset it from the center instead. yOffset="-58" would move it 58 pixels towards the top for example -->
+        <itemDefaults xOrigin="center" x="center" yOrigin="center" y="center" yOffset="0" width="240" alpha="1" loadFontSize="18" fontSize="18" layer="4"/>
+
+        <!-- In this menu each item is placed. notice that the first and last item of this menu are alpha="0" if this is not done you would see the last time of the menu move to be the first when scrolling. -->
+        <item xOffset="-240" alpha="0"/>
+
+        <item xOffset="-240">
+            <onMenuEnter menuIndex="0">
+                <set duration=".4">
+                    <animate type="alpha" to="0.8" algorithm="easeincircular"/>
+                </set>
+            </onMenuEnter>
+            <onMenuExit menuIndex="0">
+                <set duration=".25">
+                    <animate type="alpha" to="0" algorithm="easeincircular"/>
+                </set>
+            </onMenuExit>
+            <onExit>                   <set duration=".3"><animate type="alpha" to="0"/></set></onExit>
+        </item> 
+
+        <!-- This is the currently selected item of the menu we override the width and alpha here to make it more clear that it is indeed selected  -->
+        <!-- we also have animations in place so that this logo stays visible and moves to another location when entering the sub menu -->
+        <item selected="true" layer="4" alpha="1">
+            <onMenuEnter menuIndex="0">
+                <set duration=".4">
+                    <animate type="alpha" to="1" algorithm="easeincircular"/>
+                </set>
+            </onMenuEnter>
+            <onMenuExit menuIndex="0">
+                <set duration=".25">
+                    <animate type="alpha" to="0" algorithm="easeincircular"/>
+                </set>
+            </onMenuExit>
+            <onExit> <set duration=".3"><animate type="alpha" to="0"/></set></onExit>
+        </item>
+
+
+        <item xOffset="240">
+            <onMenuEnter menuIndex="0">
+                <set duration=".4">
+                    <animate type="alpha" to="0.8" algorithm="easeincircular"/>
+                </set>
+            </onMenuEnter>
+            <onMenuExit menuIndex="0">
+                <set duration=".25">
+                    <animate type="alpha" to="0" algorithm="easeincircular"/>
+                </set>
+            </onMenuExit>
+            <onExit>                   <set duration=".3"><animate type="alpha" to="0"/></set></onExit>
+        </item>
+
+        <item xOffset="240" alpha="0"/>
+    </menu>
+
+
+
+    <!-- ---------------------------------------------- -->
+    <!-- ---------------Sub menu section--------------- -->
+    <!-- ---------------------------------------------- -->
+
+    <!--Sub Menu - Index 1-->
+    <!-- This is the menu displayed when entering a collection. This time the items are the games themselves. In this case since the menu is of type "custom" we will display the artwork of the games and not their title. -->
+    <menu type="custom" imageType="artwork_front" orientation="vertical" scrollTime=".21" scrollAcceleration=".02" x="left" xOrigin="left" width="60" height="stretch" y="24" yOrigin="top" layer="13" >
+        
+        <itemDefaults alpha="1" x="0" xOrigin="left" xOffset="0" y="54" yOrigin="center" layer="12" 
+        	width="60" minHeight="60" maxWidth="60"  containerWidth="60" containerHeight="60" textFallback="false" imageFallback="true">
+            <onEnter>                   <set duration=".00001"><animate type="alpha" to="0"/></set></onExit>
+        </itemDefaults>
+
+        <item yOffset="-60" alpha="0"/>
+
+        <item yOffset="0" selected="true">
+            <onExit>                   <set duration=".3"><animate type="alpha" to="0" algorithm="easeincubic"/></set></onExit>
+            <onMenuEnter menuIndex="1"><set duration=".3"><animate type="alpha" to="1"/></set></onMenuEnter>
+            <onMenuExit  menuIndex="1"><set duration=".3"><animate type="alpha" to="0"/></set></onMenuExit>
+            <onGameEnter menuIndex="1"><set duration=".3"><animate type="alpha" to="0"/></set></onGameEnter>
+            <onGameExit  menuIndex="1"><set duration=".3"><animate type="alpha" to="1"/></set></onGameEnter>
+        </item>
+
+        <item yOffset="60">
+            <onExit>                   <set duration=".3"><animate type="alpha" to="0"/></set></onExit>
+            <onMenuEnter menuIndex="1"><set duration=".3"><animate type="alpha" to="1"/></set></onMenuEnter>
+            <onMenuExit  menuIndex="1"><set duration=".3"><animate type="alpha" to="0"/></set></onMenuExit>
+            <onGameEnter menuIndex="1"><set duration=".3"><animate type="alpha" to="0"/></set></onGameEnter>
+            <onGameExit  menuIndex="1"><set duration=".3"><animate type="alpha" to="1"/></set></onGameEnter>
+        </item>
+
+        <item yOffset="120">
+            <onExit>                   <set duration=".3"><animate type="alpha" to="0"/></set></onExit>
+            <onMenuEnter menuIndex="1"><set duration=".3"><animate type="alpha" to="1"/></set></onMenuEnter>
+            <onMenuExit  menuIndex="1"><set duration=".3"><animate type="alpha" to="0"/></set></onMenuExit>
+            <onGameEnter menuIndex="1"><set duration=".3"><animate type="alpha" to="0"/></set></onGameEnter>
+            <onGameExit  menuIndex="1"><set duration=".3"><animate type="alpha" to="1"/></set></onGameEnter>
+        </item>
+
+        <item yOffset="180">
+            <onExit>                   <set duration=".3"><animate type="alpha" to="0"/></set></onExit>
+            <onMenuEnter menuIndex="1"><set duration=".3"><animate type="alpha" to="1"/></set></onMenuEnter>
+            <onMenuExit  menuIndex="1"><set duration=".3"><animate type="alpha" to="0"/></set></onMenuExit>
+            <onGameEnter menuIndex="1"><set duration=".3"><animate type="alpha" to="0"/></set></onGameEnter>
+            <onGameExit  menuIndex="1"><set duration=".3"><animate type="alpha" to="1"/></set></onGameEnter>
+        </item>
+
+        <item yOffset="240" alpha="0"/>
+    </menu>
+
+
+    <!--Selected game background-->
+    <image src="images/purple.png" x="left" xOrigin="left" xOffset="0" width="stretch" height="60" y="24" yOrigin="top" yOffset="0" alpha="0" layer="12">
+	    <onExit>                   <set duration=".3"><animate type="alpha" to="0"/></set></onExit>
+        <onMenuEnter menuIndex="1"><set duration=".3"><animate type="alpha" to="1"/></set></onMenuEnter>
+        <onMenuExit  menuIndex="1"><set duration=".3"><animate type="alpha" to="0"/></set></onMenuExit>
+        <onGameEnter menuIndex="1"><set duration=".3"><animate type="alpha" to="0"/></set></oneGameEnter>
+        <onGameExit  menuIndex="1"><set duration=".3"><animate type="alpha" to="1"/></set></oneGameExit>
+    </image>
+
+
+
+
+
+
+
+    <!--Scrollable game title-->
+	<reloadableScrollingText type="title" alpha="0" x="70" xOrigin="left" xOffset="0" y="top" yOrigin="center" yOffset="54" width="170" height="60" menuScrollReload="true" fontSize="17" loadFontSize="17" fontColor="ffffff" direction="horizontal" scrollingSpeed="60" startPosition="0" startTime="1.5" endTime="1.5" layer="13" >
+	    <onExit>                   <set duration=".1"><animate type="alpha" to="0"/></set></onExit>
+        <onMenuEnter menuIndex="1"><set duration=".1"><animate type="alpha" to="1"/></set></onMenuEnter>
+        <onMenuExit  menuIndex="1"><set duration=".1"><animate type="alpha" to="0"/></set></onMenuExit>
+        <onGameEnter menuIndex="1"><set duration=".1"><animate type="alpha" to="0"/></set></oneGameEnter>
+        <onGameExit  menuIndex="1"><set duration=".1"><animate type="alpha" to="1"/></set></oneGameExit>
+        <onHighlightExit menuIndex="1">
+            <set duration=".00001">
+                <animate type="alpha" from="0" to="1" algorithm="linear"/>
+            </set>
+        </onHighlightExit>
+        <onMenuScroll menuIndex="1">
+            <set duration=".00001">
+                <animate type="alpha" from="0" to="0" algorithm="linear"/>
+            </set>
+        </onMenuScroll>
+		<onHighlightExit menuIndex="1">
+        	<set duration=".00001">
+        		<animate type="alpha" from="1" to="1" algorithm="linear"/>
+        	</set>
+        </onHighlightExit>
+    </reloadableScrollingText>
+
+
+
+
+
+
+    <!--Game cover idx -1 -->
+	<reloadableText type="title" selectedOffset="-1" alpha="0" x="70" xOrigin="left" xOffset="0" y="54" yOrigin="center" yOffset="-60" width="stretch" menuScrollReload="true" fontSize="17" loadFontSize="17" fontColor="b4b4b4" layer="14" >
+	    <onExit>                   <set duration=".1"><animate type="alpha" to="0"/></set></onExit>
+        <onMenuEnter menuIndex="1"><set duration=".1"><animate type="alpha" to="1"/></set></onMenuEnter>
+        <onMenuExit  menuIndex="1"><set duration=".1"><animate type="alpha" to="0"/></set></onMenuExit>
+        <onGameEnter menuIndex="1"><set duration=".1"><animate type="alpha" to="0"/></set></oneGameEnter>
+        <onGameExit  menuIndex="1"><set duration=".1"><animate type="alpha" to="1"/></set></oneGameExit>
+        <onHighlightExit menuIndex="1">
+        	<set duration=".00001">
+        		<animate type="yOffset" from="-60" to="-60" algorithm="linear"/>
+        	</set>
+        </onHighlightExit>
+        <onMenuScroll menuIndex="1">
+            <set duration="0">
+                <animate type="yoffsetshiftmenudirection" from="-60" to="60" algorithm="linear"/>
+            </set>
+        </onMenuScroll>
+        <onMenuFastScroll menuIndex="1">
+            <set duration="0">
+                <animate type="yoffsetshiftmenudirection" from="-60" to="60" algorithm="linear"/>
+            </set>
+        </onMenuFastScroll>
+    </reloadableText>
+
+
+    <!--Separation bar between  0 and 1 (simulating the only visible bit between -2 and -1)-->
+    <image src="images/gray_1px.png" x="left" xOrigin="left" xOffset="0" width="60" height="1" y="24" yOrigin="top" yOffset="0" alpha="0" layer="15">
+	    <onExit>                   <set duration=".1"><animate type="alpha" to="0"/></set></onExit>
+        <onMenuEnter menuIndex="1"><set duration=".1"><animate type="alpha" to="1"/></set></onMenuEnter>
+        <onMenuExit  menuIndex="1"><set duration=".1"><animate type="alpha" to="0"/></set></onMenuExit>
+        <onGameEnter menuIndex="1"><set duration=".1"><animate type="alpha" to="0"/></set></oneGameEnter>
+        <onGameExit  menuIndex="1"><set duration=".1"><animate type="alpha" to="1"/></set></oneGameExit>
+        <onHighlightExit menuIndex="1">
+            <set duration=".00001">
+                <animate type="yOffset" from="0" to="0" algorithm="linear"/>
+            </set>
+        </onHighlightExit>
+        <onMenuScrollPrev menuIndex="1">
+            <set duration="0">
+                <animate type="yoffsetshiftmenudirection" from="0" to="60" algorithm="linear"/>
+            </set>
+        </onMenuScrollPrev>
+        <onMenuFastScrollPrev menuIndex="1">
+            <set duration="0">
+                <animate type="yoffsetshiftmenudirection" from="0" to="60" algorithm="linear"/>
+            </set>
+        </onMenuFastScrollPrev>
+    </image>
+
+
+
+
+
+
+
+
+
+
+    <!--Game cover idx 0 -->
+	<reloadableText type="title" selectedOffset="0" alpha="0" x="70" xOrigin="left" xOffset="0" y="54" yOrigin="center" yOffset="0" width="stretch" menuScrollReload="true" fontSize="17" loadFontSize="17" fontColor="ffffff" layer="14" >
+	    <onExit>                   <set duration=".1"><animate type="alpha" to="0"/></set></onExit>
+        <onMenuEnter menuIndex="1"><set duration=".1"><animate type="alpha" to="0"/></set></onMenuEnter>
+        <onMenuExit  menuIndex="1"><set duration=".1"><animate type="alpha" to="0"/></set></onMenuExit>
+        <onGameEnter menuIndex="1"><set duration=".1"><animate type="alpha" to="0"/></set></oneGameEnter>
+        <onGameExit  menuIndex="1"><set duration=".1"><animate type="alpha" to="0"/></set></oneGameExit>
+        <onHighlightExit menuIndex="1">
+            <set duration=".00001">
+                <animate type="alpha" from="0" to="0" algorithm="linear"/>
+            </set>
+        	<set duration=".0001">
+        		<animate type="yOffset" from="0" to="0" algorithm="linear"/>
+        	</set>
+        </onHighlightExit>
+        <onMenuScroll menuIndex="1">
+            <set duration="0">
+                <animate type="yoffsetshiftmenudirection" from="0" to="60" algorithm="linear"/>
+            </set>
+        </onMenuScroll>
+        <onMenuScrollNext menuIndex="1">
+            <set duration=".00001">
+                <animate type="alpha" from="1" to="1" algorithm="linear"/>
+            </set>
+        </onMenuScrollNext>
+        <onMenuScrollPrev menuIndex="1">
+            <set duration=".00001">
+                <animate type="alpha" from="1" to="1" algorithm="linear"/>
+            </set>
+        </onMenuScrollPrev>
+        <onMenuFastScroll menuIndex="1">
+            <set duration="0">
+                <animate type="yoffsetshiftmenudirection" from="0" to="60" algorithm="linear"/>
+            </set>
+        </onMenuFastScroll>
+    </reloadableText>
+
+
+    <!-- 1st half Separation bar between  0 and 1-->
+    <image src="images/gray_1px.png" x="left" xOrigin="left" xOffset="0" width="60" height="1" y="24" yOrigin="top" yOffset="60" alpha="0" layer="15">
+	    <onExit>                   <set duration=".1"><animate type="alpha" to="0"/></set></onExit>
+        <onMenuEnter menuIndex="1"><set duration=".1"><animate type="alpha" to="1"/></set></onMenuEnter>
+        <onMenuExit  menuIndex="1"><set duration=".1"><animate type="alpha" to="0"/></set></onMenuExit>
+        <onGameEnter menuIndex="1"><set duration=".1"><animate type="alpha" to="0"/></set></oneGameEnter>
+        <onGameExit  menuIndex="1"><set duration=".1"><animate type="alpha" to="1"/></set></oneGameExit>
+        <onHighlightExit menuIndex="1">
+        	<set duration=".00001">
+        		<animate type="alpha" from="1" to="1" algorithm="linear"/>
+        	</set>
+        	<set duration=".00001">
+        		<animate type="yOffset" from="60" to="60" algorithm="linear"/>
+        	</set>
+        </onHighlightExit>
+        <onMenuScroll menuIndex="1">
+            <set duration="0">
+                <animate type="yoffsetshiftmenudirection" from="60" to="60" algorithm="linear"/>
+            </set>
+        </onMenuScroll>
+        <onMenuFastScroll menuIndex="1">
+            <set duration="0">
+                <animate type="yoffsetshiftmenudirection" from="60" to="60" algorithm="linear"/>
+            </set>
+        </onMenuFastScroll>
+    </image>
+
+
+    <!-- 2nd half Separation bar between  0 and 1-->
+    <image src="images/gray_1px.png" x="left" xOrigin="left" xOffset="60" width="180" height="1" y="24" yOrigin="top" yOffset="60" alpha="0" layer="11">
+	    <onExit>                   <set duration=".1"><animate type="alpha" to="0"/></set></onExit>
+        <onMenuEnter menuIndex="1"><set duration=".1"><animate type="alpha" to="1"/></set></onMenuEnter>
+        <onMenuExit  menuIndex="1"><set duration=".1"><animate type="alpha" to="0"/></set></onMenuExit>
+        <onGameEnter menuIndex="1"><set duration=".1"><animate type="alpha" to="0"/></set></oneGameEnter>
+        <onGameExit  menuIndex="1"><set duration=".1"><animate type="alpha" to="1"/></set></oneGameExit>
+        <onHighlightExit menuIndex="1">
+            <set duration=".00001">
+                <animate type="alpha" from="1" to="1" algorithm="linear"/>
+            </set>
+            <set duration=".00001">
+                <animate type="yOffset" from="60" to="60" algorithm="linear"/>
+            </set>
+        </onHighlightExit>
+        <onMenuScrollNext menuIndex="1">
+            <set duration="0">
+                <animate type="alpha" from="0" to="0" algorithm="linear"/>
+            </set>
+        </onMenuScrollNext>
+        <onMenuScrollPrev menuIndex="1">
+            <set duration="0">
+                <animate type="yoffsetshiftmenudirection" from="60" to="60" algorithm="linear"/>
+            </set>
+        </onMenuScrollPrev>
+        <onMenuFastScrollPrev menuIndex="1">
+            <set duration="0">
+                <animate type="yoffsetshiftmenudirection" from="60" to="60" algorithm="linear"/>
+            </set>
+        </onMenuFastScrollPrev>
+    </image>
+
+
+
+
+
+
+
+    <!--Game cover idx 1 -->
+	<reloadableText type="title" selectedOffset="1" alpha="0" x="70" xOrigin="left" xOffset="0" y="54" yOrigin="center" yOffset="60" width="stretch" menuScrollReload="true" fontSize="17" loadFontSize="17" fontColor="b4b4b4" layer="14" >
+	    <onExit>                   <set duration=".1"><animate type="alpha" to="0"/></set></onExit>
+        <onMenuEnter menuIndex="1"><set duration=".1"><animate type="alpha" to="1"/></set></onMenuEnter>
+        <onMenuExit  menuIndex="1"><set duration=".1"><animate type="alpha" to="0"/></set></onMenuExit>
+        <onGameEnter menuIndex="1"><set duration=".1"><animate type="alpha" to="0"/></set></oneGameEnter>
+        <onGameExit  menuIndex="1"><set duration=".1"><animate type="alpha" to="1"/></set></oneGameExit>
+        <onHighlightExit menuIndex="1">
+        	<set duration=".00001">
+        		<animate type="yOffset" from="60" to="60" algorithm="linear"/>
+        	</set>
+        </onHighlightExit>
+        <onMenuScroll menuIndex="1">
+            <set duration="0">
+                <animate type="yoffsetshiftmenudirection" from="60" to="60" algorithm="linear"/>
+            </set>
+        </onMenuScroll>
+        <onMenuFastScroll menuIndex="1">
+            <set duration="0">
+                <animate type="yoffsetshiftmenudirection" from="60" to="60" algorithm="linear"/>
+            </set>
+        </onMenuFastScroll>
+    </reloadableText>
+
+	<reloadableText type="title" selectedOffset="1" alpha="0" x="70" xOrigin="left" xOffset="0" y="54" yOrigin="center" yOffset="60" width="stretch" menuScrollReload="true" fontSize="17" loadFontSize="17" fontColor="b4b4b4" layer="15" >
+	    <onExit>                   <set duration=".1"><animate type="alpha" to="0"/></set></onExit>
+        <onMenuEnter menuIndex="1"><set duration=".1"><animate type="alpha" to="0"/></set></onMenuEnter>
+        <onMenuExit  menuIndex="1"><set duration=".1"><animate type="alpha" to="0"/></set></onMenuExit>
+        <onGameEnter menuIndex="1"><set duration=".1"><animate type="alpha" to="0"/></set></oneGameEnter>
+        <onGameExit  menuIndex="1"><set duration=".1"><animate type="alpha" to="0"/></set></oneGameExit>
+        <onHighlightExit menuIndex="1">
+            <set duration=".00001">
+                <animate type="alpha" from="0" to="0" algorithm="linear"/>
+            </set>
+        	<set duration=".00001">
+        		<animate type="yOffset" from="60" to="60" algorithm="linear"/>
+        	</set>
+        </onHighlightExit>
+        <onMenuScrollNext menuIndex="1">
+            <set duration="0.00001">
+                <animate type="alpha" from="1" to="1" algorithm="linear"/>
+            </set>
+        </onMenuScrollNext>
+        <onMenuScroll menuIndex="1">
+            <set duration="0">
+                <animate type="yoffsetshiftmenudirection" from="60" to="60" algorithm="linear"/>
+            </set>
+        </onMenuScroll>
+        <onMenuFastScroll menuIndex="1">
+            <set duration="0">
+                <animate type="yoffsetshiftmenudirection" from="60" to="60" algorithm="linear"/>
+            </set>
+        </onMenuFastScroll>
+    </reloadableText>
+
+
+    <!--Separation bar between 1 and 2-->
+    <image src="images/gray_1px.png" x="left" xOrigin="left" xOffset="0" width="stretch" height="1" y="24" yOrigin="top" yOffset="120" alpha="0" layer="15">
+	    <onExit>                   <set duration=".1"><animate type="alpha" to="0"/></set></onExit>
+        <onMenuEnter menuIndex="1"><set duration=".1"><animate type="alpha" to="1"/></set></onMenuEnter>
+        <onMenuExit  menuIndex="1"><set duration=".1"><animate type="alpha" to="0"/></set></onMenuExit>
+        <onGameEnter menuIndex="1"><set duration=".1"><animate type="alpha" to="0"/></set></oneGameEnter>
+        <onGameExit  menuIndex="1"><set duration=".1"><animate type="alpha" to="1"/></set></oneGameExit>
+        <onHighlightExit menuIndex="1">
+        	<set duration=".00001">
+        		<animate type="yOffset" from="120" to="120" algorithm="linear"/>
+        	</set>
+        </onHighlightExit>
+        <onMenuScroll menuIndex="1">
+            <set duration="0">
+                <animate type="yoffsetshiftmenudirection" from="120" to="60" algorithm="linear"/>
+            </set>
+        </onMenuScroll>
+        <onMenuFastScroll menuIndex="1">
+            <set duration="0">
+                <animate type="yoffsetshiftmenudirection" from="120" to="60" algorithm="linear"/>
+            </set>
+        </onMenuFastScroll>
+    </image>
+
+
+
+
+
+
+
+
+    <!--Game cover idx 2 -->
+	<reloadableText type="title" selectedOffset="2" alpha="0" x="70" xOrigin="left" xOffset="0" y="54" yOrigin="center" yOffset="120" width="stretch" menuScrollReload="true" fontSize="17" loadFontSize="17" fontColor="b4b4b4" layer="14" >
+	    <onExit>                   <set duration=".1"><animate type="alpha" to="0"/></set></onExit>
+        <onMenuEnter menuIndex="1"><set duration=".1"><animate type="alpha" to="1"/></set></onMenuEnter>
+        <onMenuExit  menuIndex="1"><set duration=".1"><animate type="alpha" to="0"/></set></onMenuExit>
+        <onGameEnter menuIndex="1"><set duration=".1"><animate type="alpha" to="0"/></set></oneGameEnter>
+        <onGameExit  menuIndex="1"><set duration=".1"><animate type="alpha" to="1"/></set></oneGameExit>
+        <onHighlightExit menuIndex="1">
+        	<set duration=".00001">
+        		<animate type="yOffset" from="120" to="120" algorithm="linear"/>
+        	</set>
+        </onHighlightExit>
+        <onMenuScroll menuIndex="1">
+            <set duration="0">
+                <animate type="yoffsetshiftmenudirection" from="120" to="60" algorithm="linear"/>
+            </set>
+        </onMenuScroll>
+        <onMenuFastScroll menuIndex="1">
+            <set duration="0">
+                <animate type="yoffsetshiftmenudirection" from="120" to="60" algorithm="linear"/>
+            </set>
+        </onMenuFastScroll>
+    </reloadableText>
+
+
+    <!--Separation bar between 2 and 3-->
+    <image src="images/gray_1px.png" x="left" xOrigin="left" xOffset="0" width="stretch" height="1" y="24" yOrigin="top" yOffset="180" alpha="0" layer="15">
+	    <onExit>                   <set duration=".1"><animate type="alpha" to="0"/></set></onExit>
+        <onMenuEnter menuIndex="1"><set duration=".1"><animate type="alpha" to="1"/></set></onMenuEnter>
+        <onMenuExit  menuIndex="1"><set duration=".1"><animate type="alpha" to="0"/></set></onMenuExit>
+        <onGameEnter menuIndex="1"><set duration=".1"><animate type="alpha" to="0"/></set></oneGameEnter>
+        <onGameExit  menuIndex="1"><set duration=".1"><animate type="alpha" to="1"/></set></oneGameExit>
+        <onHighlightExit menuIndex="1">
+        	<set duration=".00001">
+        		<animate type="yOffset" from="180" to="180" algorithm="linear"/>
+        	</set>
+        </onHighlightExit>
+        <onMenuScroll menuIndex="1">
+            <set duration="0">
+                <animate type="yoffsetshiftmenudirection" from="180" to="60" algorithm="linear"/>
+            </set>
+        </onMenuScroll>
+        <onMenuFastScroll menuIndex="1">
+            <set duration="0">
+                <animate type="yoffsetshiftmenudirection" from="180" to="60" algorithm="linear"/>
+            </set>
+        </onMenuFastScroll>
+    </image>
+
+
+
+
+
+
+
+
+    <!--Game cover idx 3 -->
+	<reloadableText type="title" selectedOffset="3" alpha="0" x="70" xOrigin="left" xOffset="0" y="54" yOrigin="center" yOffset="180" width="stretch" menuScrollReload="true" fontSize="17" loadFontSize="17" fontColor="b4b4b4" layer="14" >
+	    <onExit>                   <set duration=".1"><animate type="alpha" to="0"/></set></onExit>
+        <onMenuEnter menuIndex="1"><set duration=".1"><animate type="alpha" to="1"/></set></onMenuEnter>
+        <onMenuExit  menuIndex="1"><set duration=".1"><animate type="alpha" to="0"/></set></onMenuExit>
+        <onGameEnter menuIndex="1"><set duration=".1"><animate type="alpha" to="0"/></set></oneGameEnter>
+        <onGameExit  menuIndex="1"><set duration=".1"><animate type="alpha" to="1"/></set></oneGameExit>
+        <onHighlightExit menuIndex="1">
+        	<set duration=".00001">
+        		<animate type="yOffset" from="180" to="180" algorithm="linear"/>
+        	</set>
+        </onHighlightExit>
+        <onMenuScroll menuIndex="1">
+            <set duration="0">
+                <animate type="yoffsetshiftmenudirection" from="180" to="60" algorithm="linear"/>
+            </set>
+        </onMenuScroll>
+        <onMenuFastScroll menuIndex="1">
+            <set duration="0">
+                <animate type="yoffsetshiftmenudirection" from="180" to="60" algorithm="linear"/>
+            </set>
+        </onMenuFastScroll>
+    </reloadableText>
+
+
+    <!--Separation bar between 2 and 3-->
+    <image src="images/gray_1px.png" x="left" xOrigin="left" xOffset="0" width="stretch" height="1" y="24" yOrigin="top" yOffset="240" alpha="0" layer="15">
+	    <onExit>                   <set duration=".1"><animate type="alpha" to="0"/></set></onExit>
+        <onMenuEnter menuIndex="1"><set duration=".1"><animate type="alpha" to="1"/></set></onMenuEnter>
+        <onMenuExit  menuIndex="1"><set duration=".1"><animate type="alpha" to="0"/></set></onMenuExit>
+        <onGameEnter menuIndex="1"><set duration=".1"><animate type="alpha" to="0"/></set></oneGameEnter>
+        <onGameExit  menuIndex="1"><set duration=".1"><animate type="alpha" to="1"/></set></oneGameExit>
+        <onHighlightExit menuIndex="1">
+        	<set duration=".00001">
+        		<animate type="yOffset" from="240" to="240" algorithm="linear"/>
+        	</set>
+        </onHighlightExit>
+        <onMenuScroll menuIndex="1">
+            <set duration="0">
+                <animate type="yoffsetshiftmenudirection" from="240" to="60" algorithm="linear"/>
+            </set>
+        </onMenuScroll>
+        <onMenuFastScroll menuIndex="1">
+            <set duration="0">
+                <animate type="yoffsetshiftmenudirection" from="240" to="60" algorithm="linear"/>
+            </set>
+        </onMenuFastScroll>
+    </image>
+
+
+
+
+
+
+
+    <!--Game cover idx 4 -->
+	<reloadableText type="title" selectedOffset="4" alpha="0" x="70" xOrigin="left" xOffset="0" y="54" yOrigin="center" yOffset="240" width="stretch" menuScrollReload="true" fontSize="17" loadFontSize="17" fontColor="b4b4b4" layer="14" >
+	    <onExit>                   <set duration=".1"><animate type="alpha" to="0"/></set></onExit>
+        <onMenuEnter menuIndex="1"><set duration=".1"><animate type="alpha" to="1"/></set></onMenuEnter>
+        <onMenuExit  menuIndex="1"><set duration=".1"><animate type="alpha" to="0"/></set></onMenuExit>
+        <onGameEnter menuIndex="1"><set duration=".1"><animate type="alpha" to="0"/></set></oneGameEnter>
+        <onGameExit  menuIndex="1"><set duration=".1"><animate type="alpha" to="1"/></set></oneGameExit>
+        <onHighlightExit menuIndex="1">
+        	<set duration=".00001">
+        		<animate type="yOffset" from="240" to="240" algorithm="linear"/>
+        	</set>
+        </onHighlightExit>
+        <onMenuScroll menuIndex="1">
+            <set duration="0">
+                <animate type="yoffsetshiftmenudirection" from="240" to="60" algorithm="linear"/>
+            </set>
+        </onMenuScroll>
+        <onMenuFastScroll menuIndex="1">
+            <set duration="0">
+                <animate type="yoffsetshiftmenudirection" from="240" to="60" algorithm="linear"/>
+            </set>
+        </onMenuFastScroll>
+    </reloadableText>
+
+
+
+
+
+    <!--Status bar -->
+    <image src="images/black_1px.png" x="0" xOrigin="0" xOffset="0" width="stretch" height="26" y="0" yOrigin="0" yOffset="0" alpha="0" layer="16">
+        <onExit>                   <set duration=".3"><animate type="alpha" to="0"/></set></onExit>
+        <onMenuEnter menuIndex="1"><set duration=".1"><animate type="alpha" to="1"/></set></onMenuEnter>
+        <onMenuExit  menuIndex="1"><set duration=".3"><animate type="alpha" to="0"/></set></onMenuExit>
+        <onGameEnter menuIndex="1"><set duration=".3"><animate type="alpha" to="0"/></set></oneGameEnter>
+        <onGameExit  menuIndex="1"><set duration=".1"><animate type="alpha" to="1"/></set></oneGameExit>
+    </image>
+
+        <!--Collection title in status bar // -->
+    <reloadableText type="collectionName" alpha="0" x="left" xOrigin="left" xOffset="8" y="0" yOrigin="center" yOffset="13" width="220" height="40" fontSize="15" loadFontSize="15" fontColor="b4b4b4" textFormat="uppercase" layer="17" >
+        <onExit> <set duration=".3"><animate type="alpha" to="0"/></set></onExit>
+        <onMenuExit  menuIndex="1"><set duration=".3"><animate type="alpha" to="0"/></set></onMenuExit>
+        <!-- <onMenuExit  menuIndex="0"><set duration=".3"><animate type="alpha" to="1"/></set></onMenuExit> -->
+        <onMenuEnter menuIndex="1"><set duration=".3"><animate type="alpha" to="1"/></set></onMenuEnter>
+        <onGameEnter menuIndex="1"><set duration=".3"><animate type="alpha" to="0"/></set></oneGameEnter>
+        <onGameExit  menuIndex="1"><set duration=".3"><animate type="alpha" to="1"/></set></oneGameExit>
+    </reloadableText>
+
+
+
+    <!--Battery in status bar-->
+    <battery reloadPeriod="0" fontColor="ffffff" alpha="1" x="right" xOrigin="right" xOffset="-5" y="top" yOrigin="center" yOffset="13" layer="17" ></battery>
+
+
+
+</layout>

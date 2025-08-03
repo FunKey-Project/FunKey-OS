@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=ST-SDL
+Comment=ST Terminal
+Exec=/usr/bin/st
+Icon=st
+Categories=applications

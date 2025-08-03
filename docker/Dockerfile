@@ -92,7 +92,7 @@ RUN \
 	echo "funkey:funkey" | chpasswd && \
 	#
 	# Clone the FunKey-OS repository
-	git clone https://github.com/FunKey-Project/FunKey-OS.git /home/funkey/FunKey-OS && \
+	git clone https://github.com/DrUm78/FunKey-OS.git /home/funkey/FunKey-OS && \
 	#
 	# Set file ownership
 	chown -R funkey:funkey /home/funkey

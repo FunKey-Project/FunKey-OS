@@ -47,11 +47,33 @@ do_postinst()
     # Copy OPKs
     cp -r ${root_mount}/usr/local/share/OPKs/* /mnt
 
-    # Copy freware games and other necessary mnt files
-    unzip -q -o ${root_mount}/usr/local/share/mnt_files.zip -d /mnt/
+    # Copy freeware games and other necessary mnt files
+    #unzip -q -o ${root_mount}/usr/local/share/mnt_files.zip -d /mnt/
 
-    # Fix PCE opk name if necessary
-    #mv /mnt/Emulators/pce_mednaefn_funkey-s.opk /mnt/Emulators/pce_mednafen_funkey-s.opk 1>/dev/null 2>&1
+    # Remove previous OPKs for default emulators
+    rm /mnt/Emulators/gb_gbc_gnuboy_funkey-s.opk
+    rm /mnt/Emulators/gba_gpsp_funkey-s.opk
+    rm /mnt/Emulators/lynx_mednafen_funkey-s.opk
+    rm /mnt/Emulators/megadrive_picodrive_funkey-s.opk
+    rm /mnt/Emulators/nes_fceux_funkey-s.opk
+    rm /mnt/Emulators/ngp_mednafen_funkey-s.opk
+    rm /mnt/Emulators/pce_mednafen_funkey-s.opk
+    rm /mnt/Emulators/ps1_pcsx_funkey-s.opk
+    rm /mnt/Emulators/snes_pocketsnes_funkey-s.opk
+    rm /mnt/Emulators/wonderswan_mednafen_funkey-s.opk
+    rm /mnt/Applications/commander-funkey-s.opk
+
+    # Remove Libretro cores from previous location
+    rm /mnt/Libretro/cores/fceumm_libretro.so
+    rm /mnt/Libretro/cores/gambatte_libretro.so
+    rm /mnt/Libretro/cores/gpsp_libretro.so
+    rm /mnt/Libretro/cores/mednafen_lynx_libretro.so
+    rm /mnt/Libretro/cores/mednafen_ngp_libretro.so
+    rm /mnt/Libretro/cores/mednafen_supergrafx_libretro.so
+    rm /mnt/Libretro/cores/mednafen_wswan_libretro.so
+    rm /mnt/Libretro/cores/pcsx_rearmed_libretro.so
+    rm /mnt/Libretro/cores/picodrive_libretro.so
+    rm /mnt/Libretro/cores/snes9x2005_libretro.so
 
     # Unmount Rootfs
     umount ${root_mount}
@@ -59,16 +81,6 @@ do_postinst()
         notif_set 0 "CANNOT UNMOUNT ROOT^FILESYSTEM"
         exit 1
     fi
-
-    # Change FunKey config files extension from .cfg to .fkcfg
-    #SAVEIFS=$IFS
-    #IFS=$(echo -en "\n\b")
-    #for FOLDER in "Atari lynx" "Game Boy" "Game Boy Advance" "Game Boy Color" "Game Gear" "Neo Geo Pocket" "NES" "PCE-TurboGrafx" "PS1" "Sega Genesis" "Sega Master System" "SNES" "WonderSwan"; do
-    #    for FILE in $(ls /mnt/"${FOLDER}"/*.cfg 2>/dev/null); do
-    #        mv "$FILE" "${FILE%.cfg}.fkcfg"
-    #    done
-    #done
-    #IFS=$SAVEIFS
 
     #####################
     # Erase update file #

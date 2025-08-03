@@ -1,0 +1,37 @@
+diff --git a/RetroFE/Source/Collection/CollectionInfo.cpp b/RetroFE/Source/Collection/CollectionInfo.cpp
+index 94f8400..3819919 100755
+--- a/RetroFE/Source/Collection/CollectionInfo.cpp
++++ b/RetroFE/Source/Collection/CollectionInfo.cpp
+@@ -78,8 +78,8 @@ bool CollectionInfo::Save()
+     bool retval = true;
+     if(saveRequest)
+     {
+-        std::string dir  = Utils::combinePath(Configuration::absolutePath, "collections", name, "playlists");
+-        std::string file = Utils::combinePath(Configuration::absolutePath, "collections", name, "playlists/favorites.txt");
++        std::string dir  = Utils::combinePath(Configuration::userPath, "collections", name, "playlists");
++        std::string file = Utils::combinePath(Configuration::userPath, "collections", name, "playlists/favorites.txt");
+         Logger::write(Logger::ZONE_INFO, "Collection", "Saving " + file);
+ 
+         Utils::rootfsWritable();
+diff --git a/RetroFE/Source/Collection/CollectionInfoBuilder.cpp b/RetroFE/Source/Collection/CollectionInfoBuilder.cpp
+index cd10b10..ff7dcef 100755
+--- a/RetroFE/Source/Collection/CollectionInfoBuilder.cpp
++++ b/RetroFE/Source/Collection/CollectionInfoBuilder.cpp
+@@ -379,7 +379,7 @@ void CollectionInfoBuilder::addPlaylists(CollectionInfo *info)
+ 	DIR *dp;
+     struct dirent **dirp;
+     int n;
+-    std::string path = Utils::combinePath(Configuration::absolutePath, "collections", info->name, "playlists");
++    std::string path = Utils::combinePath(Configuration::userPath, "collections", info->name, "playlists");
+     dp = opendir(path.c_str());
+ 
+     if(dp == NULL)
+@@ -407,7 +407,7 @@ void CollectionInfoBuilder::addPlaylists(CollectionInfo *info)
+                 Logger::write(Logger::ZONE_INFO, "RetroFE", "Loading playlist: " + basename);
+ 
+                 std::map<std::string, Item *> playlistFilter;
+-                std::string playlistFile = Utils::combinePath(Configuration::absolutePath, "collections", info->name, "playlists", file);
++                std::string playlistFile = Utils::combinePath(Configuration::userPath, "collections", info->name, "playlists", file);
+                 ImportBasicList(info, playlistFile, playlistFilter);
+ 
+                 info->playlists[basename] = new std::vector<Item *>();

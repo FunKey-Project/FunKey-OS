@@ -49,7 +49,8 @@ mount_share () {
 
     # Create the directory structure if required
     #(cd /mnt; mkdir -p "Applications" "Emulators" "Games" "Atari lynx" "Game Boy" "Game Boy Color" "Game Boy Advance" "Game Gear" "Neo Geo Pocket" "NES" "PS1" "PS1/bios" "Sega Genesis" "Sega Master System" "SNES" "WonderSwan" "PCE-TurboGrafx")
-    (cd /mnt; mkdir -p "Emulators" "Atari lynx" "Game Boy" "Game Boy Color" "Game Boy Advance" "Game Gear" "Neo Geo Pocket" "NES" "PS1" "PS1/bios" "Sega Genesis" "Sega Master System" "SNES" "WonderSwan" "PCE-TurboGrafx")
+    (cd /mnt; mkdir -p "Libretro/cores" "FunKey/.picoarch/system" "Native games" "Applications" "Emulators" "Atari lynx" "Game Boy" "Game Boy Color" "Game Boy Advance" "Game Gear" "Neo Geo Pocket" "NES" "PS1" "Sega Genesis" "Sega Master System" "SNES" "WonderSwan" "PCE-TurboGrafx")
+    (mkdir -p "/mnt/FunKey/.retrofe/collections"; cd /mnt/FunKey/.retrofe/collections; mkdir "Atari lynx" "Game Boy" "Game Boy Color" "Game Boy Advance" "Game Gear" "Neo Geo Pocket" "NES" "PS1" "Sega Genesis" "Sega Master System" "SNES" "WonderSwan" "PCE-TurboGrafx" "Libretro" "Native games" "Main")
 
     # Check if there is a firmware update file
     if [ -f /mnt/FunKey-*.fwu ]; then

@@ -1,10 +1,12 @@
 #!/bin/sh
 
-cp /usr/games/mednafen-09x.cfg ${MEDNAFEN_HOME}/
-
 # Launch the process in background, record the PID into a file, wait
 # for the process to terminate and erase the recorded PID
-mednafen -fs 1 -ngp.stretch full "$1"&
+if [ -e /mnt/Libretro/cores/mednafen_ngp_libretro.so ]; then
+	picoarch /mnt/Libretro/cores/mednafen_ngp_libretro.so "$1"&
+else
+	picoarch /usr/games/mednafen_ngp_libretro.so "$1"&
+fi
 pid record $!
 wait $!
 pid erase

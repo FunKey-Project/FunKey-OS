@@ -22,7 +22,7 @@ case "$1" in
 		    rm -f "${file}"
 		fi
 	    done
-	    notif set 0 "^^^^^^^^      RESTARTING...^^^^^^^^"
+	    notif set 0 "^^^^^^^^         RESTARTING...^^^^^^^^"
 	    normal_mode
 	else
 

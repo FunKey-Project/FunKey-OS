@@ -114,7 +114,7 @@ ${swap_part_num}
 
 +128M
 t
-${wap_part_num}
+${swap_part_num}
 82
 w
 EOF

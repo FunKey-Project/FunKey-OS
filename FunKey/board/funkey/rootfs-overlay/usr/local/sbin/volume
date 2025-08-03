@@ -81,10 +81,17 @@ set_volume() {
     fi
 
     # Turn on/off audio amplifier if necessary
-    if [ ${new_volume} -eq 0 ]; then
-	   audio_amp off
+    # Check whether Factory tests are scheduled (audio_amp must be on for the sound test)
+    RUN_ENV_VAR=$(fw_printenv -n assembly_tests 2>/dev/null)
+    if [ "x${RUN_ENV_VAR}" == "x1" ]; then
+       audio_amp on
+    # Turn audio_amp off when using system volume shortcuts while no OPK is launched and GMenu2X is set as the frontend
+    elif [ ! -f /mnt/last_opk ] && grep -q "gmenu2x" /mnt/FunKey/.frontend; then
+       audio_amp off
+    elif [ ${new_volume} -eq 0 ]; then
+       audio_amp off
     else
-	   audio_amp on
+       audio_amp on
     fi
 }
 

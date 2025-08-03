@@ -1,0 +1,8 @@
+config BR2_PACKAGE_ST_SDL
+	bool "st-sdl"
+	default y
+	select BR2_PACKAGE_SDL
+	help
+	  SDL Terminal for RS97
+
+	  https://github.com/jamesofarrell/st-sdl

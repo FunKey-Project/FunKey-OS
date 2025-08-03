@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=PlayStation
+Comment=PlayStation emulator
+Icon=ps1
+Exec=/usr/games/launchers/psone_launch_pcsx.sh %f
+Categories=emulators
+SelectorDir=/mnt/PS1
+SelectorFilter=bin,cue,img,mdf,pbp,toc,cbn,m3u,chd,iso

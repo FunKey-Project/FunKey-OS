@@ -5,7 +5,7 @@
 
 SELF="$(basename ${0})"
 SYSTEM_BRIGHTNESS="/sys/class/backlight/backlight/brightness"
-DEFAULT_BRIGHTNESS_VALUE=100
+DEFAULT_BRIGHTNESS_VALUE=50
 BRIGHTNESS_STEP=10
 NOTIF_DURATION=2
 
@@ -33,7 +33,7 @@ increase_brightness() {
     fi
 
     # Notif
-    notif set ${NOTIF_DURATION} "       BRIGHTNESS: ${new_brightness}%%"
+    notif set ${NOTIF_DURATION} "       BRIGHTNESS: ${new_brightness}%"
 }
 
 decrease_brightness() {
@@ -53,7 +53,7 @@ decrease_brightness() {
     fi
 
     # Notif
-    notif set ${NOTIF_DURATION} "       BRIGHTNESS: ${new_brightness}%%"
+    notif set ${NOTIF_DURATION} "       BRIGHTNESS: ${new_brightness}%"
 }
 
 get_brightness() {

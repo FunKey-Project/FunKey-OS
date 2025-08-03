@@ -62,7 +62,7 @@ sdk: buildroot SDK/output/.config
 	@$(BRMAKE) BR2_EXTERNAL=../SDK O=../SDK/output prepare-sdk
 	@$(call MESSAGE,"Generating SDK tarball")
 	@export LC_ALL=C; \
-	SDK=FunKey-sdk-$(shell cat FunKey/board/funkey/rootfs-overlay/etc/sw-versions | cut -f 2); \
+	SDK=FunKey-sdk-DrUm78; \
 	grep -lr "$(shell pwd)/SDK/output/host" SDK/output/host | while read -r FILE ; do \
 		if file -b --mime-type "$${FILE}" | grep -q '^text/'; then \
 			sed -i "s|$(shell pwd)/SDK/output/host|/opt/$${SDK}|g" "$${FILE}"; \
@@ -105,7 +105,7 @@ image: fun
 	@mkdir -p root tmp
 	@./Recovery/output/host/bin/genimage --loglevel 0 --inputpath .
 	@rm -rf root tmp
-	@mv images/sdcard.img images/FunKey-sdcard-$(shell cat FunKey/board/funkey/rootfs-overlay/etc/sw-versions | cut -f 2).img
+	@mv images/sdcard.img images/FunKey-sdcard-DrUm78.img
 
 image-prod: fun
 	@$(call MESSAGE,"Creating disk image")
@@ -113,7 +113,7 @@ image-prod: fun
 	@mkdir -p root tmp
 	@./Recovery/output/host/bin/genimage --loglevel 0 --config "genimage-prod.cfg" --inputpath .
 	@rm -rf root tmp
-	@mv images/sdcard-prod.img images/FunKey-sdcard-prod-$(shell cat FunKey/board/funkey/rootfs-overlay/etc/sw-versions | cut -f 2).img
+	@mv images/sdcard-prod.img images/FunKey-sdcard-prod-DrUm78.img
 
 update: fun
 	@$(call MESSAGE,"Creating update file")
@@ -128,7 +128,7 @@ update: fun
 	@cd tmp && \
 	echo sw-description rootfs.ext2.gz update_partition | \
 	tr " " "\n" | \
-	cpio -o -H crc --quiet > ../images/FunKey-rootfs-$(shell cat FunKey/board/funkey/rootfs-overlay/etc/sw-versions | cut -f 2).fwu
+	cpio -o -H crc --quiet > ../images/FunKey-rootfs-DrUm78.fwu
 	@rm -rf tmp
 
 defconfig:

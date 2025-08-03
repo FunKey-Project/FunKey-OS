@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=GB/GBC
+Comment=Game Boy/Game Boy Color emulator
+Icon=gb_gbc
+Exec=/usr/games/launchers/gb_launch.sh %f
+Categories=emulators
+SelectorDir=/mnt/Game Boy
+SelectorFilter=gb,gbc,dmg,zip

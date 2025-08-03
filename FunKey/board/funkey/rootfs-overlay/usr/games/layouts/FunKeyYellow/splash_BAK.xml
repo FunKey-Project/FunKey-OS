@@ -1,0 +1,42 @@
+<layout width="240" height="240" font="Roboto-Bold.ttf" loadFontSize="18" fontColor="FFFFFFF" minShowTime="2">
+   
+
+    <!--backgroundImage-->
+
+    <image src="images/background.png" x="0" y="0" height="stretch" width="stretch" layer="0"/>
+
+
+    <!-- logo -->
+
+    <image src="images/logo.png" x="center" y="center" xOrigin="center" yOrigin="center" layer="1" alpha="1"/>
+   
+
+    <text value="Loading..." x="center" y="bottom" xOrigin="center" xOffset="0" yOrigin="center" yOffset="-20" height="33" width="stretch" fontSize="32" layer="3">
+        <onEnter>
+            <set duration=".4">
+                <animate type="alpha" from="0" to="1" algorithm="easeinquadratic"/>
+            </set>
+        </onEnter>
+        <onIdle>
+            <set duration=".4">
+                <animate type="alpha" from="1" to=".5" algorithm="easeinquadratic"/>
+            </set>
+            <set duration=".4">
+                <animate type="alpha" from=".5" to="1" algorithm="easeinquadratic"/>
+            </set>
+        </onIdle>
+      <onExit>
+           <set duration=".4">
+               <animate type="alpha" from="1" to="0" algorithm="easeinquadratic"/>
+           </set>
+       </onExit>
+    </text>
+    
+
+    <!-- Text shown when creating meta.db. This will only show once unless meta.db does not exsist -->
+
+    <statusText x="0" y="bottom" xOffset="20" yOrigin="center" yOffset="-39" height="33" width="stretch" fontSize="25" layer="3" />
+    <!-- <image src="images/splashloadbk.png" x="center" y="center" xOrigin="center" yOrigin="center" yOffset="74" layer="1" alpha="1"/> -->
+
+
+ </layout>
